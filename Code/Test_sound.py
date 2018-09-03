@@ -11,12 +11,25 @@ sample_rate, samples, t, total_time,steps= AD.spect('Test.wav');
 samples_dummy=samples[int(sample_rate):int(2*sample_rate)]
 AD.spect_plot(samples_dummy,sample_rate)
 tensor=AD.calc_tensor('temp_figure.png');
-tensor=AD.filter_noise(tensor)
+#tensor=AD.filter_noise(tensor)
+
+
+import pywt
+original = pywt.data.camera()
+fig1=AD.wave_plot(original,'bior1.3')
+fig2=AD.wave_plot(tensor,'bior1.3')
+
+#w = pywt.Wavelet('db3') #example
+#print(w) #show properties
+
+
+# Wavelet transform of image, and plot approximation and details
+
 
 ##
-for x in range(steps):
-    samples_dummy=samples[int(x*sample_rate/2):int((x+1)*sample_rate/2)]
-    AD.spect_plot(samples_dummy,sample_rate)
-    tensor=AD.calc_tensor('temp_figure.png');
+#for x in range(steps):
+    #samples_dummy=samples[int(x*sample_rate/2):int((x+1)*sample_rate/2)]
+    #AD.spect_plot(samples_dummy,sample_rate)
+    #tensor=AD.calc_tensor('temp_figure.png');
 
     #analysis of the plot saved as 'temp_figure.png'
