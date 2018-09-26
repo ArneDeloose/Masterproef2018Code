@@ -13,6 +13,9 @@ AD.spect_plot(samples_dummy,sample_rate)
 tensor=AD.calc_tensor('temp_figure.png');
 #tensor=AD.filter_noise(tensor)
 
+path2='C:\\Users\\arne\\Documents\\School\\Thesis\\test_ROI.png'
+ellipses=AD.ROI(path2, [10,5])
+
 
 import pywt
 original = pywt.data.camera()

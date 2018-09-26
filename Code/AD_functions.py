@@ -52,3 +52,21 @@ def wave_plot(data, wavelet):
         fig.tight_layout()
     return(fig)
     
+def ROI(image_path, kern):
+    #Image_path: location of the figure
+    #kern: parameters of the kernel size
+    import cv2
+    import numpy as np
+    image = cv2.imread(image_path)
+    #binary
+    ret,thresh = cv2.threshold(image,127,255,cv2.THRESH_BINARY_INV)
+    #dilation
+    kernel = np.ones((kern[0],kern[1]), np.uint8)
+    img_dilation = cv2.dilate(thresh, kernel, iterations=1)
+    im2,ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    ellipseMask = np.zeros(len(ctrs), dtype=np.uint8)
+    for i, ctrs in enumerate(ctrs):
+        # Get bounding box
+        ellipseMask[i] = cv2.fitEllipse(ctrs)
+    return(ellipseMask)
+    
