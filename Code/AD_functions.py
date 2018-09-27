@@ -16,7 +16,7 @@ def spect_plot(samples, sample_rate):
     plt.pcolormesh(times, frequencies, spectrogram, cmap='Greys')
     #plt.ylabel('Frequency [Hz]')
     #plt.xlabel('Time [sec]')
-    plt.ylim(10000,80000)
+    plt.ylim(10000,80000) #normal values: 10-80k
     plt.axis('off')
     plt.savefig('temp_figure.png')
     return()
@@ -58,15 +58,23 @@ def ROI(image_path, kern):
     import cv2
     import numpy as np
     image = cv2.imread(image_path)
+    gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     #binary
-    ret,thresh = cv2.threshold(image,127,255,cv2.THRESH_BINARY_INV)
+    ret,thresh = cv2.threshold(gray,127,255,cv2.THRESH_BINARY_INV)
     #dilation
     kernel = np.ones((kern[0],kern[1]), np.uint8)
     img_dilation = cv2.dilate(thresh, kernel, iterations=1)
     im2,ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    ellipseMask = np.zeros(len(ctrs), dtype=np.uint8)
-    for i, ctrs in enumerate(ctrs):
+    ellipseMask = np.zeros((5, len(ctrs)), dtype=float)
+    for i, ctr in enumerate(ctrs):
         # Get bounding box
-        ellipseMask[i] = cv2.fitEllipse(ctrs)
-    return(ellipseMask)
-    
+        dummy=cv2.fitEllipse(ctr)
+        ellipseMask[0,i]=round(dummy[0][0])
+        ellipseMask[1, i]=round(dummy[0][1])
+        ellipseMask[2, i]=round(dummy[1][0])
+        ellipseMask[3, i]=round(dummy[1][1])
+        ellipseMask[4, i]=round(dummy[2])
+        highlight= cv2.ellipse(gray, (int(ellipseMask[0,i]), int(ellipseMask[1,i])),
+                               (int(ellipseMask[2,i]/2), int(ellipseMask[3,i]/2)), int(ellipseMask[4,i]),
+                               int(0), int(360), int(1), int(2))
+    return(ellipseMask, highlight)

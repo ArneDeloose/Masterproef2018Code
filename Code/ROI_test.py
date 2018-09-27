@@ -3,21 +3,21 @@ import cv2
 import numpy as np
 
 #import image
-image = cv2.imread('C:\\Users\\arne\\Documents\\School\\Thesis\\test_ROI.png')
+image2 = cv2.imread('C:\\Users\\arne\\Documents\\School\\Thesis\\test_ROI.png')
 
 #grayscale
-gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+gray2 = cv2.cvtColor(image2,cv2.COLOR_BGR2GRAY)
 #cv2.imshow('gray', gray)
 #cv2.waitKey(0)
 
 #binary
-ret,thresh = cv2.threshold(gray,127,255,cv2.THRESH_BINARY_INV)
+ret2,thresh2 = cv2.threshold(gray2,127,255,cv2.THRESH_BINARY_INV)
 #cv2.imshow('second', thresh)
 #cv2.waitKey(0)
 
 #dilation, normal
-kernel = np.ones((1,1), np.uint8)
-img_dilation = cv2.dilate(thresh, kernel, iterations=1)
+kernel2 = np.ones((1,1), np.uint8)
+img_dilation2 = cv2.dilate(thresh2, kernel2, iterations=1)
 #cv2.imshow('dilated', img_dilation)
 #cv2.waitKey(0)
 
@@ -29,21 +29,21 @@ img_dilation = cv2.dilate(thresh, kernel, iterations=1)
 
 
 #find contours
-im2,ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+im2,ctrs2, hier2 = cv2.findContours(img_dilation2.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 #sort contours
-sorted_ctrs = sorted(ctrs, key=lambda ctr: cv2.boundingRect(ctr)[0])
+sorted_ctrs2 = sorted(ctrs2, key=lambda ctr: cv2.boundingRect(ctr)[0])
 
-for i, ctr in enumerate(sorted_ctrs):
+for i, ctr in enumerate(sorted_ctrs2):
     # Get bounding box
-    x, y, w, h = cv2.boundingRect(ctr)
+    x, y, w, h = cv2.boundingRect(ctrs2)
 
     # Getting ROI
-    roi = image[y:y+h, x:x+w]
+    roi = image2[y:y+h, x:x+w]
 
     # show ROI
     #cv2.imshow('segment no:'+str(i),roi)
-    cv2.rectangle(image,(x,y),( x + w, y + h ),(0,255,0),2)
+    cv2.rectangle(image2,(x,y),( x + w, y + h ),(0,255,0),2)
     #cv2.waitKey(0)
 
     #Write out sections to seperate files
@@ -51,5 +51,5 @@ for i, ctr in enumerate(sorted_ctrs):
         cv2.imwrite('C:\\Users\\arne\\Documents\\School\\Thesis\\{}.png'.format(i), roi)
         
     
-cv2.imshow('marked areas',image)
+cv2.imshow('marked areas',image2)
 cv2.waitKey(0)

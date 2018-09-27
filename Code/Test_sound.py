@@ -8,13 +8,15 @@ os.chdir(path)
 sample_rate, samples, t, total_time,steps= AD.spect('Test.wav');
 
 
-samples_dummy=samples[int(sample_rate):int(2*sample_rate)]
+samples_dummy=samples[int(sample_rate+50000):int(sample_rate+80000)]
 AD.spect_plot(samples_dummy,sample_rate)
 tensor=AD.calc_tensor('temp_figure.png');
 #tensor=AD.filter_noise(tensor)
 
-path2='C:\\Users\\arne\\Documents\\School\\Thesis\\test_ROI.png'
-ellipses=AD.ROI(path2, [10,5])
+path3='C:\\Users\\arne\\Documents\\School\\Thesis\\test_ROI.png'
+path2='C:\\Users\\arne\\Documents\\School\\Thesis\\temp_figure.png'
+ellipses, highlight=AD.ROI(path3, [1,1])
+
 
 
 import pywt
