@@ -16,9 +16,9 @@ def spect_plot(samples, sample_rate):
     plt.pcolormesh(times, frequencies, spectrogram, cmap='Greys')
     #plt.ylabel('Frequency [Hz]')
     #plt.xlabel('Time [sec]')
-    plt.ylim(10000,80000) #normal values: 10-80k
+    plt.ylim(40000,60000) #normal values: 10-80k
     plt.axis('off')
-    plt.savefig('temp_figure.png')
+    plt.savefig('temp_figure.png', dpi=5000)
     return()
 
 def calc_tensor(name):
@@ -58,9 +58,10 @@ def ROI(image_path, kern):
     import cv2
     import numpy as np
     image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+    image_dummy = np.array(image, dtype=np.uint8)
+    gray = cv2.cvtColor(image_dummy,cv2.COLOR_BGR2GRAY)
     #binary
-    ret,thresh = cv2.threshold(gray,127,255,cv2.THRESH_BINARY_INV)
+    ret,thresh = cv2.threshold(gray,25,255,cv2.THRESH_BINARY_INV)
     #dilation
     kernel = np.ones((kern[0],kern[1]), np.uint8)
     img_dilation = cv2.dilate(thresh, kernel, iterations=1)
