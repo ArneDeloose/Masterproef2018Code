@@ -18,7 +18,7 @@ def spect_plot(samples, sample_rate):
     #plt.xlabel('Time [sec]')
     plt.ylim(10000,80000) #normal values: 10-80k
     plt.axis('off')
-    plt.savefig('temp_figure.png')
+    plt.savefig('temp_figure.png') #increase dpi if need be
     return()
 
 def spect_loop(samples, sample_rate, steps, path):
@@ -80,7 +80,7 @@ def ROI(image_path, kern):
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     #binary
-    ret,thresh = cv2.threshold(gray,127,255,cv2.THRESH_BINARY_INV)
+    ret,thresh = cv2.threshold(gray,25,255,cv2.THRESH_BINARY_INV)
     #dilation
     kernel = np.ones((kern[0],kern[1]), np.uint8)
     img_dilation = cv2.dilate(thresh, kernel, iterations=1)
