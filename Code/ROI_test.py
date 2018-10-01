@@ -36,7 +36,7 @@ sorted_ctrs2 = sorted(ctrs2, key=lambda ctr: cv2.boundingRect(ctr)[0])
 
 for i, ctr in enumerate(sorted_ctrs2):
     # Get bounding box
-    x, y, w, h = cv2.boundingRect(ctrs2)
+    x, y, w, h = cv2.boundingRect(ctr)
 
     # Getting ROI
     roi = image2[y:y+h, x:x+w]
@@ -53,3 +53,13 @@ for i, ctr in enumerate(sorted_ctrs2):
     
 cv2.imshow('marked areas',image2)
 cv2.waitKey(0)
+
+#OLD ROI_ellipse code
+
+        #dummy=cv2.fitEllipse(ctr)
+        #ellipseMask[0,i]=round(dummy[0][0])
+        #ellipseMask[1, i]=round(dummy[0][1])
+        #ellipseMask[2, i]=round(dummy[1][0])
+        #ellipseMask[3, i]=round(dummy[1][1])
+        #ellipseMask[4, i]=round(dummy[2])
+

@@ -1,3 +1,8 @@
+#Check biggest rectangle size with some examples
+#Append all ROIs to this size (add empty space)
+#Define 'distance' between pictures
+#Use KNN, new data (library) can improve this procedure
+
 import os
 path='C:/Users/arne/Documents/Github/Masterproef2018Code/Code';
 os.chdir(path)
@@ -6,6 +11,12 @@ import AD_functions as AD
 path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
 os.chdir(path)
 sample_rate, samples, t, total_time,steps= AD.spect('Test.wav');
+image_path='C:\\Users\\arne\\Documents\\School\\Thesis\\temp_figure.png'
+rectangles=AD.spect_loop(samples, sample_rate, steps, image_path)
+highlight=AD.show_last(image_path, rectangles[49])
+import cv2
+cv2.imshow('Test',highlight)
+cv2.waitKey(0)
 
 
 samples_dummy=samples[int(sample_rate+50000):int(sample_rate+80000)]
