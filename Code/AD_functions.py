@@ -7,7 +7,8 @@ def spect(name):
     t=np.linspace(0,N/sample_rate, num=N); #time_array
     total_time=N/sample_rate;
     steps=math.floor(total_time)
-    return(sample_rate, samples, t, total_time, steps)
+    microsteps=math.floor(10*(total_time-steps))
+    return(sample_rate, samples, t, total_time, steps, microsteps)
 
 def spect_plot(samples, sample_rate):
     import matplotlib.pyplot as plt
@@ -18,27 +19,35 @@ def spect_plot(samples, sample_rate):
     #plt.xlabel('Time [sec]')
     plt.ylim(10000,80000) #normal values: 10-80k
     plt.axis('off')
-    plt.savefig('temp_figure.png') #increase dpi if need be
+    plt.savefig('temp_figure.png', dpi=1000) #increase dpi if need be
     return()
 
-def spect_loop(samples, sample_rate, steps, path):
+def spect_loop(file_name, path):
     #Function creates a dictionary 'rectangles' containing coordinates of the ROIs per image
     #Each image is 100 ms, number within dictionary indicates 
     #image number (e.g rectangles(45: ...) is 4500ms to 4600ms or 4.5 secs to 4.6 secs)
     #Empty images are skipped
     import AD_functions as AD
+    sample_rate, samples, t, total_time,steps, microsteps= AD.spect(file_name);
     rectangles={};
+    regions={};
     dummy_per=int(0);
     for i in range(steps):
         for j in range(10):
             samples_dummy=samples[int(i*sample_rate+sample_rate*j/10):int(i*sample_rate+sample_rate*(j+1)/10)]
             AD.spect_plot(samples_dummy,sample_rate)
-            ctrs, dummy_flag=AD.ROI(path, [1, 1])
+            ctrs, dummy_flag, gray=AD.ROI(path, [1, 1])
             if dummy_flag:
-                rectangles[i*10+j]=AD.ROI2(ctrs)
+                rectangles[i*10+j], regions[i*10+j]=AD.ROI2(ctrs, gray)
         dummy_per=round(100*i/steps);
         print(dummy_per, ' percent complete') #Percentage completion
-    return(rectangles)
+    for j in range(microsteps):
+        samples_dummy=samples[int((i+1)*sample_rate+sample_rate*j/10):int((i+1)*sample_rate+sample_rate*(j+1)/10)]
+        AD.spect_plot(samples_dummy,sample_rate)
+        ctrs, dummy_flag, gray=AD.ROI(path, [1, 1])
+        if dummy_flag:
+            rectangles[(i+1)*10+j], regions[(i+1)*10+j]=AD.ROI2(ctrs, gray)
+    return(rectangles, regions)
 
 def calc_tensor(name):
     from PIL import Image as im
@@ -88,23 +97,25 @@ def ROI(image_path, kern):
     #set len_flag: True if there are contours, False if image is empty
     if len(ctrs)==0:
         len_flag=False #Empty image
-    return(ctrs, len_flag)
+    return(ctrs, len_flag, gray)
 
 #Only use if the image is not empty
-def ROI2(ctrs):    
+def ROI2(ctrs, gray):    
     import numpy as np
     import cv2
     Mask = np.zeros((4, len(ctrs)), dtype=float)
+    regions={}
     for i, ctr in enumerate(ctrs):
         # Get bounding box
         #x, y: lower left corner
         #w, h: width and height
         x, y, w, h =cv2.boundingRect(ctr);
-        Mask[0, i]=round(x);
-        Mask[1, i]=round(y);
-        Mask[2, i]=round(w);
-        Mask[3, i]=round(h);
-    return(Mask)
+        Mask[0, i]=int(x);
+        Mask[1, i]=int(y);
+        Mask[2, i]=int(w);
+        Mask[3, i]=int(h);
+        regions[i]=gray[x:x+w, y:y+h]
+    return(Mask, regions)
 
 def ROI_highlight(gray, ellipseMask, i): #only works for ellipses
     import cv2
@@ -119,4 +130,6 @@ def show_last(image_path, coord):
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     highlight=cv2.rectangle(gray, (coord[0],coord[1]),( coord[0] + coord[2], 
                             coord[1] + coord[3] ),(0,255,0),2)
+    cv2.imshow('Image', highlight)
+    cv2.waitkey(0)
     return(highlight)
