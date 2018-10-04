@@ -76,6 +76,9 @@ def ROI(spect_norm, kern, X):
     kernel = np.ones((kern[0],kern[1]), np.uint8)
     img_dilation = cv2.dilate(thresh, kernel, iterations=1)
     im2,ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #Retr_external: retrieval mode external. Only outer edges are considered,
+    #Contours within other contours aren't allowed, any holes are ignored
+    #Chain_approx_simple: stores only the outer points of the rectangle (4 points)   
     #set len_flag: True if there are contours, False if image is empty
     if len(ctrs)==0:
         len_flag=False #Empty image
