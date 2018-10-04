@@ -1,8 +1,25 @@
-def spect(name):
-    import scipy.io.wavfile
-    import numpy as np
-    import math
-    [sample_rate,samples]=scipy.io.wavfile.read(name, mmap=False);
+import scipy.io.wavfile
+import numpy as np
+import math
+import matplotlib.pyplot as plt
+from scipy import signal
+import cv2
+import AD_functions as AD
+import pywt
+import matplotlib.patches as patches
+#import matplotlib.pyplot as plt
+
+def set_parameters():
+    X=25 #Threshold for noise
+    kern=[3,3] #minimum size rectangle
+    #1 point= 1/3 ms
+    #1 point= 375 Hz
+    #kernel: 3, 3=> minimum size of ROI: roughly 1ms and 1 kHz
+    return(X, kern)
+
+def spect(file_name):
+    #Reads information from audio file
+    [sample_rate,samples]=scipy.io.wavfile.read(file_name, mmap=False);
     N=len(samples); #number of samples
     t=np.linspace(0,N/sample_rate, num=N); #time_array
     total_time=N/sample_rate;
@@ -11,61 +28,77 @@ def spect(name):
     return(sample_rate, samples, t, total_time, steps, microsteps)
 
 def spect_plot(samples, sample_rate):
-    import matplotlib.pyplot as plt
-    from scipy import signal
-    frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate)
-    plt.pcolormesh(times, frequencies, spectrogram, cmap='Greys')
-    #plt.ylabel('Frequency [Hz]')
-    #plt.xlabel('Time [sec]')
-    plt.ylim(10000,80000) #normal values: 10-80k
-    plt.axis('off')
-    plt.savefig('temp_figure.png', dpi=1000) #increase dpi if need be
-    return()
+    #Makes a spectrogram, data normalised to the range [0-1]
+    #Change parameters of spectrogram (window, resolution)
+    frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=('hamming'), nfft=1024)
+    dummy=(spectrogram-spectrogram.min())/(spectrogram.max()-spectrogram.min())
+    spect_norm=np.array(np.round(dummy*256), dtype=np.uint8)
+    return(spect_norm[80:214,:]) #Frequency 30-80.25 kHz
 
-def spect_loop(file_name, path):
+def spect_loop(file_name):
     #Function creates a dictionary 'rectangles' containing coordinates of the ROIs per image
     #Each image is 100 ms, number within dictionary indicates 
     #image number (e.g rectangles(45: ...) is 4500ms to 4600ms or 4.5 secs to 4.6 secs)
     #Empty images are skipped
-    import AD_functions as AD
+    X, kern=set_parameters();
     sample_rate, samples, t, total_time,steps, microsteps= AD.spect(file_name);
     rectangles={};
     regions={};
+    spectros={};
     dummy_per=int(0);
     for i in range(steps):
         for j in range(10):
             samples_dummy=samples[int(i*sample_rate+sample_rate*j/10):int(i*sample_rate+sample_rate*(j+1)/10)]
-            AD.spect_plot(samples_dummy,sample_rate)
-            ctrs, dummy_flag, gray=AD.ROI(path, [1, 1])
+            spect_norm=AD.spect_plot(samples_dummy,sample_rate)
+            ctrs, dummy_flag=AD.ROI(spect_norm, [3, 3], X)
             if dummy_flag:
-                rectangles[i*10+j], regions[i*10+j]=AD.ROI2(ctrs, gray)
+                rectangles[i*10+j], regions[i*10+j]=AD.ROI2(ctrs, spect_norm)
+            spectros[i*10+j]=spect_norm
         dummy_per=round(100*i/steps);
         print(dummy_per, ' percent complete') #Percentage completion
     for j in range(microsteps):
         samples_dummy=samples[int((i+1)*sample_rate+sample_rate*j/10):int((i+1)*sample_rate+sample_rate*(j+1)/10)]
-        AD.spect_plot(samples_dummy,sample_rate)
-        ctrs, dummy_flag, gray=AD.ROI(path, [1, 1])
+        spect_norm=AD.spect_plot(samples_dummy,sample_rate)
+        ctrs, dummy_flag=AD.ROI(spect_norm, [3, 3], X)
         if dummy_flag:
-            rectangles[(i+1)*10+j], regions[(i+1)*10+j]=AD.ROI2(ctrs, gray)
-    return(rectangles, regions)
+            rectangles[(i+1)*10+j], regions[(i+1)*10+j]=AD.ROI2(ctrs, spect_norm)
+        spectros[(i+1)*10*j]=spect_norm
+    return(rectangles, regions, spectros)
+    
+def ROI(spect_norm, kern, X):
+    #Image_path: location of the figure
+    #kern: parameters of the kernel size
+    len_flag=True
+    #binary
+    #Conversion to uint8 for contours
+    ret,thresh = cv2.threshold(spect_norm,X,256,cv2.THRESH_BINARY)
+    #dilation
+    kernel = np.ones((kern[0],kern[1]), np.uint8)
+    img_dilation = cv2.dilate(thresh, kernel, iterations=1)
+    im2,ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #set len_flag: True if there are contours, False if image is empty
+    if len(ctrs)==0:
+        len_flag=False #Empty image
+    return(ctrs, len_flag)
 
-def calc_tensor(name):
-    from PIL import Image as im
-    import numpy as np
-    img = im.open(name).convert('LA'); #convert to grayscale
-    tensor = np.asarray( img, dtype="int32" )
-    tensor=tensor[:,:,0]; #We only need the first page
-    return(tensor)
+#Only use if the image is not empty
+def ROI2(ctrs, spect_norm):    
+    Mask = np.zeros((4, len(ctrs)), dtype=np.uint8)
+    regions={}
+    for i, ctr in enumerate(ctrs):
+        # Get bounding box
+        #x, y: lower left corner
+        #w, h: width and height
+        x, y, w, h =cv2.boundingRect(ctr);
+        Mask[0, i]=int(x);
+        Mask[1, i]=int(y);
+        Mask[2, i]=int(w);
+        Mask[3, i]=int(h);
+        regions[i]=spect_norm[x:x+w, y:y+h]
+    return(Mask, regions)
 
-def filter_noise(tensor):
-    a=tensor.min();
-    b=int((0.1*(255-a)))
-    tensor[tensor > 255-b] = 255
-    return(tensor)
 
 def wave_plot(data, wavelet):
-    import pywt
-    import matplotlib.pyplot as plt
     titles = ['Approximation', ' Horizontal detail',
           'Vertical detail', 'Diagonal detail']
     coeffs2 = pywt.dwt2(data, 'db4')
@@ -79,57 +112,16 @@ def wave_plot(data, wavelet):
         ax.set_yticks([])
         fig.tight_layout()
     return(fig)
-    
-def ROI(image_path, kern):
-    #Image_path: location of the figure
-    #kern: parameters of the kernel size
-    len_flag=True
-    import cv2
-    import numpy as np
-    image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-    #binary
-    ret,thresh = cv2.threshold(gray,25,255,cv2.THRESH_BINARY_INV)
-    #dilation
-    kernel = np.ones((kern[0],kern[1]), np.uint8)
-    img_dilation = cv2.dilate(thresh, kernel, iterations=1)
-    im2,ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    #set len_flag: True if there are contours, False if image is empty
-    if len(ctrs)==0:
-        len_flag=False #Empty image
-    return(ctrs, len_flag, gray)
 
-#Only use if the image is not empty
-def ROI2(ctrs, gray):    
-    import numpy as np
-    import cv2
-    Mask = np.zeros((4, len(ctrs)), dtype=float)
-    regions={}
-    for i, ctr in enumerate(ctrs):
-        # Get bounding box
-        #x, y: lower left corner
-        #w, h: width and height
-        x, y, w, h =cv2.boundingRect(ctr);
-        Mask[0, i]=int(x);
-        Mask[1, i]=int(y);
-        Mask[2, i]=int(w);
-        Mask[3, i]=int(h);
-        regions[i]=gray[x:x+w, y:y+h]
-    return(Mask, regions)
-
-def ROI_highlight(gray, ellipseMask, i): #only works for ellipses
-    import cv2
-    highlight= cv2.ellipse(gray, (int(ellipseMask[0,i]), int(ellipseMask[1,i])),
-                               (int(ellipseMask[2,i]/2), int(ellipseMask[3,i]/2)), int(ellipseMask[4,i]),
-                               int(0), int(360), int(1), int(2))
-    return(highlight)
-
-def show_last(image_path, coord):
-    import cv2
-    image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-    highlight=cv2.rectangle(gray, (coord[0],coord[1]),( coord[0] + coord[2], 
-                            coord[1] + coord[3] ),(0,255,0),2)
-    cv2.imshow('Image', highlight)
-    cv2.waitkey(0)
-    return(highlight)
+def show_region(rectangles, spectros, i):
+    f, ax1 = plt.subplots()
+    ax1.imshow(spectros[i])
+    dummy=rectangles[i].shape
+    for j in range(dummy[1]):
+       rect = patches.Rectangle((rectangles[i][0,j],rectangles[i][1,j]),
+                                rectangles[i][2,j],rectangles[i][3,j],
+                                linewidth=1,edgecolor='r',facecolor='none')
+       # Add the patch to the Axes
+       ax1.add_patch(rect)
+    plt.show()
+    return()
