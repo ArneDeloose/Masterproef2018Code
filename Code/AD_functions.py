@@ -7,6 +7,7 @@ import cv2
 import AD_functions as AD
 import pywt
 import matplotlib.patches as patches
+from skimage.measure import compare_ssim as ssim
 #import matplotlib.pyplot as plt
 
 def set_parameters():
@@ -45,7 +46,6 @@ def spect_loop(file_name):
     rectangles={};
     regions={};
     spectros={};
-    dummy_per=int(0);
     for i in range(steps):
         for j in range(10):
             samples_dummy=samples[int(i*sample_rate+sample_rate*j/10):int(i*sample_rate+sample_rate*(j+1)/10)]
@@ -54,15 +54,13 @@ def spect_loop(file_name):
             if dummy_flag:
                 rectangles[i*10+j], regions[i*10+j]=AD.ROI2(ctrs, spect_norm)
             spectros[i*10+j]=spect_norm
-        dummy_per=round(100*i/steps);
-        print(dummy_per, ' percent complete') #Percentage completion
     for j in range(microsteps):
         samples_dummy=samples[int((i+1)*sample_rate+sample_rate*j/10):int((i+1)*sample_rate+sample_rate*(j+1)/10)]
         spect_norm=AD.spect_plot(samples_dummy,sample_rate)
         ctrs, dummy_flag=AD.ROI(spect_norm, [3, 3], X)
         if dummy_flag:
             rectangles[(i+1)*10+j], regions[(i+1)*10+j]=AD.ROI2(ctrs, spect_norm)
-        spectros[(i+1)*10*j]=spect_norm
+        spectros[(i+1)*10+j]=spect_norm
     return(rectangles, regions, spectros)
     
 def ROI(spect_norm, kern, X):
@@ -97,7 +95,7 @@ def ROI2(ctrs, spect_norm):
         Mask[1, i]=int(y);
         Mask[2, i]=int(w);
         Mask[3, i]=int(h);
-        regions[i]=spect_norm[x:x+w, y:y+h]
+        regions[i]=spect_norm[y:y+h, x:x+w]
     return(Mask, regions)
 
 
@@ -128,3 +126,42 @@ def show_region(rectangles, spectros, i):
        ax1.add_patch(rect)
     plt.show()
     return()
+
+def compare_img(img1, img2):
+    si=(len(img2[1,:]), len(img2))
+    img1_new=cv2.resize(img1, si)
+    score=ssim(img1_new, img2)
+    return(score)
+
+def resize_img_plot(img1,img2):
+    si=(len(img2[1,:]), len(img2))
+    img1_new=cv2.resize(img1, si)
+    f, (ax1, ax2) = plt.subplots(2,1)
+    ax1.imshow(img1)
+    ax2.imshow(img1_new)
+    plt.show()
+    return()
+
+def compare_img_plot(img1,img2):
+    f, (ax1, ax2) = plt.subplots(2,1)
+    ax1.imshow(img1)
+    ax2.imshow(img2)
+    plt.show()
+    return()
+
+def create_smatrix(rectangles, spectros): #creates empty s_mat
+    x=len(spectros)
+    dummy=np.zeros(x, dtype=np.uint8)
+    for i,j in rectangles.items():
+        dummy[i]=len(rectangles[i][0,:])
+    y=dummy.max()
+    s_mat=np.zeros((y,x), dtype=np.float)
+    return(s_mat)
+
+def calc_smatrix(s_mat, regions, template): #Fills s_mat
+    s_mat2=s_mat.copy()
+    for i,d in regions.items():
+        for j,d in regions[i].items():
+            s_mat2[j,i]=AD.compare_img(regions[i][j], template)
+    return(s_mat2)
+
