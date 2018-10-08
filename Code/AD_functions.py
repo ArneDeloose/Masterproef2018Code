@@ -8,15 +8,15 @@ import AD_functions as AD
 import pywt
 import matplotlib.patches as patches
 from skimage.measure import compare_ssim as ssim
-#import matplotlib.pyplot as plt
 
 def set_parameters():
-    X=25 #Threshold for noise
+    X=25 #Threshold for noise binary image
     kern=[3,3] #minimum size rectangle
+    thresh=0.75 #Threshold for ssim classification
     #1 point= 1/3 ms
     #1 point= 375 Hz
     #kernel: 3, 3=> minimum size of ROI: roughly 1ms and 1 kHz
-    return(X, kern)
+    return(X, kern, thresh)
 
 def spect(file_name):
     #Reads information from audio file
@@ -98,7 +98,6 @@ def ROI2(ctrs, spect_norm):
         regions[i]=spect_norm[y:y+h, x:x+w]
     return(Mask, regions)
 
-
 def wave_plot(data, wavelet):
     titles = ['Approximation', ' Horizontal detail',
           'Vertical detail', 'Diagonal detail']
@@ -149,19 +148,50 @@ def compare_img_plot(img1,img2):
     plt.show()
     return()
 
-def create_smatrix(rectangles, spectros): #creates empty s_mat
+def create_smatrix(rectangles, spectros, num_classes): #creates empty score matrix
     x=len(spectros)
     dummy=np.zeros(x, dtype=np.uint8)
     for i,j in rectangles.items():
         dummy[i]=len(rectangles[i][0,:])
     y=dummy.max()
-    s_mat=np.zeros((y,x), dtype=np.float)
+    s_mat=np.zeros((y, x, num_classes), dtype=np.float)
     return(s_mat)
 
-def calc_smatrix(s_mat, regions, template): #Fills s_mat
+def calc_smatrix(s_mat, regions, templates, num): #Fills s_mat
     s_mat2=s_mat.copy()
+    a=len(templates)
+    dummy=np.zeros(a, dtype=np.float)
     for i,d in regions.items():
         for j,d in regions[i].items():
-            s_mat2[j,i]=AD.compare_img(regions[i][j], template)
+            for k in range(a):
+                dummy[k]=AD.compare_img(regions[i][j], templates[k])
+            s_mat2[j, i, num]=dummy.max()
     return(s_mat2)
 
+def create_cmatrix(rectangles, spectros): #creates empty classify matrix
+    x=len(spectros)
+    dummy=np.zeros(x, dtype=np.uint8)
+    for i,j in rectangles.items():
+        dummy[i]=len(rectangles[i][0,:])
+    y=dummy.max()
+    c_mat=np.zeros((y,x), dtype=np.uint8)
+    return(c_mat)
+
+def calc_cmatrix(c_mat, s_mat, thresh): #Fills c_mat
+    c_mat2=c_mat.copy()
+    y=len(c_mat) #rows
+    x=len(c_mat[0]) #colums
+    for i in range(x):
+        for j in range(y):
+            index_max=np.argmax(s_mat[j,i])
+            value_max=s_mat[j,i].max()
+            if value_max>thresh:
+                c_mat2[j,i]=index_max+2
+            else:
+                if s_mat[j,i]!=0:
+                    c_mat2[j,i]=1
+    return(c_mat2)
+
+#0: empty
+#1: not-classified
+#n: class (n-2)
