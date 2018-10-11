@@ -41,7 +41,7 @@ def spect_loop(file_name):
     #Each image is 100 ms, number within dictionary indicates 
     #image number (e.g rectangles(45: ...) is 4500ms to 4600ms or 4.5 secs to 4.6 secs)
     #Empty images are skipped
-    X, kern=set_parameters();
+    X, kern, thresh=set_parameters();
     sample_rate, samples, t, total_time,steps, microsteps= AD.spect(file_name);
     rectangles={};
     regions={};
@@ -177,18 +177,19 @@ def create_cmatrix(rectangles, spectros): #creates empty classify matrix
     c_mat=np.zeros((y,x), dtype=np.uint8)
     return(c_mat)
 
-def calc_cmatrix(c_mat, s_mat, thresh): #Fills c_mat
+def calc_cmatrix(c_mat, s_mat): #Fills c_mat
+    X, kern, thresh=set_parameters();
     c_mat2=c_mat.copy()
     y=len(c_mat) #rows
     x=len(c_mat[0]) #colums
     for i in range(x):
         for j in range(y):
-            index_max=np.argmax(s_mat[j,i])
-            value_max=s_mat[j,i].max()
+            index_max=np.argmax(s_mat[j,i,:])
+            value_max=s_mat[j,i,:].max()
             if value_max>thresh:
                 c_mat2[j,i]=index_max+2
             else:
-                if s_mat[j,i]!=0:
+                if np.sum(s_mat[j,i,:], )!=0: #Signal present
                     c_mat2[j,i]=1
     return(c_mat2)
 

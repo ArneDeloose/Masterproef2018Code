@@ -19,9 +19,8 @@ templates_0={0: img3, 1: img4}
 s_mat=AD.create_smatrix(rectangles, spectros, 1)
 s_mat=AD.calc_smatrix(s_mat, regions, templates_0, 0)
 
-thresh=0.75
 c_mat=AD.create_cmatrix(rectangles, spectros)
-c_mat=AD.calc_cmatrix(c_mat, s_mat, thresh)
+c_mat=AD.calc_cmatrix(c_mat, s_mat)
 
 
 AD.show_region(rectangles, spectros, 2)
