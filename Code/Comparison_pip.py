@@ -25,14 +25,18 @@ rectangles3, regions3, spectros3=AD.spect_loop(file_name3)
 #plt.imshow(regions1[2][0])
 
 #Pip bat
-templates_0=AD.create_template_set(regions1)
+templates_0=AD.create_template_set()
 
 #ppip 
-res1=AD.loop_res(rectangles1, spectros1, regions1, templates_0)
-res2=AD.loop_res(rectangles2, spectros2, regions2, templates_0)
-res3=AD.loop_res(rectangles3, spectros3, regions3, templates_0)
+res1, c_mat1, s_mat1=AD.loop_res(rectangles1, spectros1, regions1, templates_0)
+res2, c_mat2, s_mat2=AD.loop_res(rectangles2, spectros2, regions2, templates_0)
+res3, c_mat3, s_mat3=AD.loop_res(rectangles3, spectros3, regions3, templates_0)
+
+AD.show_class(1, c_mat1, rectangles1, regions1, spectros1)
+#AD.show_class(1, c_mat2, rectangles2, regions2, spectros2)
+#AD.show_class(1, c_mat3, rectangles3, regions3, spectros3)
 
 #Current results (20 templates, no frequency requirement):
-#res1: 44 signals (20 defined), 46 noise
-#res2: 11 signals, 128 noise
-#res3: 1 signal (misclassified), 72 noise
+#res1: 44 signals (20 defined), 11 noise
+#res2: 11 signals, 82 noise
+#res3: 1 signal (misclassified), 111 noise
