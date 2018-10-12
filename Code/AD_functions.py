@@ -11,8 +11,8 @@ from skimage.measure import compare_ssim as ssim
 
 def set_parameters():
     X=25 #Threshold for noise binary image
-    kern=[3,3] #minimum size rectangle
-    thresh=0.75 #Threshold for ssim classification
+    kern=[1,1] #minimum size rectangle
+    thresh=0.6 #Threshold for ssim classification
     #1 point= 1/3 ms
     #1 point= 375 Hz
     #kernel: 3, 3=> minimum size of ROI: roughly 1ms and 1 kHz
@@ -33,8 +33,15 @@ def spect_plot(samples, sample_rate):
     #Change parameters of spectrogram (window, resolution)
     frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=('hamming'), nfft=1024)
     dummy=(spectrogram-spectrogram.min())/(spectrogram.max()-spectrogram.min())
-    spect_norm=np.array(np.round(dummy*256), dtype=np.uint8)
-    return(spect_norm[80:214,:]) #Frequency 30-80.25 kHz
+    dummy=np.array(np.round(dummy*256), dtype=np.uint8) #Convert to grayscale
+    spectro=AD.substraction(dummy[80:214,:]) #Frequency 30-80.25 kHz
+    return(spectro) 
+
+def substraction(spect):
+    dummy=np.zeros([len(spect),len(spect[0,:])])
+    spectro=np.maximum(dummy, spect-spect.mean()) #Take maximum of zero and value to remove negative values
+    spectro=np.array(spectro, dtype=np.uint8) #Convert back from float to uint8
+    return(spectro)
 
 def spect_loop(file_name):
     #Function creates a dictionary 'rectangles' containing coordinates of the ROIs per image
@@ -84,18 +91,25 @@ def ROI(spect_norm, kern, X):
 
 #Only use if the image is not empty
 def ROI2(ctrs, spect_norm):    
-    Mask = np.zeros((4, len(ctrs)), dtype=np.uint8)
+    Mask = np.zeros((4, 0), dtype=np.uint8) #empty array
     regions={}
+    count=0
     for i, ctr in enumerate(ctrs):
         # Get bounding box
         #x, y: lower left corner
         #w, h: width and height
         x, y, w, h =cv2.boundingRect(ctr);
-        Mask[0, i]=int(x);
-        Mask[1, i]=int(y);
-        Mask[2, i]=int(w);
-        Mask[3, i]=int(h);
-        regions[i]=spect_norm[y:y+h, x:x+w]
+        #Signal needs to be broader than 4875 Hz (roughly 5 kHz)
+        #And longer than 5 ms
+        if h>13 and w>3:
+            temp=np.zeros((4, 1), dtype=np.uint8) #create temporary aray
+            temp[0, 0]=int(x) #Fill in values
+            temp[1, 0]=int(y)
+            temp[2, 0]=int(w)
+            temp[3, 0]=int(h)
+            Mask=np.concatenate((Mask, temp), axis=1) #Append array per column
+            regions[count]=spect_norm[y:y+h, x:x+w]
+            count+=1
     return(Mask, regions)
 
 def wave_plot(data, wavelet):
@@ -123,7 +137,14 @@ def show_region(rectangles, spectros, i):
                                 linewidth=1,edgecolor='r',facecolor='none')
        # Add the patch to the Axes
        ax1.add_patch(rect)
+    plt.title(i)
     plt.show()
+    return()
+
+def show_mregions(rectangles, spectros):
+    for i in range(len(rectangles)):
+        AD.show_region(rectangles, spectros, i)
+        input('Press enter to continue')
     return()
 
 def compare_img(img1, img2):
@@ -196,3 +217,46 @@ def calc_cmatrix(c_mat, s_mat): #Fills c_mat
 #0: empty
 #1: not-classified
 #n: class (n-2)
+
+def calc_result(c_mat, num_classes):
+    res=np.zeros([num_classes+2,1], dtype=np.uint8)
+    for i in range(num_classes+2):
+        res[i]=np.sum(c_mat==i)
+    return(res)
+
+def loop_res(rectangles, spectros, regions, templates): #result for a single class
+    s_mat=AD.create_smatrix(rectangles, spectros, 1)
+    s_mat=AD.calc_smatrix(s_mat, regions, templates, 0)
+    c_mat=AD.create_cmatrix(rectangles, spectros)
+    c_mat=AD.calc_cmatrix(c_mat, s_mat)
+    res=AD.calc_result(c_mat, 1)
+    return(res)
+
+def create_template_set(regions1): #temp function storing a template set
+    img1=regions1[0][0]
+    img2=regions1[1][0]
+    img3=regions1[2][0]
+    img4=regions1[3][0]
+    img5=regions1[4][0]
+    img6=regions1[5][0]
+    img7=regions1[6][0]
+    img8=regions1[7][0]
+    img9=regions1[8][0]
+    img10=regions1[9][0]
+    img11=regions1[11][0]
+    img12=regions1[12][0]
+    img13=regions1[13][0]
+    img14=regions1[14][0]
+    img15=regions1[15][0]
+    img16=regions1[16][0]
+    img17=regions1[17][0]
+    img18=regions1[18][0]
+    img19=regions1[20][0]
+    img20=regions1[21][0]
+
+    templates_0={0: img1, 1: img2, 2: img3, 3: img4,
+             4: img5, 5: img6, 6: img7, 7: img8,
+             8: img9, 9: img10, 10: img11, 11: img12,
+             12: img13, 13: img14, 14: img15, 15: img16,
+             16: img17, 17: img18, 18: img19, 19: img20}
+    return(templates_0)
