@@ -11,21 +11,23 @@ from skimage.measure import compare_ssim as ssim
 
 def set_parameters():
     X=25 #Threshold for noise binary image
-    kern=[3,3] #minimum size rectangle
+    kern=[3,3] #window for roi
     thresh=0.6 #Threshold for ssim classification
     max_roi=10 #Maximum number of regions in a single spectrogram
+    min_spec_freq=80 #30 kHz, restriction spectrogram
+    max_spec_freq=214 #80.25 kHz
     #1 point= 1/3 ms
     #1 point= 375 Hz
-    #kernel: 3, 3=> minimum size of ROI: roughly 1ms and 1 kHz
-    return(X, kern, thresh, max_roi)
+    return(X, kern, thresh, max_roi, min_spec_freq, max_spec_freq)
     
-def set_freqthresh(num_class):
+def set_freqthresh(num_class): #frequency number depends on minimum frequency used for the spectrum
+    _,_,_,_,min_spec_freq,max_spec_freq=AD.set_parameters()
     if num_class==0:
-        min_freq=35 #40 khz
-        max_freq=55 #55, 50 khz
+        min_freq=115-min_spec_freq #43 khz
+        max_freq=135-min_spec_freq #50 khz
     else: #full spectro
         min_freq=0
-        max_freq=161 #max freq
+        max_freq=max_spec_freq-min_spec_freq #max freq
     return(min_freq, max_freq)
         
 def spect(file_name):
@@ -41,10 +43,11 @@ def spect(file_name):
 def spect_plot(samples, sample_rate):
     #Makes a spectrogram, data normalised to the range [0-1]
     #Change parameters of spectrogram (window, resolution)
+    _,_,_,_,min_spec_freq,max_spec_freq=AD.set_parameters()
     frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=('hamming'), nfft=1024)
     dummy=(spectrogram-spectrogram.min())/(spectrogram.max()-spectrogram.min())
     dummy=np.array(np.round(dummy*256), dtype=np.uint8) #Convert to grayscale
-    spectro=AD.substraction(dummy[53:214,:]) #Frequency 19.875-80.25 kHz
+    spectro=AD.substraction(dummy[min_spec_freq:max_spec_freq,:])
     return(spectro) 
 
 def substraction(spect):
@@ -58,7 +61,7 @@ def spect_loop(file_name):
     #Each image is 100 ms, number within dictionary indicates 
     #image number (e.g rectangles(45: ...) is 4500ms to 4600ms or 4.5 secs to 4.6 secs)
     #Empty images are skipped
-    X, kern, _, _=AD.set_parameters()
+    X, kern, _, _,_,_=AD.set_parameters()
     sample_rate, samples, t, total_time,steps, microsteps= AD.spect(file_name);
     rectangles={};
     regions={};
@@ -124,7 +127,7 @@ def ROI2(ctrs, spect_norm):
     return(Mask, regions)
 
 def overload(rectangles, regions): #deletes entries with ten or more rectangles
-    _, _, _, max_roi=set_parameters()
+    _, _, _, max_roi, _,_=set_parameters()
     rectangles2=rectangles.copy() #copy dictionaries
     regions2=regions.copy()
     for i,j in rectangles.items(): #iterate over all items
@@ -223,7 +226,7 @@ def create_cmatrix(rectangles, spectros): #creates empty classify matrix
     return(c_mat)
 
 def calc_cmatrix(c_mat, s_mat): #Fills c_mat
-    _, _, thresh, _=set_parameters();
+    _, _, thresh, _,_,_=set_parameters();
     c_mat2=c_mat.copy()
     y=len(c_mat) #rows
     x=len(c_mat[0]) #colums
@@ -248,7 +251,9 @@ def calc_result(c_mat, num_classes):
         res[i]=np.sum(c_mat==i)
     return(res)
 
-def loop_res(rectangles, spectros, regions, templates_0): #result for a single class
+#Expand loop_res with a for-loop and a number of classes
+#Templates need to be subdictionaries that can be referred to as templates[i]
+def loop_res(rectangles, spectros, regions, templates_0): #single class
     s_mat=AD.create_smatrix(rectangles, spectros, 1)
     s_mat=AD.calc_smatrix(s_mat, regions, rectangles, templates_0, 0)
     #s_mat=AD.calc_smatrix(s_mat, regions, rectangles, templates_1, 1)

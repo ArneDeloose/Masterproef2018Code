@@ -1,6 +1,4 @@
-#Comparison of two pipistrelle signals and a different signal (eser)
-
-#Add a few more pip signals to test further and use frequency as parameter to determine signal
+#Comparison of pipistrelle signals and different signals (eser and noise)
 
 #Load data
 import os
