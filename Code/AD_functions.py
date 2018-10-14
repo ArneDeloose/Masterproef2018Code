@@ -154,19 +154,19 @@ def show_region(rectangles, spectros, i):
     return()
 
 def show_mregions(rectangles, spectros):
-    for i in range(len(rectangles)):
+    for i,d in rectangles.items():
         AD.show_region(rectangles, spectros, i)
         input('Press enter to continue')
     return()
 
 def compare_img(img1, img2):
-    si=(len(img2[1,:]), len(img2))
+    si=(len(img2[0,:]), len(img2))
     img1_new=cv2.resize(img1, si)
-    score=ssim(img1_new, img2)
+    score=ssim(img1_new, img2, multichannel=True)
     return(score)
 
 def resize_img_plot(img1,img2):
-    si=(len(img2[1,:]), len(img2))
+    si=(len(img2[0,:]), len(img2))
     img1_new=cv2.resize(img1, si)
     f, (ax1, ax2) = plt.subplots(2,1)
     ax1.imshow(img1)
@@ -236,17 +236,21 @@ def calc_result(c_mat, num_classes):
         res[i]=np.sum(c_mat==i)
     return(res)
 
-def loop_res(rectangles, spectros, regions, templates): #result for a single class
+def loop_res(rectangles, spectros, regions, templates_0, templates_1): #result for a single class
     s_mat=AD.create_smatrix(rectangles, spectros, 1)
-    s_mat=AD.calc_smatrix(s_mat, regions, templates, 0)
+    s_mat=AD.calc_smatrix(s_mat, regions, templates_0, 0)
+    #s_mat=AD.calc_smatrix(s_mat, regions, templates_1, 1)
     c_mat=AD.create_cmatrix(rectangles, spectros)
     c_mat=AD.calc_cmatrix(c_mat, s_mat)
     res=AD.calc_result(c_mat, 1)
     return(res, c_mat, s_mat)
 
 def create_template_set(): #temp function storing a template set
-    file_name1='ppip-1µl1µA044_AAT.wav' #training set
-    rectangles1, regions1, spectros1=AD.spect_loop(file_name1)
+    file_name1='ppip-1µl1µA044_AAT.wav' #ppip set
+    file_name2='noise-1µl1µA037_AAB.wav' #noise set
+    _, regions1, _=AD.spect_loop(file_name1)
+    _, regions2, _=AD.spect_loop(file_name2)
+    #File 1
     img1=regions1[0][0]
     img2=regions1[1][0]
     img3=regions1[2][0]
@@ -267,12 +271,104 @@ def create_template_set(): #temp function storing a template set
     img18=regions1[18][0]
     img19=regions1[20][0]
     img20=regions1[21][0]
+    img21=regions1[22][0]
+    img22=regions1[23][0]
+    img23=regions1[24][0]
+    img24=regions1[25][0]
+    img25=regions1[26][0]
+    img26=regions1[27][0]
+    img27=regions1[28][0]
+    img28=regions1[29][0]
+    img29=regions1[30][0]
+    img30=regions1[31][0]
+    img31=regions1[32][0]   
+    img32=regions1[33][1]
+    img33=regions1[34][0]
+    img34=regions1[35][0]
+    img35=regions1[36][0]
+    img36=regions1[37][0]
+    img37=regions1[38][0]
+    img38=regions1[40][0]
+    img39=regions1[41][0]   
+    img40=regions1[42][0]
+    img41=regions1[43][0]
+    img42=regions1[44][0]
+    img43=regions1[45][0]
+    img44=regions1[49][0]
+    img45=regions1[52][0]
+    
+    #File noise
+    img46=regions2[0][0]
+    img47=regions2[0][1]
+    img48=regions2[0][2]
+    img49=regions2[0][3]
+    img50=regions2[0][4]
+    img51=regions2[0][5]
+    img52=regions2[0][6]
+    img53=regions2[0][7]
+    img54=regions2[0][8]
+    img55=regions2[1][0]
+    img56=regions2[1][1]
+    img57=regions2[2][0]
+    img58=regions2[2][1]
+    img59=regions2[2][2]
+    img60=regions2[2][3]
+    img61=regions2[2][4]
+    img62=regions2[2][5]
+    img63=regions2[4][0]
+    img64=regions2[5][0]
+    img65=regions2[5][1]
+    img66=regions2[6][0]
+    img67=regions2[6][1]
+    img68=regions2[7][0]
+    img69=regions2[7][1]
+    img70=regions2[7][2]
+    img71=regions2[7][3]
+    img72=regions2[7][4]
+    img73=regions2[8][0]
+    img74=regions2[8][1]
+    img75=regions2[8][2]
+    img76=regions2[9][0]
+    img77=regions2[11][0]
+    img78=regions2[11][1]
+    img79=regions2[11][2]
+    img80=regions2[11][3]
+    img81=regions2[12][0]
+    img82=regions2[12][1]
+    img83=regions2[13][0]
+    img84=regions2[13][1]
+    img85=regions2[13][2]
+    img86=regions2[13][3]
+    img87=regions2[13][4]
+    img88=regions2[14][0]
+    img89=regions2[15][0]
+    img90=regions2[15][1]
+    
     templates_0={0: img1, 1: img2, 2: img3, 3: img4,
              4: img5, 5: img6, 6: img7, 7: img8,
              8: img9, 9: img10, 10: img11, 11: img12,
              12: img13, 13: img14, 14: img15, 15: img16,
-             16: img17, 17: img18, 18: img19, 19: img20}
-    return(templates_0)
+             16: img17, 17: img18, 18: img19, 19: img20,
+             20: img21, 21: img22, 22: img23, 23: img24,
+             24: img25, 25: img26, 26: img27, 27: img28,
+             28: img29, 29: img30, 30: img31, 31: img32,
+             32: img33, 33: img34, 34: img35, 35: img36,
+             36: img37, 37: img38, 38: img39, 39: img40,
+             40: img41, 41: img42, 42: img43, 43: img44,
+             44: img45}
+    templates_1={0: img46, 1: img47, 2: img48, 3: img49,
+             4: img50, 5: img51, 6: img52, 7: img53,
+             8: img54, 9: img55, 10: img56, 11: img57,
+             12: img58, 13: img59, 14: img60, 15: img61,
+             16: img62, 17: img63, 18: img64, 19: img65,
+             20: img66, 21: img67, 22: img68, 23: img69,
+             24: img70, 25: img71, 26: img72, 27: img73,
+             28: img74, 29: img75, 30: img76, 31: img77,
+             32: img78, 33: img79, 34: img80, 35: img81,
+             36: img82, 37: img83, 38: img84, 39: img85,
+             40: img86, 41: img87, 42: img88, 43: img89,
+             44: img90}
+    return(templates_0, templates_1)
 
 def show_class(class_num, c_mat, rectangles, regions, spectros):
     for i in range(len(c_mat)): #Rows, region
