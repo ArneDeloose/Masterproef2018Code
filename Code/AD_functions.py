@@ -18,7 +18,16 @@ def set_parameters():
     #1 point= 375 Hz
     #kernel: 3, 3=> minimum size of ROI: roughly 1ms and 1 kHz
     return(X, kern, thresh, max_roi)
-
+    
+def set_freqthresh(num_class):
+    if num_class==0:
+        min_freq=35 #40 khz
+        max_freq=55 #55, 50 khz
+    else: #full spectro
+        min_freq=0
+        max_freq=161 #max freq
+    return(min_freq, max_freq)
+        
 def spect(file_name):
     #Reads information from audio file
     [sample_rate,samples]=scipy.io.wavfile.read(file_name, mmap=False);
@@ -35,7 +44,7 @@ def spect_plot(samples, sample_rate):
     frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=('hamming'), nfft=1024)
     dummy=(spectrogram-spectrogram.min())/(spectrogram.max()-spectrogram.min())
     dummy=np.array(np.round(dummy*256), dtype=np.uint8) #Convert to grayscale
-    spectro=AD.substraction(dummy[80:214,:]) #Frequency 30-80.25 kHz
+    spectro=AD.substraction(dummy[53:214,:]) #Frequency 19.875-80.25 kHz
     return(spectro) 
 
 def substraction(spect):
@@ -159,10 +168,12 @@ def show_mregions(rectangles, spectros):
         input('Press enter to continue')
     return()
 
-def compare_img(img1, img2):
+def compare_img(img1, img2, rectangle, min_freq, max_freq):
     si=(len(img2[0,:]), len(img2))
     img1_new=cv2.resize(img1, si)
     score=ssim(img1_new, img2, multichannel=True)
+    if (rectangle[1]+rectangle[3]/2)<min_freq or (rectangle[1]+rectangle[3]/2)>max_freq:
+        score=-1 #set to minimum score
     return(score)
 
 def resize_img_plot(img1,img2):
@@ -190,14 +201,15 @@ def create_smatrix(rectangles, spectros, num_classes): #creates empty score matr
     s_mat=np.zeros((y, x, num_classes), dtype=np.float)
     return(s_mat)
 
-def calc_smatrix(s_mat, regions, templates, num): #Fills s_mat
+def calc_smatrix(s_mat, regions, rectangles, templates, num): #Fills s_mat
     s_mat2=s_mat.copy()
     a=len(templates)
+    min_freq,max_freq=AD.set_freqthresh(num)
     dummy=np.zeros(a, dtype=np.float)
     for i,d in regions.items():
         for j,d in regions[i].items():
             for k in range(a):
-                dummy[k]=AD.compare_img(regions[i][j], templates[k])
+                dummy[k]=AD.compare_img(regions[i][j], templates[k], rectangles[i][:, j], min_freq, max_freq)
             s_mat2[j, i, num]=dummy.max()
     return(s_mat2)
 
@@ -236,10 +248,10 @@ def calc_result(c_mat, num_classes):
         res[i]=np.sum(c_mat==i)
     return(res)
 
-def loop_res(rectangles, spectros, regions, templates_0, templates_1): #result for a single class
+def loop_res(rectangles, spectros, regions, templates_0): #result for a single class
     s_mat=AD.create_smatrix(rectangles, spectros, 1)
-    s_mat=AD.calc_smatrix(s_mat, regions, templates_0, 0)
-    #s_mat=AD.calc_smatrix(s_mat, regions, templates_1, 1)
+    s_mat=AD.calc_smatrix(s_mat, regions, rectangles, templates_0, 0)
+    #s_mat=AD.calc_smatrix(s_mat, regions, rectangles, templates_1, 1)
     c_mat=AD.create_cmatrix(rectangles, spectros)
     c_mat=AD.calc_cmatrix(c_mat, s_mat)
     res=AD.calc_result(c_mat, 1)
@@ -247,9 +259,7 @@ def loop_res(rectangles, spectros, regions, templates_0, templates_1): #result f
 
 def create_template_set(): #temp function storing a template set
     file_name1='ppip-1µl1µA044_AAT.wav' #ppip set
-    file_name2='noise-1µl1µA037_AAB.wav' #noise set
     _, regions1, _=AD.spect_loop(file_name1)
-    _, regions2, _=AD.spect_loop(file_name2)
     #File 1
     img1=regions1[0][0]
     img2=regions1[1][0]
@@ -297,53 +307,6 @@ def create_template_set(): #temp function storing a template set
     img44=regions1[49][0]
     img45=regions1[52][0]
     
-    #File noise
-    img46=regions2[0][0]
-    img47=regions2[0][1]
-    img48=regions2[0][2]
-    img49=regions2[0][3]
-    img50=regions2[0][4]
-    img51=regions2[0][5]
-    img52=regions2[0][6]
-    img53=regions2[0][7]
-    img54=regions2[0][8]
-    img55=regions2[1][0]
-    img56=regions2[1][1]
-    img57=regions2[2][0]
-    img58=regions2[2][1]
-    img59=regions2[2][2]
-    img60=regions2[2][3]
-    img61=regions2[2][4]
-    img62=regions2[2][5]
-    img63=regions2[4][0]
-    img64=regions2[5][0]
-    img65=regions2[5][1]
-    img66=regions2[6][0]
-    img67=regions2[6][1]
-    img68=regions2[7][0]
-    img69=regions2[7][1]
-    img70=regions2[7][2]
-    img71=regions2[7][3]
-    img72=regions2[7][4]
-    img73=regions2[8][0]
-    img74=regions2[8][1]
-    img75=regions2[8][2]
-    img76=regions2[9][0]
-    img77=regions2[11][0]
-    img78=regions2[11][1]
-    img79=regions2[11][2]
-    img80=regions2[11][3]
-    img81=regions2[12][0]
-    img82=regions2[12][1]
-    img83=regions2[13][0]
-    img84=regions2[13][1]
-    img85=regions2[13][2]
-    img86=regions2[13][3]
-    img87=regions2[13][4]
-    img88=regions2[14][0]
-    img89=regions2[15][0]
-    img90=regions2[15][1]
-    
     templates_0={0: img1, 1: img2, 2: img3, 3: img4,
              4: img5, 5: img6, 6: img7, 7: img8,
              8: img9, 9: img10, 10: img11, 11: img12,
@@ -356,19 +319,7 @@ def create_template_set(): #temp function storing a template set
              36: img37, 37: img38, 38: img39, 39: img40,
              40: img41, 41: img42, 42: img43, 43: img44,
              44: img45}
-    templates_1={0: img46, 1: img47, 2: img48, 3: img49,
-             4: img50, 5: img51, 6: img52, 7: img53,
-             8: img54, 9: img55, 10: img56, 11: img57,
-             12: img58, 13: img59, 14: img60, 15: img61,
-             16: img62, 17: img63, 18: img64, 19: img65,
-             20: img66, 21: img67, 22: img68, 23: img69,
-             24: img70, 25: img71, 26: img72, 27: img73,
-             28: img74, 29: img75, 30: img76, 31: img77,
-             32: img78, 33: img79, 34: img80, 35: img81,
-             36: img82, 37: img83, 38: img84, 39: img85,
-             40: img86, 41: img87, 42: img88, 43: img89,
-             44: img90}
-    return(templates_0, templates_1)
+    return(templates_0)
 
 def show_class(class_num, c_mat, rectangles, regions, spectros):
     for i in range(len(c_mat)): #Rows, region

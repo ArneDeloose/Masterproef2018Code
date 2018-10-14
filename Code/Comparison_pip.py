@@ -43,20 +43,20 @@ rectangles11, regions11, spectros11=AD.spect_loop(file_name11)
 #plt.imshow(regions1[2][0])
 
 #Pip bat
-templates_0, templates_1=AD.create_template_set()
+templates_0=AD.create_template_set()
 
 #ppip 
-res1, c_mat1, s_mat1=AD.loop_res(rectangles1, spectros1, regions1, templates_0, templates_1)
-res2, c_mat2, s_mat2=AD.loop_res(rectangles2, spectros2, regions2, templates_0, templates_1)
-res3, c_mat3, s_mat3=AD.loop_res(rectangles3, spectros3, regions3, templates_0, templates_1)
-res4, c_mat4, s_mat4=AD.loop_res(rectangles4, spectros4, regions4, templates_0, templates_1)
-res5, c_mat5, s_mat5=AD.loop_res(rectangles5, spectros5, regions5, templates_0, templates_1)
-res6, c_mat6, s_mat6=AD.loop_res(rectangles6, spectros6, regions6, templates_0, templates_1)
-res7, c_mat7, s_mat7=AD.loop_res(rectangles7, spectros7, regions7, templates_0, templates_1)
-res8, c_mat8, s_mat8=AD.loop_res(rectangles8, spectros8, regions8, templates_0, templates_1)
-res9, c_mat9, s_mat9=AD.loop_res(rectangles9, spectros9, regions9, templates_0, templates_1)
-res10, c_mat10, s_mat10=AD.loop_res(rectangles10, spectros10, regions10, templates_0, templates_1)
-res11, c_mat11, s_mat11=AD.loop_res(rectangles11, spectros11, regions11, templates_0, templates_1)
+res1, c_mat1, s_mat1=AD.loop_res(rectangles1, spectros1, regions1, templates_0)
+res2, c_mat2, s_mat2=AD.loop_res(rectangles2, spectros2, regions2, templates_0)
+res3, c_mat3, s_mat3=AD.loop_res(rectangles3, spectros3, regions3, templates_0)
+res4, c_mat4, s_mat4=AD.loop_res(rectangles4, spectros4, regions4, templates_0)
+res5, c_mat5, s_mat5=AD.loop_res(rectangles5, spectros5, regions5, templates_0)
+res6, c_mat6, s_mat6=AD.loop_res(rectangles6, spectros6, regions6, templates_0)
+res7, c_mat7, s_mat7=AD.loop_res(rectangles7, spectros7, regions7, templates_0)
+res8, c_mat8, s_mat8=AD.loop_res(rectangles8, spectros8, regions8, templates_0)
+res9, c_mat9, s_mat9=AD.loop_res(rectangles9, spectros9, regions9, templates_0)
+res10, c_mat10, s_mat10=AD.loop_res(rectangles10, spectros10, regions10, templates_0)
+res11, c_mat11, s_mat11=AD.loop_res(rectangles11, spectros11, regions11, templates_0)
 
 
 #AD.show_class(1, c_mat1, rectangles1, regions1, spectros1)
@@ -69,9 +69,9 @@ res11, c_mat11, s_mat11=AD.loop_res(rectangles11, spectros11, regions11, templat
 #res3, eser bat: 1 signal (misclassified), 111 noise
 
 #Results (11 files, 1 test data, 45 templates, no freq req)
-#res1: 8 noise, 47 signals (45 defined),
+#res1: 7 noise, 47 signals (45 defined),
 #res2: 78; 15 (test data)
-#res3: 112; 0 (different bat)
+#res3: 203; 1 (different bat, size of spectro was changed to min 19.875 kHz to adapt for the frequency)
 #res4: 164; 0 (noise data, ssim doesn't go above 0.54)
 #res5: 38; 31 (walking)
 #65; 13 (hand count: 18(+11) signals)
@@ -82,6 +82,7 @@ res11, c_mat11, s_mat11=AD.loop_res(rectangles11, spectros11, regions11, templat
 #38; 31
 
 #24% of signals can be extracted (based on last six observations)
+#50% on good data, 20% on noisy data
 
 #Results (11 files, 2 test data, 45+45 templates (ppip and noise), no freq req)
 #8;47;0
