@@ -14,17 +14,20 @@ def set_parameters():
     kern=[3,3] #window for roi
     thresh=0.6 #Threshold for ssim classification
     max_roi=10 #Maximum number of regions in a single spectrogram
-    min_spec_freq=80 #30 kHz, restriction spectrogram
+    min_spec_freq=53 #20 kHz, restriction spectrogram
     max_spec_freq=214 #80.25 kHz
-    #1 point= 1/3 ms
+    #1 point= 0.58 ms
     #1 point= 375 Hz
     return(X, kern, thresh, max_roi, min_spec_freq, max_spec_freq)
     
 def set_freqthresh(num_class): #frequency number depends on minimum frequency used for the spectrum
     _,_,_,_,min_spec_freq,max_spec_freq=AD.set_parameters()
-    if num_class==0:
-        min_freq=115-min_spec_freq #43 khz
-        max_freq=135-min_spec_freq #50 khz
+    if num_class==0: #ppip
+        min_freq=115-min_spec_freq #43 kHz
+        max_freq=135-min_spec_freq #50 kHz
+    elif num_class==1: #eser    
+        min_freq=73-min_spec_freq #27.5 kHz
+        max_freq=93-min_spec_freq #35 kHz
     else: #full spectro
         min_freq=0
         max_freq=max_spec_freq-min_spec_freq #max freq
@@ -56,7 +59,7 @@ def substraction(spect):
     spectro=np.array(spectro, dtype=np.uint8) #Convert back from float to uint8
     return(spectro)
 
-def spect_loop(file_name):
+def spect_loop(file_name): #hybrid code, one plot for 100 ms
     #Function creates a dictionary 'rectangles' containing coordinates of the ROIs per image
     #Each image is 100 ms, number within dictionary indicates 
     #image number (e.g rectangles(45: ...) is 4500ms to 4600ms or 4.5 secs to 4.6 secs)
@@ -68,19 +71,39 @@ def spect_loop(file_name):
     spectros={};
     for i in range(steps):
         for j in range(10):
-            samples_dummy=samples[int(i*sample_rate+sample_rate*j/10):int(i*sample_rate+sample_rate*(j+1)/10)]
-            spect_norm=AD.spect_plot(samples_dummy,sample_rate)
+            if j%2==0: #Even number, make a 200 ms plot
+                samples_dummy=samples[int(i*sample_rate+sample_rate*j/10):int(i*sample_rate+sample_rate*(j+2)/10)]
+                temp_spect=AD.spect_plot(samples_dummy,sample_rate)
+            else: #odd number, assign spect_norm for j and j-1
+                #j-1
+                spect_norm=temp_spect[:, 0:171]# first half
+                ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
+                if dummy_flag:
+                    rectangles[i*10+(j-1)], regions[i*10+(j-1)]=AD.ROI2(ctrs, spect_norm)
+                spectros[i*10+(j-1)]=spect_norm
+                #j
+                spect_norm=temp_spect[:, 172:] #second half
+                ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
+                if dummy_flag:
+                    rectangles[i*10+j], regions[i*10+j]=AD.ROI2(ctrs, spect_norm)
+                spectros[i*10+j]=spect_norm
+    for j in range(microsteps):
+        if j%2==0: #Even number, make a 200 ms plot
+            samples_dummy=samples[int(i*sample_rate+sample_rate*j/10):int(i*sample_rate+sample_rate*(j+2)/10)]
+            temp_spect=AD.spect_plot(samples_dummy,sample_rate)
+        else: #odd number, assign spect_norm for j and j-1
+            #j-1
+            spect_norm=temp_spect[:, 0:171]# first half
             ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
             if dummy_flag:
-                rectangles[i*10+j], regions[i*10+j]=AD.ROI2(ctrs, spect_norm)
-            spectros[i*10+j]=spect_norm
-    for j in range(microsteps):
-        samples_dummy=samples[int((i+1)*sample_rate+sample_rate*j/10):int((i+1)*sample_rate+sample_rate*(j+1)/10)]
-        spect_norm=AD.spect_plot(samples_dummy,sample_rate)
-        ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
-        if dummy_flag:
-            rectangles[(i+1)*10+j], regions[(i+1)*10+j]=AD.ROI2(ctrs, spect_norm)
-        spectros[(i+1)*10+j]=spect_norm
+                rectangles[(i+1)*10+(j-1)], regions[(i+1)*10+(j-1)]=AD.ROI2(ctrs, spect_norm)
+            spectros[(i+1)*10+(j-1)]=spect_norm
+            #j
+            spect_norm=temp_spect[:, 172:] #second half
+            ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
+            if dummy_flag:
+                rectangles[(i+1)*10+j], regions[(i+1)*10+j]=AD.ROI2(ctrs, spect_norm)
+            spectros[(i+1)*10+j]=spect_norm
     rectangles2, regions2=AD.overload(rectangles, regions)
     return(rectangles2, regions2, spectros)
     
@@ -115,7 +138,7 @@ def ROI2(ctrs, spect_norm):
         x, y, w, h =cv2.boundingRect(ctr);
         #Signal needs to be broader than 4875 Hz (roughly 5 kHz)
         #And longer than 5 ms
-        if h>13 and w>3:
+        if h>6 and w>3 and w<43: #2.25 kHz and length between 2 ms and 25 ms
             temp=np.zeros((4, 1), dtype=np.uint8) #create temporary aray
             temp[0, 0]=int(x) #Fill in values
             temp[1, 0]=int(y)
@@ -251,20 +274,20 @@ def calc_result(c_mat, num_classes):
         res[i]=np.sum(c_mat==i)
     return(res)
 
-#Expand loop_res with a for-loop and a number of classes
-#Templates need to be subdictionaries that can be referred to as templates[i]
-def loop_res(rectangles, spectros, regions, templates_0): #single class
-    s_mat=AD.create_smatrix(rectangles, spectros, 1)
-    s_mat=AD.calc_smatrix(s_mat, regions, rectangles, templates_0, 0)
-    #s_mat=AD.calc_smatrix(s_mat, regions, rectangles, templates_1, 1)
+def loop_res(rectangles, spectros, regions, templates): 
+    s_mat=AD.create_smatrix(rectangles, spectros, len(templates))
+    for i in range(len(templates)):
+        s_mat=AD.calc_smatrix(s_mat, regions, rectangles, templates[i], i)
     c_mat=AD.create_cmatrix(rectangles, spectros)
     c_mat=AD.calc_cmatrix(c_mat, s_mat)
-    res=AD.calc_result(c_mat, 1)
+    res=AD.calc_result(c_mat, len(templates))
     return(res, c_mat, s_mat)
 
 def create_template_set(): #temp function storing a template set
     file_name1='ppip-1µl1µA044_AAT.wav' #ppip set
+    file_name2='eser-1µl1µA030_ACH.wav' #eser set
     _, regions1, _=AD.spect_loop(file_name1)
+    _, regions2, _=AD.spect_loop(file_name2)
     #File 1
     img1=regions1[0][0]
     img2=regions1[1][0]
@@ -273,44 +296,57 @@ def create_template_set(): #temp function storing a template set
     img5=regions1[4][0]
     img6=regions1[5][0]
     img7=regions1[6][0]
-    img8=regions1[7][0]
-    img9=regions1[8][0]
-    img10=regions1[9][0]
-    img11=regions1[11][0]
+    img8=regions1[8][0]
+    img9=regions1[9][0]
+    img10=regions1[10][1]    
+    img11=regions1[11][1]
     img12=regions1[12][0]
-    img13=regions1[13][0]
-    img14=regions1[14][0]
-    img15=regions1[15][0]
-    img16=regions1[16][0]
-    img17=regions1[17][0]
-    img18=regions1[18][0]
-    img19=regions1[20][0]
-    img20=regions1[21][0]
-    img21=regions1[22][0]
-    img22=regions1[23][0]
-    img23=regions1[24][0]
-    img24=regions1[25][0]
-    img25=regions1[26][0]
-    img26=regions1[27][0]
-    img27=regions1[28][0]
-    img28=regions1[29][0]
-    img29=regions1[30][0]
-    img30=regions1[31][0]
-    img31=regions1[32][0]   
-    img32=regions1[33][1]
-    img33=regions1[34][0]
-    img34=regions1[35][0]
-    img35=regions1[36][0]
-    img36=regions1[37][0]
-    img37=regions1[38][0]
-    img38=regions1[40][0]
-    img39=regions1[41][0]   
-    img40=regions1[42][0]
-    img41=regions1[43][0]
-    img42=regions1[44][0]
-    img43=regions1[45][0]
-    img44=regions1[49][0]
-    img45=regions1[52][0]
+    img13=regions1[14][0]
+    img14=regions1[16][0]
+    img15=regions1[17][0]
+    img16=regions1[18][0]
+    img17=regions1[20][0]
+    img18=regions1[22][0]
+    img19=regions1[24][0]
+    img20=regions1[26][0]
+    img21=regions1[28][0]
+    img22=regions1[29][0]
+    img23=regions1[30][0]
+    img24=regions1[31][0]
+    img25=regions1[32][0]   
+    img26=regions1[34][0]
+    img27=regions1[35][0]
+    img28=regions1[36][0]
+    img29=regions1[37][0]
+    img30=regions1[38][0]
+    img31=regions1[40][0]
+    img32=regions1[41][0]   
+    img33=regions1[42][0]
+    img34=regions1[44][0]
+    img35=regions1[45][0]
+    img36=regions1[47][1]
+    img37=regions1[48][1]
+    img38=regions1[49][0]
+    img39=regions1[52][0]
+    
+    #File 2
+    img40=regions2[1][0]
+    img41=regions2[3][0]
+    img42=regions2[4][0]
+    img43=regions2[6][0]
+    img44=regions2[11][0]
+    img45=regions2[12][0]
+    img46=regions2[14][0]
+    img47=regions2[15][0]
+    img48=regions2[17][0]
+    img49=regions2[18][0]
+    img50=regions2[19][0]
+    img51=regions2[20][0]
+    img52=regions2[22][0]
+    img53=regions2[23][0]
+    img54=regions2[25][0]
+    img55=regions2[28][1]
+    img56=regions2[41][1]
     
     templates_0={0: img1, 1: img2, 2: img3, 3: img4,
              4: img5, 5: img6, 6: img7, 7: img8,
@@ -321,10 +357,14 @@ def create_template_set(): #temp function storing a template set
              24: img25, 25: img26, 26: img27, 27: img28,
              28: img29, 29: img30, 30: img31, 31: img32,
              32: img33, 33: img34, 34: img35, 35: img36,
-             36: img37, 37: img38, 38: img39, 39: img40,
-             40: img41, 41: img42, 42: img43, 43: img44,
-             44: img45}
-    return(templates_0)
+             36: img37, 37: img38, 38: img39}
+    templates_1={0: img40, 1: img41, 2: img42, 3: img43,
+             4: img44, 5: img45, 6: img46, 7: img47,
+             8: img48, 9: img49, 10: img50, 11: img51,
+             12: img52, 13: img53, 14: img54, 15: img55,
+             16: img56}
+    templates={0: templates_0, 1: templates_1}
+    return(templates)
 
 def show_class(class_num, c_mat, rectangles, regions, spectros):
     for i in range(len(c_mat)): #Rows, region
@@ -341,3 +381,9 @@ def show_class(class_num, c_mat, rectangles, regions, spectros):
                 plt.show()
                 input('Press enter to continue')
     return()
+
+def loop_full(file_name):
+    rectangles, regions, spectros=AD.spect_loop(file_name)
+    templates=AD.create_template_set()
+    res, _, _=AD.loop_res(rectangles, spectros, regions, templates)
+    return(res)
