@@ -8,8 +8,11 @@ To run code, two things are needed: the file AD_functions from the code folder (
 All scripts start in the following way:
 
 >import os
+
 >path='C:/Users/arne/Documents/Github/Masterproef2018Code/Code';
+
 >os.chdir(path)
+
 >import AD_functions as AD
 
 Where 'path' must be replaced to refer to the directory that stores the necessary files. All functions can now be called using AD.funcName(). A full description of all functions can be found in the file 'func_descr' in the code folder.
