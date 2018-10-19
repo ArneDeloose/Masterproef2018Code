@@ -1,16 +1,17 @@
 # Masterproef2018Code
 Python code for the master thesis about bat sounds.
 
-**Code**: full Python code
+**Tutorial**:
 
--AD_functions: file holding all the functions, imported as AD in other files
+To run code, two things are needed: the file AD_functions from the code folder (which defines all the functions needed) and the files 'ppip-1µl1µA044_AAT.wav' and 'eser-1µl1µA030_ACH.wav' from the audio_data folder (to make templates). 
 
--Plot_soundwave: makes a plot of a soundwave
+All scripts start in the following way:
 
--ROI_test: example of an ROI using a sample image
+>import os
+>path='C:/Users/arne/Documents/Github/Masterproef2018Code/Code';
+>os.chdir(path)
+>import AD_functions as AD
 
--Test_sound: Analyses a sound using the functions in AD
+Where 'path' must be replaced to refer to the directory that stores the necessary files. All functions can now be called using AD.funcName(). A full description of all functions can be found in the file 'func_descr' in the code folder.
 
-**Files**: sound files and images needed in other functions
-
--...
+The file 'Comparison_pip' gives an example of how the code can be used.
