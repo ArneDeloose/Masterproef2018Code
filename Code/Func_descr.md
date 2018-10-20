@@ -97,3 +97,65 @@ Calculates the SSIM between two images and returns it as a score. If the frequen
 compare_img_plot(img1,img2), return()
 
 Plots two images so they can be compared by hand. Used to visualise the SSIM.
+
+---
+
+create_smatrix(rectangles, spectros, num_classes), return(s_mat)
+
+Creates an empty score matrix to store the SSIMs for every regio.
+
+---
+
+calc_smatrix(s_mat, regions, rectangles, templates, num), return(s_mat2)
+
+Calculates the score matrix. Must be called again for every class and needs templates and an empty score matrix.
+
+---
+
+create_cmatrix(rectangles, spectros), return(c_mat)
+
+Creates an empty classification matrix to store the label for every regio.
+
+---
+
+calc_cmatrix(c_mat, s_mat), return(c_mat2)
+
+Fills the c matrix. Uses the threshold from set_parameters and the score matrix.
+
+Classes:
+
+*0: empty
+
+*1: non-classified
+
+*n-2: class 0
+
+---
+
+calc_result(c_mat, num_classes), return(res)
+
+Calculates a result matrix counting the instances of every class in c_mat.
+
+---
+
+loop_res(rectangles, spectros, regions, templates), return(res, c_mat, s_mat)
+
+Pools the functions create_smatrix, calc_smatrix, create_cmatrix, calc_cmatrix and calc_result.
+
+---
+
+create_template_set(), return(templates)
+
+Creates a template dictionary from the files 'ppip-1µl1µA044_AAT.wav' and 'eser-1µl1µA030_ACH.wav'
+
+---
+
+show_class(class_num, c_mat, rectangles, regions, spectros), return()
+
+Shows all regions from a class one by one. Press enter for a new plot.
+
+---
+
+loop_full(file_name), return(res)
+
+Uses spect_loop, create_template_set and loop_res to analyse a full sound returning only the result.
