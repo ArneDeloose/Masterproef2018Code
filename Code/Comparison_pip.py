@@ -112,4 +112,5 @@ res11, c_mat11, s_mat11=AD.loop_res(rectangles11, spectros11, regions11, templat
 #self organising maps
 #Marine eco-acoustics
 #wavelets
-#mail Thierry
+#EchoBank Collen 2012
+#Sonobat (commercial), extracts parameters
