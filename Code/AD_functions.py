@@ -202,6 +202,32 @@ def compare_img(img1, img2, rectangle, min_freq, max_freq):
         score=-1 #set to minimum score
     return(score)
 
+def compare_img2(img1, img2): #same as compare_img but doesn't use freq
+    #And always scales according to largest image
+    a=len(img1[0,:])
+    b=len(img1)
+    c=len(img2[0,:])
+    d=len(img2)
+    if a*b==c*d: #same size
+        if a>c: #img2->img1
+            si=(a,b)
+            img2_new=cv2.resize(img2, si)
+            score=ssim(img1, img2_new, multichannel=True)
+        else: #img1->img2
+            si=(c,d)
+            img1_new=cv2.resize(img1, si)
+            score=ssim(img1_new, img2, multichannel=True)
+    else: #different size
+        if a*b>c*d: #1st image is bigger
+            si=(a,b)
+            img2_new=cv2.resize(img2, si)
+            score=ssim(img1, img2_new, multichannel=True)
+        else:
+            si=(c,d)
+            img1_new=cv2.resize(img1, si)
+            score=ssim(img1_new, img2, multichannel=True)
+    return(score)
+
 def resize_img_plot(img1,img2):
     si=(len(img2[0,:]), len(img2))
     img1_new=cv2.resize(img1, si)

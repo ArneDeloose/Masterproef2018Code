@@ -107,10 +107,3 @@ res11, c_mat11, s_mat11=AD.loop_res(rectangles11, spectros11, regions11, templat
 #72;18;2
 #59;21;0
 #38;31;0
-
-#support vector machines
-#self organising maps
-#Marine eco-acoustics
-#wavelets
-#EchoBank Collen 2012
-#Sonobat (commercial), extracts parameters
