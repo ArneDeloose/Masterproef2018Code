@@ -181,7 +181,9 @@ for i,j in regions_test.items():
     for k,l in regions_test.items():
         sim_mat[i,k]=AD.compare_img2(regions_test[i], regions_test[k])
 
-dist_mat=1-sim_mat
+dist_mat=1-sim_mat/2 #number between 0 and 1
+
+#dist_matrix=w1*(1-sim_mat/2)+w2*(freq_av)+w3(duration)+...
 
 seed = np.random.RandomState(seed=3)
 
