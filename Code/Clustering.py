@@ -72,6 +72,7 @@ plt.scatter(pos[:, 0], pos[:, 1], color='turquoise', s=s, lw=0, label='MDS')
 templates=AD.create_template_set()
 res, c_mat, s_mat=AD.loop_res(rectangles5, spectros5, regions5, templates)
 
+plt.show()
 
 
 
@@ -192,4 +193,4 @@ pos = mds.fit(dist_mat).embedding_
 s = 10
 plt.scatter(pos[0:38, 0], pos[0:38, 1], color='turquoise', s=s, lw=0, label='MDS')
 plt.scatter(pos[39:55, 0], pos[39:55, 1], color='red', s=s, lw=0, label='MDS')
-
+plt.show()
