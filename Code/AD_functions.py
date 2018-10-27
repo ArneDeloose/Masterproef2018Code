@@ -459,7 +459,10 @@ def plot_MDS(pos):
     s = 10
     plot1=plt.scatter(pos[0:38, 0], pos[0:38, 1], color='turquoise', s=s, lw=0, label='ppip')
     plot2=plt.scatter(pos[39:55, 0], pos[39:55, 1], color='red', s=s, lw=0, label='eser')
-    plt.legend(handles=[plot1,plot2])
+    plot3=plt.scatter(pos[56:61, 0], pos[56:61, 1], color='green', s=s, lw=0, label='mdau')
+    plot4=plt.scatter(pos[62:79, 0], pos[62:79, 1], color='blue', s=s, lw=0, label='pnat')
+    plot5=plt.scatter(pos[80:85, 0], pos[80:85, 1], color='orange', s=s, lw=0, label='nlei')
+    plt.legend(handles=[plot1,plot2, plot3, plot4, plot5])
     plt.show()
     return()
 
@@ -468,9 +471,18 @@ def set_templates2():
     os.chdir(path)    
     file_name1='ppip-1µl1µA044_AAT.wav' #ppip set
     file_name2='eser-1µl1µA030_ACH.wav' #eser set
+    file_name3='mdau-1µl1µA012_AGW.wav' #mdau set
+    file_name4='pnat-1_ppip-1µl1µA037_AGQ.wav' #pnat set
+    file_name5='nlei-1_ppip-1µl1µA028_AAW.wav' #nlei
+
     rectangles1, regions1, _=AD.spect_loop(file_name1)
     rectangles2, regions2, _=AD.spect_loop(file_name2)
+    rectangles3, regions3, _=AD.spect_loop(file_name3)
+    rectangles4, regions4, _=AD.spect_loop(file_name4)
+    rectangles5, regions5, _=AD.spect_loop(file_name5)
+    
     rectangles_final=np.zeros((4,0))
+    
     #File 1
     img1=regions1[0][0]
     img2=regions1[1][0]
@@ -548,6 +560,53 @@ def set_templates2():
     rectangles_final=np.c_[rectangles_final, rectangles2[22][:,0], rectangles2[23][:,0], rectangles2[25][:,0], rectangles2[28][:,1]]
     rectangles_final=np.c_[rectangles_final, rectangles2[41][:,1]]
     
+    #File 3
+    img57=regions3[4][0]
+    img58=regions3[5][0]
+    img59=regions3[6][0]
+    img60=regions3[14][0]
+    img61=regions3[15][5]
+    img62=regions3[47][0]
+    
+    rectangles_final=np.c_[rectangles_final, rectangles3[4][:,0], rectangles3[5][:,0], rectangles3[6][:,0], rectangles3[14][:,0]]
+    rectangles_final=np.c_[rectangles_final, rectangles3[15][:,5], rectangles3[47][:,0]]    
+    
+    #File 4
+    img63=regions4[2][0]
+    img64=regions4[4][0]
+    img65=regions4[5][0]
+    img66=regions4[6][0]
+    img67=regions4[9][0]
+    img68=regions4[19][0]
+    img69=regions4[20][1]
+    img70=regions4[25][0]
+    img71=regions4[26][0]
+    img72=regions4[29][0]
+    img73=regions4[30][0]
+    img74=regions4[31][0]
+    img75=regions4[32][0]
+    img76=regions4[34][0]
+    img77=regions4[35][0]
+    img78=regions4[37][0]
+    img79=regions4[38][0]
+    img80=regions4[40][0]
+
+    rectangles_final=np.c_[rectangles_final, rectangles4[2][:,0], rectangles4[4][:,0], rectangles4[5][:,0], rectangles4[6][:,0]]
+    rectangles_final=np.c_[rectangles_final, rectangles4[9][:,0], rectangles4[19][:,0], rectangles4[20][:,1], rectangles4[25][:,0]]
+    rectangles_final=np.c_[rectangles_final, rectangles4[26][:,0], rectangles4[29][:,0], rectangles4[30][:,0], rectangles4[31][:,0]]
+    rectangles_final=np.c_[rectangles_final, rectangles4[32][:,0], rectangles4[34][:,0], rectangles4[35][:,0], rectangles4[37][:,0]]
+    rectangles_final=np.c_[rectangles_final, rectangles4[38][:,0], rectangles4[40][:,0]]
+    
+    img81=regions5[5][0]
+    img82=regions5[7][0]
+    img83=regions5[9][0]
+    img84=regions5[10][0]
+    img85=regions5[13][0]
+    img86=regions5[14][0]
+    
+    rectangles_final=np.c_[rectangles_final, rectangles5[5][:,0], rectangles5[7][:,0], rectangles5[9][:,0], rectangles5[10][:,0]]
+    rectangles_final=np.c_[rectangles_final, rectangles5[13][:,0], rectangles5[14][:,0]]
+    
     regions_final={0: img1, 1: img2, 2: img3, 3: img4,
              4: img5, 5: img6, 6: img7, 7: img8,
              8: img9, 9: img10, 10: img11, 11: img12,
@@ -562,7 +621,14 @@ def set_templates2():
              43: img44, 44: img45, 45: img46, 46: img47,
              47: img48, 48: img49, 49: img50, 50: img51,
              51: img52, 52: img53, 53: img54, 54: img55,
-             55: img56}
+             55: img56, 56: img57, 57: img58, 58: img59,
+             59: img60, 60: img61, 61: img62, 62: img63,
+             63: img64, 64: img65, 65: img66, 66: img67,
+             67: img68, 68: img69, 69: img70, 70: img71,
+             71: img72, 72: img73, 73: img74, 74: img75,
+             75: img76, 76: img77, 77: img78, 78: img79,
+             79: img80, 80: img81, 81: img82, 82: img83,
+             83: img84, 84: img85, 85: img86}
     return(rectangles_final, regions_final)
 
 def run_MDS():

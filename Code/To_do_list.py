@@ -1,8 +1,6 @@
 
 #Add wavelets, check MDS performance
 
-#Weighed distance based on parameters (freq_av, freq?max, duration,...)
-#Add extra species
 #Add noise and see what happens on MDS
 #Search weather on those days
 #Boek predictive modelling
