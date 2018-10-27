@@ -1,3 +1,12 @@
+#MDS
+import os
+path='C:/Users/arne/Documents/Github/Masterproef2018Code/Code';
+os.chdir(path)
+import AD_functions as AD
+path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
+os.chdir(path)
+
+AD.run_MDS()
 
 
 #Support vector classification
@@ -175,24 +184,7 @@ if dummy==1:
              51: img52, 52: img53, 53: img54, 54: img55,
              55: img56}
 
-sim_mat=np.ones((56,56))
-
-for i,j in regions_test.items():
-    for k,l in regions_test.items():
-        sim_mat[i,k]=AD.compare_img2(regions_test[i], regions_test[k])
-
-dist_mat=1-sim_mat/2 #number between 0 and 1
-
-#dist_matrix=w1*(1-sim_mat/2)+w2*(freq_av)+w3(duration)+...
-
-seed = np.random.RandomState(seed=3)
-
-mds = manifold.MDS(n_components=2, max_iter=3000, eps=1e-9, random_state=seed,
-                   dissimilarity="precomputed", n_jobs=1)
-pos = mds.fit(dist_mat).embedding_
+#copy paste this for rectangles (as a single array)
 
 
-s = 10
-plt.scatter(pos[0:38, 0], pos[0:38, 1], color='turquoise', s=s, lw=0, label='MDS')
-plt.scatter(pos[39:55, 0], pos[39:55, 1], color='red', s=s, lw=0, label='MDS')
-plt.show()
+
