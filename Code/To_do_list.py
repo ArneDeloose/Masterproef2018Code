@@ -1,7 +1,6 @@
 
 #Add wavelets, check MDS performance
 
-#Add noise and see what happens on MDS
 #Search weather on those days
 #Boek predictive modelling
 #Random forest
