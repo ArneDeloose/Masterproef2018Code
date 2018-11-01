@@ -662,3 +662,31 @@ def run_MDS():
     AD.plot_MDS(pos)
     return()
 
+def calc_features(rectangles, regions, templates, num_reg):
+    features=np.zeros((num_reg, len(templates)+5))
+    count=0
+    for i,d in regions.items():
+        for j,d in regions[i].items():
+            features[count, 0]=rectangles[i][3,j] #freq range
+            features[count, 1]=rectangles[i][1,j] #min freq
+            features[count, 2]=rectangles[i][1,j]+rectangles[i][3,j] #max freq
+            features[count, 3]=rectangles[i][1,j]+rectangles[i][3,j]/2 #av freq
+            features[count, 4]=rectangles[i][2,j] #duration    
+            for k in range(len(templates)):
+                features[count, k+5]=AD.compare_img2(regions[i][j], templates[k])
+            count+=1
+    #Feature scaling
+    features[:,0]=(features[:,0]-features[:,0].min())/(features[:,0].max()-features[:,0].min())
+    features[:,1]=(features[:,1]-features[:,1].min())/(features[:,1].max()-features[:,1].min())
+    features[:,2]=(features[:,2]-features[:,2].min())/(features[:,2].max()-features[:,2].min())
+    features[:,3]=(features[:,3]-features[:,3].min())/(features[:,3].max()-features[:,3].min())
+    features[:,4]=(features[:,4]-features[:,4].min())/(features[:,4].max()-features[:,4].min())
+    return(features)
+
+def calc_num_regions(regions):
+    num_reg=0
+    for i,d in regions.items():
+        for j,d in regions[i].items():
+            num_reg+=1
+    return(num_reg)
+
