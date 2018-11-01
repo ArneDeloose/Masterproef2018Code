@@ -1,14 +1,12 @@
 
+#Set weight for frequency information (now this counts as one ssim)
+
 #Add wavelets, check MDS performance
 
 #TSNE
-#Use ssim with references as features
 #Atom
 #cborn, dendrogram
 
-#Search weather on those days
-#Boek predictive modelling
-#Random forest
 #Location influence
 
 #support vector machines

@@ -9,27 +9,6 @@ os.chdir(path)
 #MDS
 AD.run_MDS()
 
-
-#Hierarchical clustering
-file_name1='ppip-1µl1µA044_ABF.wav' #training set
-file_name2='eser-1µl1µA030_ACH.wav' #different bat
-file_name3='noise-1µl1µA037_AAB.wav' #noise data
-
-rectangles1, regions1, spectros1=AD.spect_loop(file_name1)
-rectangles2, regions2, spectros2=AD.spect_loop(file_name2)
-rectangles3, regions3, spectros3=AD.spect_loop(file_name3)
-
-num_reg1=AD.calc_num_regions(regions1)
-num_reg2=AD.calc_num_regions(regions2)
-num_reg3=AD.calc_num_regions(regions3)
-
-_, templates=AD.set_templates2()
-
-features1=AD.calc_features(rectangles1, regions1, templates, num_reg1)
-features2=AD.calc_features(rectangles2, regions2, templates, num_reg2)
-features3=AD.calc_features(rectangles3, regions3, templates, num_reg3)
-
-
 #Support vector classification
 import numpy as np
 X = np.array([[-1, -1], [-2, -1], [1, 1], [2, 1]])

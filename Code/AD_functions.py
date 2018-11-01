@@ -10,6 +10,8 @@ import matplotlib.patches as patches
 from skimage.measure import compare_ssim as ssim
 from sklearn import manifold
 import os
+from scipy.cluster.hierarchy import dendrogram, linkage
+#from sklearn.metrics.pairwise import euclidean_distances
 
 def set_parameters():
     X=25 #Threshold for noise binary image
@@ -665,8 +667,10 @@ def run_MDS():
 def calc_features(rectangles, regions, templates, num_reg):
     features=np.zeros((num_reg, len(templates)+5))
     count=0
+    features_key={}
     for i,d in regions.items():
         for j,d in regions[i].items():
+            features_key[count]=(i,j)
             features[count, 0]=rectangles[i][3,j] #freq range
             features[count, 1]=rectangles[i][1,j] #min freq
             features[count, 2]=rectangles[i][1,j]+rectangles[i][3,j] #max freq
@@ -681,7 +685,7 @@ def calc_features(rectangles, regions, templates, num_reg):
     features[:,2]=(features[:,2]-features[:,2].min())/(features[:,2].max()-features[:,2].min())
     features[:,3]=(features[:,3]-features[:,3].min())/(features[:,3].max()-features[:,3].min())
     features[:,4]=(features[:,4]-features[:,4].min())/(features[:,4].max()-features[:,4].min())
-    return(features)
+    return(features, features_key)
 
 def calc_num_regions(regions):
     num_reg=0
@@ -690,3 +694,52 @@ def calc_num_regions(regions):
             num_reg+=1
     return(num_reg)
 
+def calc_col_labels(features):
+    label_colors={}
+    _, _, thresh, _, _, _=AD.set_parameters()
+    for i in range(len(features)):
+        dummy_index=features[i,5:].argmax()+5 #index max ssim
+        dummy_value=features[i,5:].max() #maximum ssim
+        if dummy_value>thresh: #bat
+            if 4<dummy_index<44: #ppip, 5-43
+               label_colors[i]="#ff0000" #red
+            elif 43<dummy_index<61: #eser, 44-60
+                label_colors[i]="#008000" #green
+            elif 60<dummy_index<67: #mdau, 61-66
+                label_colors[i]="#0000ff" #blue
+            elif 66<dummy_index<85: #pnat, 67-84
+                label_colors[i]="#a52a2a" #brown
+            elif 84<dummy_index<91: #nlei, 85-90
+                label_colors[i]="#ee82ee" #violet
+            else: #temp code
+                label_colors[i]="#000000" #black
+        else: #noise
+            label_colors[i]= "#000000" #black      
+    return(label_colors)
+    
+def plot_dendrogram(features, label_colors):
+    linked = linkage(features, 'complete')
+    plt.figure(figsize=(20, 14))
+    dendrogram(linked)
+    ax = plt.gca()
+    xlbls = ax.get_xmajorticklabels() #gets labels
+    for lbl in xlbls:
+        lbl.set_color(label_colors[int(lbl.get_text())])#sets color label
+    plt.show()
+    return()
+
+def show_region2(rectangles, spectros, features_key, i): #uses feature label
+    (a,b)=features_key[i]
+    f, ax1 = plt.subplots()
+    ax1.imshow(spectros[a])
+    rect = patches.Rectangle((rectangles[a][0,b],rectangles[a][1,b]),
+                                rectangles[a][2,b],rectangles[a][3,b],
+                                linewidth=1,edgecolor='r',facecolor='none')
+    # Add the patch to the Axes
+    ax1.add_patch(rect)
+    _, _, _, _, min_spec_freq, _=AD.set_parameters()
+    min_freq=int((rectangles[a][1,b]+min_spec_freq)*0.375)
+    max_freq=int((rectangles[a][1,b]+rectangles[a][3,b]+min_spec_freq)*0.375)
+    plt.title('%d-%d kHz, timestep: %d' %(min_freq,max_freq, a)) #Show frequency range and time as title
+    plt.show()
+    return()
