@@ -7,7 +7,10 @@ path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that sto
 os.chdir(path)
 
 #MDS
-AD.run_MDS()
+AD.run_MDS(0)
+#run MDS with single variable
+for i in range(1,7):
+    AD.run_MDS(i)
 
 #Support vector classification
 import numpy as np

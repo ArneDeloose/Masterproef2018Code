@@ -436,18 +436,61 @@ def calc_sim_matrix(rectangles, regions): #calculates sim_matrices
     sim_mat1=(1-sim_mat1)/2 #0-1
     return(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6)
 
-def calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6):
-    w1,w2,w3,w4,w5,w6=AD.set_weights()
+def calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight):
+    w1,w2,w3,w4,w5,w6=AD.set_weights(weight)
     dist_mat=(w1*sim_mat1)+(w2*sim_mat2)+(w3*sim_mat3)+(w4*sim_mat4)+(w4*sim_mat4)+(w4*sim_mat4)
     return(dist_mat)
 
-def set_weights():
-    w1=1
-    w2=1/144
-    w3=1/400
-    w4=1/400
-    w5=1/300
-    w6=1/20
+def set_weights(weight):
+    if weight==0:
+        w1=1
+        w2=1/144
+        w3=1/400
+        w4=1/400
+        w5=1/300
+        w6=1/20
+    elif weight==1: #drop first weight
+        w1=1
+        w2=0
+        w3=0
+        w4=0
+        w5=0
+        w6=0
+    elif weight==2:
+        w1=0
+        w2=1
+        w3=0
+        w4=0
+        w5=0
+        w6=0
+    elif weight==3:
+        w1=0
+        w2=0
+        w3=1
+        w4=0
+        w5=0
+        w6=0
+    elif weight==4:
+        w1=0
+        w2=0
+        w3=0
+        w4=1
+        w5=0
+        w6=0
+    elif weight==5:
+        w1=0
+        w2=0
+        w3=0
+        w4=0
+        w5=1
+        w6=0
+    elif weight==6:
+        w1=0
+        w2=0
+        w3=0
+        w4=0
+        w5=0
+        w6=1
     return(w1,w2,w3,w4,w5,w6)
     
 def calc_pos(dist_mat):
@@ -464,8 +507,8 @@ def plot_MDS(pos):
     plot3=plt.scatter(pos[56:61, 0], pos[56:61, 1], color='green', s=s, lw=0, label='mdau')
     plot4=plt.scatter(pos[62:79, 0], pos[62:79, 1], color='blue', s=s, lw=0, label='pnat')
     plot5=plt.scatter(pos[80:85, 0], pos[80:85, 1], color='orange', s=s, lw=0, label='nlei')
-    plot6=plt.scatter(pos[86:95, 0], pos[86:95, 1], color='black', s=s, lw=0, label='noise')
-    plt.legend(handles=[plot1,plot2, plot3, plot4, plot5, plot6])
+    #plot6=plt.scatter(pos[86:95, 0], pos[86:95, 1], color='black', s=s, lw=0, label='noise')
+    plt.legend(handles=[plot1,plot2, plot3, plot4, plot5])
     plt.show()
     return()
 
@@ -477,14 +520,14 @@ def set_templates2():
     file_name3='mdau-1µl1µA012_AGW.wav' #mdau set
     file_name4='pnat-1_ppip-1µl1µA037_AGQ.wav' #pnat set
     file_name5='nlei-1_ppip-1µl1µA028_AAW.wav' #nlei set
-    file_name6='noise-1µl1µA037_AAB.wav' #noise
+    #file_name6='noise-1µl1µA037_AAB.wav' #noise
 
     rectangles1, regions1, _=AD.spect_loop(file_name1)
     rectangles2, regions2, _=AD.spect_loop(file_name2)
     rectangles3, regions3, _=AD.spect_loop(file_name3)
     rectangles4, regions4, _=AD.spect_loop(file_name4)
     rectangles5, regions5, _=AD.spect_loop(file_name5)
-    rectangles6, regions6, _=AD.spect_loop(file_name6)
+    #rectangles6, regions6, _=AD.spect_loop(file_name6)
     
     rectangles_final=np.zeros((4,0))
     
@@ -614,20 +657,20 @@ def set_templates2():
     rectangles_final=np.c_[rectangles_final, rectangles5[13][:,0], rectangles5[14][:,0]]
     
     #File 6
-    img87=regions6[1][0]
-    img88=regions6[6][0]
-    img89=regions6[10][0]
-    img90=regions6[25][0]
-    img91=regions6[36][0]
-    img92=regions6[39][0]
-    img93=regions6[53][0]
-    img94=regions6[53][3]
-    img95=regions6[53][5]
-    img96=regions6[53][7]
+    #img87=regions6[1][0]
+    #img88=regions6[6][0]
+    #img89=regions6[10][0]
+    #img90=regions6[25][0]
+    #img91=regions6[36][0]
+    #img92=regions6[39][0]
+    #img93=regions6[53][0]
+    #img94=regions6[53][3]
+    #img95=regions6[53][5]
+    #img96=regions6[53][7]
     
-    rectangles_final=np.c_[rectangles_final, rectangles6[1][:,0], rectangles6[6][:,0], rectangles6[10][:,0], rectangles6[25][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles6[36][:,0], rectangles6[39][:,0], rectangles6[53][:,0], rectangles6[53][:,3]]
-    rectangles_final=np.c_[rectangles_final, rectangles6[53][:,5], rectangles6[53][:,7]]
+    #rectangles_final=np.c_[rectangles_final, rectangles6[1][:,0], rectangles6[6][:,0], rectangles6[10][:,0], rectangles6[25][:,0]]
+    #rectangles_final=np.c_[rectangles_final, rectangles6[36][:,0], rectangles6[39][:,0], rectangles6[53][:,0], rectangles6[53][:,3]]
+    #rectangles_final=np.c_[rectangles_final, rectangles6[53][:,5], rectangles6[53][:,7]]
     
     regions_final={0: img1, 1: img2, 2: img3, 3: img4,
              4: img5, 5: img6, 6: img7, 7: img8,
@@ -650,21 +693,19 @@ def set_templates2():
              71: img72, 72: img73, 73: img74, 74: img75,
              75: img76, 76: img77, 77: img78, 78: img79,
              79: img80, 80: img81, 81: img82, 82: img83,
-             83: img84, 84: img85, 85: img86, 86: img87,
-             87: img88, 88: img89, 89: img90, 90: img91,
-             91: img92, 92: img93, 93: img94, 94: img95,
-             95: img96}
+             83: img84, 84: img85, 85: img86}
     return(rectangles_final, regions_final)
 
-def run_MDS():
+def run_MDS(weight):
     rectangles_final, regions_final=AD.set_templates2()
     sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6=AD.calc_sim_matrix(rectangles_final, regions_final)
-    dist_mat=AD.calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6)
+    dist_mat=AD.calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight)
     pos=AD.calc_pos(dist_mat)
     AD.plot_MDS(pos)
     return()
 
 def calc_features(rectangles, regions, templates, num_reg):
+    num_total,_,_,_,_,_=AD.set_numbats()
     features=np.zeros((num_reg, len(templates)+5))
     count=0
     features_key={}
@@ -679,12 +720,12 @@ def calc_features(rectangles, regions, templates, num_reg):
             for k in range(len(templates)):
                 features[count, k+5]=AD.compare_img2(regions[i][j], templates[k])
             count+=1
-    #Feature scaling
-    features[:,0]=(features[:,0]-features[:,0].min())/(features[:,0].max()-features[:,0].min())
-    features[:,1]=(features[:,1]-features[:,1].min())/(features[:,1].max()-features[:,1].min())
-    features[:,2]=(features[:,2]-features[:,2].min())/(features[:,2].max()-features[:,2].min())
-    features[:,3]=(features[:,3]-features[:,3].min())/(features[:,3].max()-features[:,3].min())
-    features[:,4]=(features[:,4]-features[:,4].min())/(features[:,4].max()-features[:,4].min())
+    #Feature scaling, half of the clustering is based on freq and time information
+    features[:,0]=(num_total/5)*(features[:,0]-features[:,0].min())/(features[:,0].max()-features[:,0].min())
+    features[:,1]=(num_total/5)*(features[:,1]-features[:,1].min())/(features[:,1].max()-features[:,1].min())
+    features[:,2]=(num_total/5)*(features[:,2]-features[:,2].min())/(features[:,2].max()-features[:,2].min())
+    features[:,3]=(num_total/5)*(features[:,3]-features[:,3].min())/(features[:,3].max()-features[:,3].min())
+    features[:,4]=(num_total/5)*(features[:,4]-features[:,4].min())/(features[:,4].max()-features[:,4].min())
     return(features, features_key)
 
 def calc_num_regions(regions):
@@ -694,7 +735,7 @@ def calc_num_regions(regions):
             num_reg+=1
     return(num_reg)
 
-def calc_col_labels(features):
+def calc_col_labels(features): #based upon maximum ssim
     label_colors={}
     _, _, thresh, _, _, _=AD.set_parameters()
     for i in range(len(features)):
@@ -716,9 +757,68 @@ def calc_col_labels(features):
         else: #noise
             label_colors[i]= "#000000" #black      
     return(label_colors)
-    
+
+def calc_col_labels2(features): #based upon percentage scores
+    _, num_ppip, num_eser, num_mdau, num_pnat, num_nlei=AD.set_numbats()
+    label_colors={}
+    _, _, thresh, _, _, _=AD.set_parameters()
+    for i in range(len(features)):
+        count1=0 #ppip
+        count2=0 #eser
+        count3=0 #mdau
+        count4=0 #pnat
+        count5=0 #nlei
+        per_ppip=0
+        per_eser=0
+        per_mdau=0
+        per_pnat=0
+        per_nlei=0
+        dummy=(features[i,5:]>thresh) #matching bats
+        for j in range(len(dummy)):
+            if j<=num_ppip and dummy[j]==True: #matches for ppip
+                count1+=1
+            elif num_ppip<j<=num_ppip+num_eser and dummy[j]==True:
+                count2+=1
+            elif num_ppip+num_eser<j<=num_ppip+num_eser+num_mdau and dummy[j]==True:
+                count3+=1
+            elif num_ppip+num_eser+num_mdau<j<=num_ppip+num_eser+num_mdau+num_pnat and dummy[j]==True:
+                count4+=1
+            elif num_ppip+num_eser+num_mdau+num_pnat<j<=num_ppip+num_eser+num_mdau+num_pnat+num_nlei and dummy[j]==True:
+                count5+=1
+        if count1+count2+count3+count4+count5>0: #there are matches
+            per_ppip=count1/num_ppip #percentage matches for ppip
+            per_eser=count2/num_eser
+            per_mdau=count3/num_mdau
+            per_pnat=count4/num_pnat
+            per_nlei=count5/num_nlei
+            if per_ppip>max(per_eser,per_mdau,per_pnat,per_nlei): #ppip most abundant
+                label_colors[i]="#ff0000" #red
+            elif per_eser>max(per_ppip,per_mdau,per_pnat,per_nlei):
+                label_colors[i]="#008000" #green
+            elif per_mdau>max(per_ppip,per_eser,per_pnat,per_nlei):
+                label_colors[i]="#0000ff" #blue
+            elif per_pnat>max(per_ppip,per_eser,per_mdau,per_nlei):
+                label_colors[i]="#a52a2a" #brown
+            elif per_nlei>max(per_ppip,per_mdau,per_pnat,per_eser):
+                label_colors[i]="#ee82ee" #violet
+            else: #equal matches
+                label_colors[i]="#808080" #grey
+        else: #no matches
+            label_colors[i]= "#000000" #black  
+    return(label_colors)
+
+def set_numbats(): #sets the number of templates per bat
+    num_ppip=39
+    num_eser=19
+    num_mdau=6
+    num_pnat=18
+    num_nlei=6
+    num_total=num_ppip+ num_eser+ num_mdau+ num_pnat+ num_nlei
+    return(num_total, num_ppip, num_eser, num_mdau, num_pnat, num_nlei)
+
+
 def plot_dendrogram(features, label_colors):
-    linked = linkage(features, 'complete')
+    linked = linkage(features, 'average')
     plt.figure(figsize=(20, 14))
     dendrogram(linked)
     ax = plt.gca()

@@ -27,9 +27,9 @@ features1, features_key1=AD.calc_features(rectangles1, regions1, templates, num_
 features2, features_key2=AD.calc_features(rectangles2, regions2, templates, num_reg2)
 features3, features_key3=AD.calc_features(rectangles3, regions3, templates, num_reg3)
 
-col_labels1=AD.calc_col_labels(features1)
-col_labels2=AD.calc_col_labels(features2)
-col_labels3=AD.calc_col_labels(features3)
+col_labels1=AD.calc_col_labels2(features1)
+col_labels2=AD.calc_col_labels2(features2)
+col_labels3=AD.calc_col_labels2(features3)
 
 
 #%matplotlib qt #plot in seperate window
