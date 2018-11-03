@@ -450,47 +450,47 @@ def set_weights(weight):
         w5=1/300
         w6=1/20
     elif weight==1: #drop first weight
+        w1=0
+        w2=1/144
+        w3=1/400
+        w4=1/400
+        w5=1/300
+        w6=1/20
+    elif weight==2:
         w1=1
         w2=0
-        w3=0
-        w4=0
-        w5=0
-        w6=0
-    elif weight==2:
-        w1=0
-        w2=1
-        w3=0
-        w4=0
-        w5=0
-        w6=0
+        w3=1/400
+        w4=1/400
+        w5=1/300
+        w6=1/20
     elif weight==3:
-        w1=0
-        w2=0
-        w3=1
-        w4=0
-        w5=0
-        w6=0
+        w1=1
+        w2=1/144
+        w3=0
+        w4=1/400
+        w5=1/300
+        w6=1/20
     elif weight==4:
-        w1=0
-        w2=0
-        w3=0
-        w4=1
-        w5=0
-        w6=0
+        w1=1
+        w2=1/144
+        w3=1/400
+        w4=0
+        w5=1/300
+        w6=1/20
     elif weight==5:
-        w1=0
-        w2=0
-        w3=0
-        w4=0
-        w5=1
-        w6=0
-    elif weight==6:
-        w1=0
-        w2=0
-        w3=0
-        w4=0
+        w1=1
+        w2=1/144
+        w3=1/400
+        w4=1/400
         w5=0
-        w6=1
+        w6=1/20
+    elif weight==6:
+        w1=1
+        w2=1/144
+        w3=1/400
+        w4=1/400
+        w5=1/300
+        w6=0
     return(w1,w2,w3,w4,w5,w6)
     
 def calc_pos(dist_mat):
@@ -707,6 +707,7 @@ def run_MDS(weight):
 def calc_features(rectangles, regions, templates, num_reg):
     num_total,_,_,_,_,_=AD.set_numbats()
     features=np.zeros((num_reg, len(templates)+5))
+    features_freq=np.zeros((num_reg, 5)) #unscaled freq info
     count=0
     features_key={}
     for i,d in regions.items():
@@ -719,6 +720,7 @@ def calc_features(rectangles, regions, templates, num_reg):
             features[count, 4]=rectangles[i][2,j] #duration    
             for k in range(len(templates)):
                 features[count, k+5]=AD.compare_img2(regions[i][j], templates[k])
+            features_freq[count]=features[count, :5]
             count+=1
     #Feature scaling, half of the clustering is based on freq and time information
     features[:,0]=(num_total/5)*(features[:,0]-features[:,0].min())/(features[:,0].max()-features[:,0].min())
@@ -726,7 +728,7 @@ def calc_features(rectangles, regions, templates, num_reg):
     features[:,2]=(num_total/5)*(features[:,2]-features[:,2].min())/(features[:,2].max()-features[:,2].min())
     features[:,3]=(num_total/5)*(features[:,3]-features[:,3].min())/(features[:,3].max()-features[:,3].min())
     features[:,4]=(num_total/5)*(features[:,4]-features[:,4].min())/(features[:,4].max()-features[:,4].min())
-    return(features, features_key)
+    return(features, features_key, features_freq)
 
 def calc_num_regions(regions):
     num_reg=0
@@ -758,8 +760,9 @@ def calc_col_labels(features): #based upon maximum ssim
             label_colors[i]= "#000000" #black      
     return(label_colors)
 
-def calc_col_labels2(features): #based upon percentage scores
+def calc_col_labels2(features, features_freq): #based upon percentage scores
     _, num_ppip, num_eser, num_mdau, num_pnat, num_nlei=AD.set_numbats()
+    freq_ppip, freq_eser, freq_mdau, freq_pnat, freq_nlei=AD.set_batfreq()
     label_colors={}
     _, _, thresh, _, _, _=AD.set_parameters()
     for i in range(len(features)):
@@ -773,18 +776,24 @@ def calc_col_labels2(features): #based upon percentage scores
         per_mdau=0
         per_pnat=0
         per_nlei=0
+        weight=0
         dummy=(features[i,5:]>thresh) #matching bats
         for j in range(len(dummy)):
             if j<=num_ppip and dummy[j]==True: #matches for ppip
-                count1+=1
+                weight=1+((features_freq[i,1]-freq_ppip)/5)**2
+                count1+=1/weight
             elif num_ppip<j<=num_ppip+num_eser and dummy[j]==True:
-                count2+=1
+                weight=1+((features_freq[i,1]-freq_eser)/5)**2
+                count2+=1/weight
             elif num_ppip+num_eser<j<=num_ppip+num_eser+num_mdau and dummy[j]==True:
-                count3+=1
+                weight=1+((features_freq[i,1]-freq_mdau)/5)**2
+                count3+=1/weight
             elif num_ppip+num_eser+num_mdau<j<=num_ppip+num_eser+num_mdau+num_pnat and dummy[j]==True:
-                count4+=1
+                weight=1+((features_freq[i,1]-freq_pnat)/5)**2
+                count4+=1/weight
             elif num_ppip+num_eser+num_mdau+num_pnat<j<=num_ppip+num_eser+num_mdau+num_pnat+num_nlei and dummy[j]==True:
-                count5+=1
+                weight=1+((features_freq[i,1]-freq_nlei)/5)**2
+                count5+=1/weight
         if count1+count2+count3+count4+count5>0: #there are matches
             per_ppip=count1/num_ppip #percentage matches for ppip
             per_eser=count2/num_eser
@@ -816,6 +825,16 @@ def set_numbats(): #sets the number of templates per bat
     num_total=num_ppip+ num_eser+ num_mdau+ num_pnat+ num_nlei
     return(num_total, num_ppip, num_eser, num_mdau, num_pnat, num_nlei)
 
+def set_batfreq(): #sets the lowest frequency of each bat
+    _, _, _, _, min_spec_freq, max_spec_freq=AD.set_parameters()
+    freq_ppip=115-min_spec_freq #41 kHz
+    freq_eser=59-min_spec_freq #22 kHz
+    freq_mdau=67-min_spec_freq #25 kHz
+    freq_pnat=93-min_spec_freq #35 kHz
+    freq_nlei=59-min_spec_freq #22 kHz
+    return(freq_ppip, freq_eser, freq_mdau, freq_pnat, freq_nlei)
+    
+    
 
 def plot_dendrogram(features, label_colors):
     linked = linkage(features, 'average')
@@ -843,3 +862,7 @@ def show_region2(rectangles, spectros, features_key, i): #uses feature label
     plt.title('%d-%d kHz, timestep: %d' %(min_freq,max_freq, a)) #Show frequency range and time as title
     plt.show()
     return()
+
+
+
+

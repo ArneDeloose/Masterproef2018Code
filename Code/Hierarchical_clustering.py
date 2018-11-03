@@ -23,13 +23,13 @@ num_reg3=AD.calc_num_regions(regions3)
 
 _, templates=AD.set_templates2()
 
-features1, features_key1=AD.calc_features(rectangles1, regions1, templates, num_reg1)
-features2, features_key2=AD.calc_features(rectangles2, regions2, templates, num_reg2)
-features3, features_key3=AD.calc_features(rectangles3, regions3, templates, num_reg3)
+features1, features_key1, features_freq1=AD.calc_features(rectangles1, regions1, templates, num_reg1)
+features2, features_key2, features_freq2=AD.calc_features(rectangles2, regions2, templates, num_reg2)
+features3, features_key3, features_freq3=AD.calc_features(rectangles3, regions3, templates, num_reg3)
 
-col_labels1=AD.calc_col_labels2(features1)
-col_labels2=AD.calc_col_labels2(features2)
-col_labels3=AD.calc_col_labels2(features3)
+col_labels1=AD.calc_col_labels2(features1, features_freq1)
+col_labels2=AD.calc_col_labels2(features2, features_freq2)
+col_labels3=AD.calc_col_labels2(features3, features_freq3)
 
 
 #%matplotlib qt #plot in seperate window

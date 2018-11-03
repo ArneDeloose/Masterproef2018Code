@@ -1,7 +1,6 @@
 
 #Set weight for frequency information (now this counts as one ssim)
-
-#divide every count by 1+ the squared difference in lowest frequency, define a frequency per bat 
+#add freq range as second weight for col_label
 
 #Add wavelets, check MDS performance
 
