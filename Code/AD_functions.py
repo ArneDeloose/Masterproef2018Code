@@ -16,7 +16,7 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 def set_parameters():
     X=25 #Threshold for noise binary image
     kern=[3,3] #window for roi
-    thresh=0.6 #Threshold for ssim classification
+    thresh=0.65 #Threshold for ssim classification
     max_roi=10 #Maximum number of regions in a single spectrogram
     min_spec_freq=53 #20 kHz, restriction spectrogram
     max_spec_freq=214 #80.25 kHz
@@ -863,6 +863,11 @@ def show_region2(rectangles, spectros, features_key, i): #uses feature label
     plt.show()
     return()
 
-
-
-
+def hier_clustering(file_name):
+    rectangles, regions, spectros=AD.spect_loop(file_name)
+    num_reg=AD.calc_num_regions(regions)
+    _, templates=AD.set_templates2()
+    features, features_key, features_freq=AD.calc_features(rectangles, regions, templates, num_reg)
+    col_labels=AD.calc_col_labels2(features, features_freq)
+    AD.plot_dendrogram(features, col_labels)
+    return()
