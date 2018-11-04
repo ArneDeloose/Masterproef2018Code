@@ -8,17 +8,17 @@ This function sets a number of parameters needed in other functions. It is calle
 
 The parameters are:
 
-*X: threshold for binary image (number between 0 and 256)
+* X: threshold for binary image (number between 0 and 256)
 
-*kern: kernel size for ROI
+* kern: kernel size for ROI
 
-*thresh: threshold for SSIM
+* thresh: threshold for SSIM
 
-*max_roi: maximum number of regions within one image (100 ms)
+* max_roi: maximum number of regions within one image (100 ms)
 
-*min_spec_freq: lowest frequency in the spectrogram (1 point =0.375 kHz)
+* min_spec_freq: lowest frequency in the spectrogram (1 point =0.375 kHz)
 
-*max_spec_freq: highest frequency in the spectrogram
+* max_spec_freq: highest frequency in the spectrogram
 
 ---
 
@@ -124,11 +124,11 @@ Fills the c matrix. Uses the threshold from set_parameters and the score matrix.
 
 Classes:
 
-*0: empty
+* 0: empty
 
-*1: non-classified
+* 1: non-classified
 
-*n-2: class 0
+* n-2: class 0
 
 ---
 
@@ -144,12 +144,6 @@ Pools the functions create_smatrix, calc_smatrix, create_cmatrix, calc_cmatrix a
 
 ---
 
-create_template_set(), return(templates)
-
-Creates a template dictionary from the files 'ppip-1µl1µA044_AAT.wav' and 'eser-1µl1µA030_ACH.wav'
-
----
-
 show_class(class_num, c_mat, rectangles, regions, spectros), return()
 
 Shows all regions from a class one by one. Press enter for a new plot.
@@ -159,3 +153,114 @@ Shows all regions from a class one by one. Press enter for a new plot.
 loop_full(file_name), return(res)
 
 Uses spect_loop, create_template_set and loop_res to analyse a full sound returning only the result.
+
+---
+
+ calc_sim_matrix(rectangles, regions), return(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6)
+
+ Compares all possible pairings between two regions from a given dictionary of regions and rectangles (rectangles contains freq info).
+ Comparison returns six matrices with information: ssim, squared difference in frequency range, min freq, max freq, mean freq and duration.
+
+---
+
+calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight), return(dist_mat)
+
+Calculates a total distance based on the similarity measures calculated in 'calc_sim_matrix'. Requires a weighing of all measures. Weights are set in 'set_weights' (which is called automatically).
+
+---
+
+set_weights(weight), return(w1,w2,w3,w4,w5,w6)
+
+Sets weights for 'calc_dist_matrix'. The variable 'weight' allows you to drop one weight from the set to study the importance of it. If weight=0 nothing is dropped. Standard weights are set at roughly 1/mean(sim)
+
+---
+
+calc_pos(dist_mat), return(pos)
+
+Calculates the position in two dimensions from the distance matrix. For this, an MDS is used.
+
+---
+
+calc_pos_TSNE(dist_mat), return(pos)
+
+Similar to 'calc_pos' but uses the TSNE instead of the MDS.
+
+---
+
+plot_MDS(pos), return()
+
+Plots an MDS or TSNE from the given positions. This is calibrated to use labels corresponding to the set in 'create_template_set'.
+
+---
+
+run_MDS(weight), return()
+
+Pools the functions: 'set_templates2', 'calc_sim_matrix', 'calc_dist_matrix', 'calc_pos' and 'plot_MDS'.
+
+---
+
+run_TSNE, return()
+
+Analogous to 'run_MDS' but with the TSNE.
+
+---
+
+set_templates2(), return(rectangles_final, regions_final)
+
+Extracts pulses from five different bats (ppip, eser, mdau, pnat and nlei) to use as reference images.
+
+---
+
+calc_features(rectangles, regions, templates, num_reg), return(features, features_key, features_freq)
+
+Transforms regions into a feature matrix. Every row is one region. The first five columns contain frequency information (freq range, min freq, max freq, av freq, duration). These are scaled to contain half of the information in total divided equally over the five metrics. The remaining columns are the ssim scores with every reference in 'templates' (set by 'set_templates2'). Num_reg is the total number of regions to allow pre-allocation (can be calculated by 'calc_num_regions').
+
+Features_key links the row number to a position in the original dictionary and features_freq are the first five columns unscaled.
+
+---
+
+calc_num_regions(regions), return(num_reg)
+
+Calculates number of regions in a dictionary.
+
+---
+
+calc_col_labels(features), return(label_colors)
+
+Labels every sound in features based on the maximum ssim in the row. If this max ssim is above a threshold (set by 'set_parameters' automatically) the pulse is labeled to be this species. Labels are stored as a dictionary with the row number as key containing a python coded color.
+
+---
+
+calc_col_labels2(features, features_freq), return(label_colors)
+
+More advanced version of 'calc_col_labels'. Instead of only the maximum ssim, it takes all ssims above a threshold and adds them up to calculate a percentage matching (so if 20 of the 40 ppip ssim scores are above the threshold, the score is 50 %). Scores are weighed according to the squared difference between the lowest frequency and a fixed literature value for a certain bat. These values are called automatically using the function 'set_batfreq'. Number of templates per bat are called using 'set_numbats'.
+
+---
+
+set_numbats(), return(num_total, num_ppip, num_eser, num_mdau, num_pnat, num_nlei)
+
+Sets the number of reference images for each bat. Called in 'calc_col_labels2'.
+
+---
+
+set_batfreq(), return(freq_ppip, freq_eser, freq_mdau, freq_pnat, freq_nlei)
+
+Sets the lowest frequencies for each bat. Called in 'calc_col_labels2'.
+
+---
+
+plot_dendrogram(features, label_colors), return()
+
+Plots a dendrogram based upon a hierarchical clustering of the features. Row numbers are colored based on label_colors. Linkage is set as 'average'.
+
+---
+
+show_region2(rectangles, spectros, features_key, i), return()
+
+Shows a plot of a region on a spectrogram based on the number in the feature data (i). The title of the plot gives the frequency range of the sound and the timestep.
+
+---
+
+hier_clustering(file_name), return()
+
+Function that pools various functions together to create a dendrogram right away from the name of a file. (Functions called: spect_loop, calc_num_regions, set_templates2, calc_features, calc_col_labels2, plot_dendrogram).
