@@ -1,11 +1,6 @@
-
-#Set weight for frequency information (now this counts as one ssim)
 #add freq range as second weight for col_label
 
 #Add wavelets, check MDS performance
-
-#TSNE
-#Atom
 #cborn, dendrogram
 
 #Location influence

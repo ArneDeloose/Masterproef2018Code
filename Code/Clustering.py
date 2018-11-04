@@ -12,6 +12,14 @@ AD.run_MDS(0)
 for i in range(1,7):
     AD.run_MDS(i)
 
+#TSNE
+AD.run_TSNE(0)
+#run MDS with single variable
+for i in range(1,7):
+    AD.run_TSNE(i)
+
+
+
 #Support vector classification
 import numpy as np
 X = np.array([[-1, -1], [-2, -1], [1, 1], [2, 1]])

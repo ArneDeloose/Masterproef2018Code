@@ -313,89 +313,6 @@ def loop_res(rectangles, spectros, regions, templates):
     res=AD.calc_result(c_mat, len(templates))
     return(res, c_mat, s_mat)
 
-def create_template_set(): #temp function storing a template set
-    file_name1='ppip-1µl1µA044_AAT.wav' #ppip set
-    file_name2='eser-1µl1µA030_ACH.wav' #eser set
-    _, regions1, _=AD.spect_loop(file_name1)
-    _, regions2, _=AD.spect_loop(file_name2)
-    #File 1
-    img1=regions1[0][0]
-    img2=regions1[1][0]
-    img3=regions1[2][0]
-    img4=regions1[3][0]
-    img5=regions1[4][0]
-    img6=regions1[5][0]
-    img7=regions1[6][0]
-    img8=regions1[8][0]
-    img9=regions1[9][0]
-    img10=regions1[10][1]    
-    img11=regions1[11][1]
-    img12=regions1[12][0]
-    img13=regions1[14][0]
-    img14=regions1[16][0]
-    img15=regions1[17][0]
-    img16=regions1[18][0]
-    img17=regions1[20][0]
-    img18=regions1[22][0]
-    img19=regions1[24][0]
-    img20=regions1[26][0]
-    img21=regions1[28][0]
-    img22=regions1[29][0]
-    img23=regions1[30][0]
-    img24=regions1[31][0]
-    img25=regions1[32][0]   
-    img26=regions1[34][0]
-    img27=regions1[35][0]
-    img28=regions1[36][0]
-    img29=regions1[37][0]
-    img30=regions1[38][0]
-    img31=regions1[40][0]
-    img32=regions1[41][0]   
-    img33=regions1[42][0]
-    img34=regions1[44][0]
-    img35=regions1[45][0]
-    img36=regions1[47][1]
-    img37=regions1[48][1]
-    img38=regions1[49][0]
-    img39=regions1[52][0]
-    
-    #File 2
-    img40=regions2[1][0]
-    img41=regions2[3][0]
-    img42=regions2[4][0]
-    img43=regions2[6][0]
-    img44=regions2[11][0]
-    img45=regions2[12][0]
-    img46=regions2[14][0]
-    img47=regions2[15][0]
-    img48=regions2[17][0]
-    img49=regions2[18][0]
-    img50=regions2[19][0]
-    img51=regions2[20][0]
-    img52=regions2[22][0]
-    img53=regions2[23][0]
-    img54=regions2[25][0]
-    img55=regions2[28][1]
-    img56=regions2[41][1]
-    
-    templates_0={0: img1, 1: img2, 2: img3, 3: img4,
-             4: img5, 5: img6, 6: img7, 7: img8,
-             8: img9, 9: img10, 10: img11, 11: img12,
-             12: img13, 13: img14, 14: img15, 15: img16,
-             16: img17, 17: img18, 18: img19, 19: img20,
-             20: img21, 21: img22, 22: img23, 23: img24,
-             24: img25, 25: img26, 26: img27, 27: img28,
-             28: img29, 29: img30, 30: img31, 31: img32,
-             32: img33, 33: img34, 34: img35, 35: img36,
-             36: img37, 37: img38, 38: img39}
-    templates_1={0: img40, 1: img41, 2: img42, 3: img43,
-             4: img44, 5: img45, 6: img46, 7: img47,
-             8: img48, 9: img49, 10: img50, 11: img51,
-             12: img52, 13: img53, 14: img54, 15: img55,
-             16: img56}
-    templates={0: templates_0, 1: templates_1}
-    return(templates)
-
 def show_class(class_num, c_mat, rectangles, regions, spectros):
     for i in range(len(c_mat)): #Rows, region
         for j in range(len(c_mat[0,:])): #Colums, time
@@ -500,6 +417,13 @@ def calc_pos(dist_mat):
     pos = mds.fit(dist_mat).embedding_
     return(pos)
 
+def calc_pos_TSNE(dist_mat):
+    seed = np.random.RandomState(seed=3)
+    tsne = manifold.TSNE(n_components=2, n_iter=3000, min_grad_norm=1e-9, random_state=seed,
+                   metric="precomputed")
+    pos = tsne.fit(dist_mat).embedding_
+    return(pos)
+
 def plot_MDS(pos):
     s = 10
     plot1=plt.scatter(pos[0:38, 0], pos[0:38, 1], color='turquoise', s=s, lw=0, label='ppip')
@@ -510,6 +434,22 @@ def plot_MDS(pos):
     #plot6=plt.scatter(pos[86:95, 0], pos[86:95, 1], color='black', s=s, lw=0, label='noise')
     plt.legend(handles=[plot1,plot2, plot3, plot4, plot5])
     plt.show()
+    return()
+
+def run_MDS(weight):
+    rectangles_final, regions_final=AD.set_templates2()
+    sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6=AD.calc_sim_matrix(rectangles_final, regions_final)
+    dist_mat=AD.calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight)
+    pos=AD.calc_pos(dist_mat)
+    AD.plot_MDS(pos)
+    return()
+
+def run_TSNE(weight):
+    rectangles_final, regions_final=AD.set_templates2()
+    sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6=AD.calc_sim_matrix(rectangles_final, regions_final)
+    dist_mat=AD.calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight)
+    pos=AD.calc_pos_TSNE(dist_mat)
+    AD.plot_MDS(pos)
     return()
 
 def set_templates2():
@@ -695,14 +635,6 @@ def set_templates2():
              79: img80, 80: img81, 81: img82, 82: img83,
              83: img84, 84: img85, 85: img86}
     return(rectangles_final, regions_final)
-
-def run_MDS(weight):
-    rectangles_final, regions_final=AD.set_templates2()
-    sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6=AD.calc_sim_matrix(rectangles_final, regions_final)
-    dist_mat=AD.calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight)
-    pos=AD.calc_pos(dist_mat)
-    AD.plot_MDS(pos)
-    return()
 
 def calc_features(rectangles, regions, templates, num_reg):
     num_total,_,_,_,_,_=AD.set_numbats()
