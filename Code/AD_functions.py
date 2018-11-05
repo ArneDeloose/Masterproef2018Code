@@ -37,9 +37,14 @@ def set_freqthresh(num_class): #frequency number depends on minimum frequency us
         max_freq=max_spec_freq-min_spec_freq #max freq
     return(min_freq, max_freq)
         
-def spect(file_name):
+def spect(file_name, **optional):
     #Reads information from audio file
     [sample_rate,samples]=scipy.io.wavfile.read(file_name, mmap=False);
+    if 'channel' in optional:
+        if optional['channel']=='l':
+            samples=samples[:,0]
+        elif optional['channel']=='r':
+            samples=samples[:,1]
     N=len(samples); #number of samples
     t=np.linspace(0,N/sample_rate, num=N); #time_array
     total_time=N/sample_rate;
@@ -63,16 +68,22 @@ def substraction(spect):
     spectro=np.array(spectro, dtype=np.uint8) #Convert back from float to uint8
     return(spectro)
 
-def spect_loop(file_name): #hybrid code, one plot for 100 ms
+def spect_loop(file_name, **optional): #hybrid code, one plot for 100 ms
     #Function creates a dictionary 'rectangles' containing coordinates of the ROIs per image
     #Each image is 100 ms, number within dictionary indicates 
     #image number (e.g rectangles(45: ...) is 4500ms to 4600ms or 4.5 secs to 4.6 secs)
     #Empty images are skipped
     X, kern, _, _,_,_=AD.set_parameters()
-    sample_rate, samples, t, total_time,steps, microsteps= AD.spect(file_name);
     rectangles={};
     regions={};
     spectros={};
+    if 'channel' in optional: #time dilation
+        sample_rate, samples, t, total_time,steps, microsteps= AD.spect(file_name, channel=optional['channel']);
+        sample_rate=10*sample_rate
+        microsteps=steps%10 #remainder after division
+        steps=math.floor(steps/10) #time expansion factor
+    else:
+        sample_rate, samples, t, total_time,steps, microsteps= AD.spect(file_name);
     for i in range(steps):
         for j in range(10):
             if j%2==0: #Even number, make a 200 ms plot
@@ -80,13 +91,13 @@ def spect_loop(file_name): #hybrid code, one plot for 100 ms
                 temp_spect=AD.spect_plot(samples_dummy,sample_rate)
             else: #odd number, assign spect_norm for j and j-1
                 #j-1
-                spect_norm=temp_spect[:, 0:171]# first half
+                spect_norm=temp_spect[:, 0:int(len(temp_spect[0,:])/2)]# first half
                 ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
                 if dummy_flag:
                     rectangles[i*10+(j-1)], regions[i*10+(j-1)]=AD.ROI2(ctrs, spect_norm)
                 spectros[i*10+(j-1)]=spect_norm
                 #j
-                spect_norm=temp_spect[:, 172:] #second half
+                spect_norm=temp_spect[:, int(len(temp_spect[0,:])/2):] #second half
                 ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
                 if dummy_flag:
                     rectangles[i*10+j], regions[i*10+j]=AD.ROI2(ctrs, spect_norm)
@@ -97,13 +108,13 @@ def spect_loop(file_name): #hybrid code, one plot for 100 ms
             temp_spect=AD.spect_plot(samples_dummy,sample_rate)
         else: #odd number, assign spect_norm for j and j-1
             #j-1
-            spect_norm=temp_spect[:, 0:171]# first half
+            spect_norm=temp_spect[:, 0:int(len(temp_spect[0,:])/2)]# first half
             ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
             if dummy_flag:
                 rectangles[(i+1)*10+(j-1)], regions[(i+1)*10+(j-1)]=AD.ROI2(ctrs, spect_norm)
             spectros[(i+1)*10+(j-1)]=spect_norm
             #j
-            spect_norm=temp_spect[:, 172:] #second half
+            spect_norm=temp_spect[:, int(len(temp_spect[0,:])/2):] #second half
             ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
             if dummy_flag:
                 rectangles[(i+1)*10+j], regions[(i+1)*10+j]=AD.ROI2(ctrs, spect_norm)
@@ -121,7 +132,7 @@ def ROI(spect_norm, kern, X):
     #dilation
     kernel = np.ones((kern[0],kern[1]), np.uint8)
     img_dilation = cv2.dilate(thresh, kernel, iterations=1)
-    im2,ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    im2,ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
     #Retr_external: retrieval mode external. Only outer edges are considered,
     #Contours within other contours aren't allowed, any holes are ignored
     #Chain_approx_simple: stores only the outer points of the rectangle (4 points)   
