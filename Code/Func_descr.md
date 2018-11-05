@@ -28,15 +28,15 @@ Sets the frequency of different bats for classification. Every bat has a number 
 
 ---
 
-spect(file_name), return(sample_rate, samples, t, total_time, steps, microsteps)
+spect(file_name, \**optional), return(sample_rate, samples, t, total_time, steps, microsteps)
 
-Reads a file and returns the necessary information to make a spectrogram.
+Reads a file and returns the necessary information to make a spectrogram. For time dilation spectrograms an optinional argument 'channel' needs to be given which needs to be 'r' or 'l' (right or left channel). Steps and microsteps give information about the number of spectrograms that will be created.
 
 ---
 
 spect_plot(samples, sample_rate),return(spectro)
 
-Makes a spectrogram and converts it to grayscale values.
+Makes a spectrogram and converts it to grayscale values. Information from spect is needed.
 
 ---
 
@@ -46,9 +46,9 @@ Subtracts the mean from all values in a spectrogram to reduce noise. Called with
 
 ---
 
-spect_loop(file_name), return(rectangles2, regions2, spectros)
+spect_loop(file_name, \**optional), return(rectangles2, regions2, spectros)
 
-Extracts the ROIs from a file. This functions calls spect_plot, overload and ROI and ROI2. Spectrograms are created for every 200 ms and split in two. Regions are then extracted using ROI and ROI2.
+Extracts the ROIs from a file. This functions calls set_parameters, spect, spect_plot, overload and ROI and ROI2. Spectrograms are created every 200 ms and split in two. Regions are then extracted using ROI and ROI2. If the file used time dilation, an optional argument 'channel' needs to be given which is 'r' or 'l' (left or right channel).
 
 Rectangles is a dictionary containing coordinates of all regions (stored as colums in the order: x, y of the lower left corner, width, height). Rectangles is labeled as 0,1,2,... (0: between 0 ms and 100 ms).
 
