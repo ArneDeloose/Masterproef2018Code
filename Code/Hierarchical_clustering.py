@@ -97,5 +97,5 @@ AD.plot_dendrogram(features10, col_labels10)
 end=time.clock()
 
 runtime=end-start
-#runtime: 181 sec, analysis 60 sec
-
+#runtime: 154 sec, analysis 60 sec
+#Runtime: 210 sec (laptop)
