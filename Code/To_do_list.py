@@ -1,8 +1,7 @@
 #add freq range as second weight for col_label
 
-#Give list of filenames and perform full analysis. 
-#Also store all detected bats per species with spectrograms and dendrograms per file.
-#Check whether you can actually make a file like this
+#make a folder for each bat and save spectros inside using time, region, name file (string=str(..)+ '...')
+#Make a folder with dendrograms and save them inside (use name of file to save dendro)
 
 #Add wavelets, check MDS performance
 #cborn, dendrogram

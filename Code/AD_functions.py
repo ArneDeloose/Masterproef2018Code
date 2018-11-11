@@ -813,4 +813,35 @@ def hier_clustering(file_name):
     features, features_key, features_freq=AD.calc_features(rectangles, regions, templates, num_reg)
     col_labels=AD.calc_col_labels2(features, features_freq)
     AD.plot_dendrogram(features, col_labels)
+    return(col_labels, features_key)
+
+def write_output(list_files, list_bats, colors_bat, output_file):
+    #create empty dictionaries
+    col_labels={}
+    features_key={}
+    #run clustering and save output    
+    for i in range(len(list_files)):
+        col_labels[i], features_key[i]=AD.hier_clustering(list_files[i])
+    total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
+    #clear output file
+    open(output_file, 'w').close()
+    #edit output file
+    f=open(output_file, 'a')
+    for k in range(len(list_bats)):
+        f.write(str(list_bats[k]) +': ' + '\n'); #name bat
+        f.write('\n') #skip line
+        for i in range(len(list_files)):
+            f.write(str(i) + ': ' + list_files[i] + "\n") #name file
+            count=0
+            for j in range(len(col_labels[i])):
+                if col_labels[i][j]==colors_bat[list_bats[k]]:
+                    f.write('Time: ' + str(features_key[i][j][0]/10) + ' s, region: ' + str(features_key[i][j][1]) + '\n');
+                    count+=1
+            f.write('Total: ' + str(count) + '\n')
+            f.write('\n') #empty line between different files
+            total_count[k]+=count
+    f.write('Summary: \n')
+    for k in range(len(list_bats)):
+        f.write(str(list_bats[k]) +': ' + str(total_count[k]) + '\n');
+    f.close()
     return()
