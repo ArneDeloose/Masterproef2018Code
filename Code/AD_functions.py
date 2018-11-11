@@ -11,6 +11,7 @@ from skimage.measure import compare_ssim as ssim
 from sklearn import manifold
 import os
 from scipy.cluster.hierarchy import dendrogram, linkage
+from PIL import Image
 #from sklearn.metrics.pairwise import euclidean_distances
 
 def set_parameters():
@@ -189,7 +190,7 @@ def wave_plot(data, wavelet):
         fig.tight_layout()
     return(fig)
 
-def show_region(rectangles, spectros, i):
+def show_region(rectangles, spectros, i, **optional):
     f, ax1 = plt.subplots()
     ax1.imshow(spectros[i])
     dummy=rectangles[i].shape
@@ -201,6 +202,9 @@ def show_region(rectangles, spectros, i):
        ax1.add_patch(rect)
     plt.title(i)
     plt.show()
+    if 'path' in optional:
+        plt.savefig(optional['path'])
+        plt.close()
     return()
 
 def show_mregions(rectangles, spectros):
@@ -465,7 +469,7 @@ def run_TSNE(weight):
 
 def set_templates2():
     path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
-    os.chdir(path)    
+    os.chdir(path)
     file_name1='ppip-1µl1µA044_AAT.wav' #ppip set
     file_name2='eser-1µl1µA030_ACH.wav' #eser set
     file_name3='mdau-1µl1µA012_AGW.wav' #mdau set
@@ -648,7 +652,8 @@ def set_templates2():
     return(rectangles_final, regions_final)
 
 def calc_features(rectangles, regions, templates, num_reg):
-    _, num_total=AD.set_numbats()
+    list_bats,_=AD.set_batscolor()
+    _, num_total=AD.set_numbats(list_bats)
     features=np.zeros((num_reg, len(templates)+5))
     features_freq=np.zeros((num_reg, 5)) #unscaled freq info
     count=0
@@ -705,7 +710,7 @@ def calc_col_labels(features): #based upon maximum ssim
 
 def calc_col_labels2(features, features_freq): #based upon percentage scores
     list_bats, colors_bat=AD.set_batscolor()
-    num_bats, _=AD.set_numbats()
+    num_bats, _=AD.set_numbats(list_bats)
     freq_bats=AD.set_batfreq()
     label_colors={}
     per_total={}
@@ -745,14 +750,16 @@ def calc_col_labels2(features, features_freq): #based upon percentage scores
             per_total2[i]=per2
     return(label_colors, per_total, per_total2)
 
-def set_numbats(): #sets the number of templates per bat
-    num_ppip=39
-    num_eser=19
-    num_mdau=6
-    num_pnat=18
-    num_nlei=6
-    num_bats=(num_ppip, num_eser, num_mdau, num_pnat, num_nlei)
-    num_total=num_ppip+ num_eser+ num_mdau+ num_pnat+ num_nlei
+def set_numbats(list_bats): #sets the number of templates per bat
+    path1='C:/Users/arne/Documents/School/Thesis/Templates'; #Change this to directory that stores the data
+    full_path=''
+    num_bats=np.zeros((len(list_bats),), dtype=np.uint8)
+    for i in range(len(list_bats)):
+        path2=list_bats[i]
+        full_path=path1+ '/' + path2
+        files_list= os.listdir(full_path)
+        num_bats[i] = len(files_list)
+    num_total=sum(num_bats)
     return(num_bats, num_total)
 
 def set_batfreq(): #sets the lowest frequency of each bat
@@ -840,9 +847,9 @@ def write_output(list_files, output_file):
     for i in range(len(list_files)):
         col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files[i], write=True)
     total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
-    #clear output file
-    open(output_file, 'w').close()
-    #edit output file
+    #output file
+    f=open(output_file, 'a').close() #create file if it doesn't exist yet 
+    open(output_file, 'w').close() #clear file
     f=open(output_file, 'a')
     for k in range(len(list_bats)):
         f.write(str(list_bats[k]) +': ' + '\n'); #name bat
@@ -864,3 +871,31 @@ def write_output(list_files, output_file):
         f.write(str(list_bats[k]) +': ' + str(total_count[k]) + '\n');
     f.close()
     return()
+
+def create_template(file_name, time, region_num, bat_name):
+    list_bats, _=AD.set_batscolor()
+    num_bats, _=AD.set_numbats(list_bats)
+    i=list_bats.index(bat_name)
+    path_total='Templates/' + bat_name + '/' + str(num_bats[i]) + '.png'
+    _, regions, _=AD.spect_loop(file_name)
+    plt.imshow(regions[int(time*10)][region_num])
+    plt.savefig(path_total)
+    plt.close()
+    return()
+
+def read_templates():
+    #find another way to get rectangles out (need to be saved seperately)
+    list_bats, _=AD.set_batscolor()
+    num_bats, _=AD.set_numbats(list_bats)
+    rectangles={}
+    regions={}
+    count=0
+    path1='C:/Users/arne/Documents/School/Thesis/Templates'
+    for i in range(len(list_bats)):
+        for j in range(num_bats[i]):
+            path2= list_bats[i]
+            full_path=path1+ '/' + path2 + '/' + str(i) +'.png'
+            os.chdir(full_path)
+            regions[count]=Image.open(full_path)
+            count+=1
+    return(rectangles, regions)
