@@ -648,7 +648,7 @@ def set_templates2():
     return(rectangles_final, regions_final)
 
 def calc_features(rectangles, regions, templates, num_reg):
-    num_total,_,_,_,_,_=AD.set_numbats()
+    _, num_total=AD.set_numbats()
     features=np.zeros((num_reg, len(templates)+5))
     features_freq=np.zeros((num_reg, 5)) #unscaled freq info
     count=0
@@ -704,60 +704,46 @@ def calc_col_labels(features): #based upon maximum ssim
     return(label_colors)
 
 def calc_col_labels2(features, features_freq): #based upon percentage scores
-    _, num_ppip, num_eser, num_mdau, num_pnat, num_nlei=AD.set_numbats()
-    freq_ppip, freq_eser, freq_mdau, freq_pnat, freq_nlei=AD.set_batfreq()
+    list_bats, colors_bat=AD.set_batscolor()
+    num_bats, _=AD.set_numbats()
+    freq_bats=AD.set_batfreq()
     label_colors={}
+    per_total={}
+    per_total2={}
     _, _, thresh, _, _, _=AD.set_parameters()
-    for i in range(len(features)):
-        count1=0 #ppip
-        count2=0 #eser
-        count3=0 #mdau
-        count4=0 #pnat
-        count5=0 #nlei
-        per_ppip=0
-        per_eser=0
-        per_mdau=0
-        per_pnat=0
-        per_nlei=0
+    for i in range(len(features)): #check rows one by one
+        count=np.zeros((len(list_bats),)) #counters per
+        count2=np.zeros((len(list_bats),)) #counters reg
+        per=np.zeros((len(list_bats),)) #percentage scores
+        per2=np.zeros((len(list_bats),)) #percentage scores reg
         weight=0
         dummy=(features[i,5:]>thresh) #matching bats
         for j in range(len(dummy)):
-            if j<=num_ppip and dummy[j]==True: #matches for ppip
-                weight=1+((features_freq[i,1]-freq_ppip)/5)**2
-                count1+=1/weight
-            elif num_ppip<j<=num_ppip+num_eser and dummy[j]==True:
-                weight=1+((features_freq[i,1]-freq_eser)/5)**2
-                count2+=1/weight
-            elif num_ppip+num_eser<j<=num_ppip+num_eser+num_mdau and dummy[j]==True:
-                weight=1+((features_freq[i,1]-freq_mdau)/5)**2
-                count3+=1/weight
-            elif num_ppip+num_eser+num_mdau<j<=num_ppip+num_eser+num_mdau+num_pnat and dummy[j]==True:
-                weight=1+((features_freq[i,1]-freq_pnat)/5)**2
-                count4+=1/weight
-            elif num_ppip+num_eser+num_mdau+num_pnat<j<=num_ppip+num_eser+num_mdau+num_pnat+num_nlei and dummy[j]==True:
-                weight=1+((features_freq[i,1]-freq_nlei)/5)**2
-                count5+=1/weight
-        if count1+count2+count3+count4+count5>0: #there are matches
-            per_ppip=count1/num_ppip #percentage matches for ppip
-            per_eser=count2/num_eser
-            per_mdau=count3/num_mdau
-            per_pnat=count4/num_pnat
-            per_nlei=count5/num_nlei
-            if per_ppip>max(per_eser,per_mdau,per_pnat,per_nlei): #ppip most abundant
-                label_colors[i]="#ff0000" #red
-            elif per_eser>max(per_ppip,per_mdau,per_pnat,per_nlei):
-                label_colors[i]="#008000" #green
-            elif per_mdau>max(per_ppip,per_eser,per_pnat,per_nlei):
-                label_colors[i]="#0000ff" #blue
-            elif per_pnat>max(per_ppip,per_eser,per_mdau,per_nlei):
-                label_colors[i]="#a52a2a" #brown
-            elif per_nlei>max(per_ppip,per_mdau,per_pnat,per_eser):
-                label_colors[i]="#ee82ee" #violet
-            else: #equal matches
-                label_colors[i]="#808080" #grey
-        else: #no matches
-            label_colors[i]= "#000000" #black  
-    return(label_colors)
+            lower_bound=0
+            upper_bound=num_bats[0]
+            for k in range(len(list_bats)):
+                if k==0: #k-1 doesn't exist at first
+                    if j<=upper_bound and dummy[j]==True: #match
+                        weight=1+(features_freq[i,1]-freq_bats[k]/5)**2
+                        count[k]+=(1/weight)
+                        count2[k]+=1
+                else: #every other k
+                    lower_bound+=num_bats[k-1]
+                    upper_bound+=num_bats[k]
+                    if lower_bound<j<=upper_bound and dummy[j]==True: #match
+                        weight=1+(features_freq[i,1]-freq_bats[k]/5)**2
+                        count[k]+=(1/weight)
+                        count2[k]+=1
+            if sum(count)>0: #there are matches
+                per=count/num_bats
+                per2=count2/num_bats
+                dummy_index=np.argmax(per) #index max per_score
+                label_colors[i]=colors_bat[list_bats[dummy_index]]
+            else: #no matches
+                label_colors[i]= "#000000" #black 
+            per_total[i]=per
+            per_total2[i]=per2
+    return(label_colors, per_total, per_total2)
 
 def set_numbats(): #sets the number of templates per bat
     num_ppip=39
@@ -765,8 +751,9 @@ def set_numbats(): #sets the number of templates per bat
     num_mdau=6
     num_pnat=18
     num_nlei=6
+    num_bats=(num_ppip, num_eser, num_mdau, num_pnat, num_nlei)
     num_total=num_ppip+ num_eser+ num_mdau+ num_pnat+ num_nlei
-    return(num_total, num_ppip, num_eser, num_mdau, num_pnat, num_nlei)
+    return(num_bats, num_total)
 
 def set_batfreq(): #sets the lowest frequency of each bat
     _, _, _, _, min_spec_freq, max_spec_freq=AD.set_parameters()
@@ -775,11 +762,16 @@ def set_batfreq(): #sets the lowest frequency of each bat
     freq_mdau=67-min_spec_freq #25 kHz
     freq_pnat=93-min_spec_freq #35 kHz
     freq_nlei=59-min_spec_freq #22 kHz
-    return(freq_ppip, freq_eser, freq_mdau, freq_pnat, freq_nlei)
-    
-    
+    freq_bats=(freq_ppip, freq_eser, freq_mdau, freq_pnat, freq_nlei)
+    return(freq_bats)
 
-def plot_dendrogram(features, label_colors):
+def set_batscolor(): #dictionary linking bats to colors
+    list_bats=('ppip', 'eser', 'mdau', 'pnat', 'nlei')
+    colors_bat={'ppip': "#ff0000", 'eser': "#008000", 'mdau': "#0000ff", 
+            'pnat': "#a52a2a", 'nlei': "#ee82ee"} 
+    return(list_bats, colors_bat)
+            
+def plot_dendrogram(features, label_colors, **optional):
     linked = linkage(features, 'average')
     plt.figure(figsize=(20, 14))
     dendrogram(linked)
@@ -787,10 +779,14 @@ def plot_dendrogram(features, label_colors):
     xlbls = ax.get_xmajorticklabels() #gets labels
     for lbl in xlbls:
         lbl.set_color(label_colors[int(lbl.get_text())])#sets color label
-    plt.show()
+    if 'name' in optional:
+        plt.savefig('dendrograms/' + optional['name'] + '.png')
+    else:
+        plt.show()
+    plt.close()
     return()
 
-def show_region2(rectangles, spectros, features_key, i): #uses feature label
+def show_region2(rectangles, spectros, features_key, i, **optional): #uses feature label
     (a,b)=features_key[i]
     f, ax1 = plt.subplots()
     ax1.imshow(spectros[a])
@@ -803,25 +799,46 @@ def show_region2(rectangles, spectros, features_key, i): #uses feature label
     min_freq=int((rectangles[a][1,b]+min_spec_freq)*0.375)
     max_freq=int((rectangles[a][1,b]+rectangles[a][3,b]+min_spec_freq)*0.375)
     plt.title('%d-%d kHz, timestep: %d' %(min_freq,max_freq, a)) #Show frequency range and time as title
-    plt.show()
+    if 'name' in optional:
+        plt.savefig(optional['name'] + '.png')
+    else:
+        plt.show()
+    plt.close()
     return()
 
-def hier_clustering(file_name):
+def hier_clustering(file_name, **optional):
     rectangles, regions, spectros=AD.spect_loop(file_name)
     num_reg=AD.calc_num_regions(regions)
     _, templates=AD.set_templates2()
     features, features_key, features_freq=AD.calc_features(rectangles, regions, templates, num_reg)
-    col_labels=AD.calc_col_labels2(features, features_freq)
-    AD.plot_dendrogram(features, col_labels)
-    return(col_labels, features_key)
+    col_labels, per_total, per_total2=AD.calc_col_labels2(features, features_freq)
+    if 'write' in optional:
+        if optional['write']: #true
+            AD.plot_dendrogram(features, col_labels, name=file_name)
+        else: #false
+            AD.plot_dendrogram(features, col_labels)
+    else:
+        AD.plot_dendrogram(features, col_labels)
+    return(col_labels, features_key, rectangles, spectros, per_total, per_total2)
 
-def write_output(list_files, list_bats, colors_bat, output_file):
+def write_output(list_files, output_file):
+    list_bats, colors_bat=AD.set_batscolor()
+    #Check directories
+    if not os.path.exists('dendrograms'):
+        os.makedirs('dendrograms')
+    for k in range(len(list_bats)):
+        if not os.path.exists(list_bats[k]):
+            os.makedirs(list_bats[k])
     #create empty dictionaries
     col_labels={}
     features_key={}
+    rectangles={}
+    spectros={}
+    per_total={}
+    per_total2={}
     #run clustering and save output    
     for i in range(len(list_files)):
-        col_labels[i], features_key[i]=AD.hier_clustering(list_files[i])
+        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files[i], write=True)
     total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
     #clear output file
     open(output_file, 'w').close()
@@ -835,8 +852,10 @@ def write_output(list_files, list_bats, colors_bat, output_file):
             count=0
             for j in range(len(col_labels[i])):
                 if col_labels[i][j]==colors_bat[list_bats[k]]:
-                    f.write('Time: ' + str(features_key[i][j][0]/10) + ' s, region: ' + str(features_key[i][j][1]) + '\n');
+                    f.write('Time: ' + str(features_key[i][j][0]/10) + ' s, region: ' + str(features_key[i][j][1]) + ', score1: ' + str(int(100000*per_total[i][j][k])) + 'mil, score2: ' + str(int(100*per_total2[i][j][k])) + '% \n');
                     count+=1
+                    temp_str=list_bats[k] + '/time_' + str(features_key[i][j][0]/10) + '_region_' + str(features_key[i][j][1]) + '_file_' + str(list_files[i])
+                    show_region2(rectangles[i], spectros[i], features_key[i], j, name=temp_str)
             f.write('Total: ' + str(count) + '\n')
             f.write('\n') #empty line between different files
             total_count[k]+=count

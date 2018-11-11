@@ -1,7 +1,6 @@
 #add freq range as second weight for col_label
 
-#make a folder for each bat and save spectros inside using time, region, name file (string=str(..)+ '...')
-#Make a folder with dendrograms and save them inside (use name of file to save dendro)
+#Add function to check whether the file you want to write to already exists
 
 #Add wavelets, check MDS performance
 #cborn, dendrogram
