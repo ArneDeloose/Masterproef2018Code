@@ -11,8 +11,11 @@ from skimage.measure import compare_ssim as ssim
 from sklearn import manifold
 import os
 from scipy.cluster.hierarchy import dendrogram, linkage
-from PIL import Image
 #from sklearn.metrics.pairwise import euclidean_distances
+
+def set_path():
+    path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the needed data
+    return(path)
 
 def set_parameters():
     X=25 #Threshold for noise binary image
@@ -79,12 +82,12 @@ def spect_loop(file_name, **optional): #hybrid code, one plot for 100 ms
     regions={};
     spectros={};
     if 'channel' in optional: #time dilation
-        sample_rate, samples, t, total_time,steps, microsteps= AD.spect(file_name, channel=optional['channel']);
+        sample_rate, samples, t, total_time,steps, microsteps= AD.spect('Audio_data/'+ file_name, channel=optional['channel']);
         sample_rate=10*sample_rate
         microsteps=steps%10 #remainder after division
         steps=math.floor(steps/10) #time expansion factor
     else:
-        sample_rate, samples, t, total_time,steps, microsteps= AD.spect(file_name);
+        sample_rate, samples, t, total_time,steps, microsteps= AD.spect('Audio_data/'+ file_name);
     for i in range(steps):
         for j in range(10):
             if j%2==0: #Even number, make a 200 ms plot
@@ -124,7 +127,6 @@ def spect_loop(file_name, **optional): #hybrid code, one plot for 100 ms
     return(rectangles2, regions2, spectros)
     
 def ROI(spect_norm, kern, X):
-    #Image_path: location of the figure
     #kern: parameters of the kernel size
     len_flag=True
     #binary
@@ -467,190 +469,6 @@ def run_TSNE(weight):
     AD.plot_MDS(pos)
     return()
 
-def set_templates2():
-    path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
-    os.chdir(path)
-    file_name1='ppip-1µl1µA044_AAT.wav' #ppip set
-    file_name2='eser-1µl1µA030_ACH.wav' #eser set
-    file_name3='mdau-1µl1µA012_AGW.wav' #mdau set
-    file_name4='pnat-1_ppip-1µl1µA037_AGQ.wav' #pnat set
-    file_name5='nlei-1_ppip-1µl1µA028_AAW.wav' #nlei set
-    #file_name6='noise-1µl1µA037_AAB.wav' #noise
-
-    rectangles1, regions1, _=AD.spect_loop(file_name1)
-    rectangles2, regions2, _=AD.spect_loop(file_name2)
-    rectangles3, regions3, _=AD.spect_loop(file_name3)
-    rectangles4, regions4, _=AD.spect_loop(file_name4)
-    rectangles5, regions5, _=AD.spect_loop(file_name5)
-    #rectangles6, regions6, _=AD.spect_loop(file_name6)
-    
-    rectangles_final=np.zeros((4,0))
-    
-    #File 1
-    img1=regions1[0][0]
-    img2=regions1[1][0]
-    img3=regions1[2][0]
-    img4=regions1[3][0]
-    img5=regions1[4][0]
-    img6=regions1[5][0]
-    img7=regions1[6][0]
-    img8=regions1[8][0]
-    img9=regions1[9][0]
-    img10=regions1[10][1]    
-    img11=regions1[11][1]
-    img12=regions1[12][0]
-    img13=regions1[14][0]
-    img14=regions1[16][0]
-    img15=regions1[17][0]
-    img16=regions1[18][0]
-    img17=regions1[20][0]
-    img18=regions1[22][0]
-    img19=regions1[24][0]
-    img20=regions1[26][0]
-    img21=regions1[28][0]
-    img22=regions1[29][0]
-    img23=regions1[30][0]
-    img24=regions1[31][0]
-    img25=regions1[32][0]   
-    img26=regions1[34][0]
-    img27=regions1[35][0]
-    img28=regions1[36][0]
-    img29=regions1[37][0]
-    img30=regions1[38][0]
-    img31=regions1[40][0]
-    img32=regions1[41][0]   
-    img33=regions1[42][0]
-    img34=regions1[44][0]
-    img35=regions1[45][0]
-    img36=regions1[47][1]
-    img37=regions1[48][1]
-    img38=regions1[49][0]
-    img39=regions1[52][0]
-    
-    rectangles_final=np.c_[rectangles_final, rectangles1[0][:,0], rectangles1[1][:,0], rectangles1[2][:,0], rectangles1[3][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles1[4][:,0], rectangles1[5][:,0], rectangles1[6][:,0], rectangles1[8][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles1[9][:,0], rectangles1[10][:,1], rectangles1[11][:,1], rectangles1[12][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles1[14][:,0], rectangles1[16][:,0], rectangles1[17][:,0], rectangles1[18][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles1[20][:,0], rectangles1[22][:,0], rectangles1[24][:,0], rectangles1[26][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles1[28][:,0], rectangles1[29][:,0], rectangles1[30][:,0], rectangles1[31][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles1[32][:,0], rectangles1[34][:,0], rectangles1[35][:,0], rectangles1[36][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles1[37][:,0], rectangles1[38][:,0], rectangles1[40][:,0], rectangles1[41][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles1[42][:,0], rectangles1[44][:,0], rectangles1[45][:,0], rectangles1[47][:,1]]
-    rectangles_final=np.c_[rectangles_final, rectangles1[48][:,1], rectangles1[49][:,0], rectangles1[52][:,0]]
-
-    #File 2
-    img40=regions2[1][0]
-    img41=regions2[3][0]
-    img42=regions2[4][0]
-    img43=regions2[6][0]
-    img44=regions2[11][0]
-    img45=regions2[12][0]
-    img46=regions2[14][0]
-    img47=regions2[15][0]
-    img48=regions2[17][0]
-    img49=regions2[18][0]
-    img50=regions2[19][0]
-    img51=regions2[20][0]
-    img52=regions2[22][0]
-    img53=regions2[23][0]
-    img54=regions2[25][0]
-    img55=regions2[28][1]
-    img56=regions2[41][1]
-    
-    rectangles_final=np.c_[rectangles_final, rectangles2[1][:,0], rectangles2[3][:,0], rectangles2[4][:,0], rectangles2[6][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles2[11][:,0], rectangles2[12][:,0], rectangles2[14][:,0], rectangles2[15][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles2[17][:,0], rectangles2[18][:,0], rectangles2[19][:,0], rectangles2[20][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles2[22][:,0], rectangles2[23][:,0], rectangles2[25][:,0], rectangles2[28][:,1]]
-    rectangles_final=np.c_[rectangles_final, rectangles2[41][:,1]]
-    
-    #File 3
-    img57=regions3[4][0]
-    img58=regions3[5][0]
-    img59=regions3[6][0]
-    img60=regions3[14][0]
-    img61=regions3[15][5]
-    img62=regions3[47][0]
-    
-    rectangles_final=np.c_[rectangles_final, rectangles3[4][:,0], rectangles3[5][:,0], rectangles3[6][:,0], rectangles3[14][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles3[15][:,5], rectangles3[47][:,0]]    
-    
-    #File 4
-    img63=regions4[2][0]
-    img64=regions4[4][0]
-    img65=regions4[5][0]
-    img66=regions4[6][0]
-    img67=regions4[9][0]
-    img68=regions4[19][0]
-    img69=regions4[20][1]
-    img70=regions4[25][0]
-    img71=regions4[26][0]
-    img72=regions4[29][0]
-    img73=regions4[30][0]
-    img74=regions4[31][0]
-    img75=regions4[32][0]
-    img76=regions4[34][0]
-    img77=regions4[35][0]
-    img78=regions4[37][0]
-    img79=regions4[38][0]
-    img80=regions4[40][0]
-
-    rectangles_final=np.c_[rectangles_final, rectangles4[2][:,0], rectangles4[4][:,0], rectangles4[5][:,0], rectangles4[6][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles4[9][:,0], rectangles4[19][:,0], rectangles4[20][:,1], rectangles4[25][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles4[26][:,0], rectangles4[29][:,0], rectangles4[30][:,0], rectangles4[31][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles4[32][:,0], rectangles4[34][:,0], rectangles4[35][:,0], rectangles4[37][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles4[38][:,0], rectangles4[40][:,0]]
-    
-    #File 5
-    img81=regions5[5][0]
-    img82=regions5[7][0]
-    img83=regions5[9][0]
-    img84=regions5[10][0]
-    img85=regions5[13][0]
-    img86=regions5[14][0]
-    
-    rectangles_final=np.c_[rectangles_final, rectangles5[5][:,0], rectangles5[7][:,0], rectangles5[9][:,0], rectangles5[10][:,0]]
-    rectangles_final=np.c_[rectangles_final, rectangles5[13][:,0], rectangles5[14][:,0]]
-    
-    #File 6
-    #img87=regions6[1][0]
-    #img88=regions6[6][0]
-    #img89=regions6[10][0]
-    #img90=regions6[25][0]
-    #img91=regions6[36][0]
-    #img92=regions6[39][0]
-    #img93=regions6[53][0]
-    #img94=regions6[53][3]
-    #img95=regions6[53][5]
-    #img96=regions6[53][7]
-    
-    #rectangles_final=np.c_[rectangles_final, rectangles6[1][:,0], rectangles6[6][:,0], rectangles6[10][:,0], rectangles6[25][:,0]]
-    #rectangles_final=np.c_[rectangles_final, rectangles6[36][:,0], rectangles6[39][:,0], rectangles6[53][:,0], rectangles6[53][:,3]]
-    #rectangles_final=np.c_[rectangles_final, rectangles6[53][:,5], rectangles6[53][:,7]]
-    
-    regions_final={0: img1, 1: img2, 2: img3, 3: img4,
-             4: img5, 5: img6, 6: img7, 7: img8,
-             8: img9, 9: img10, 10: img11, 11: img12,
-             12: img13, 13: img14, 14: img15, 15: img16,
-             16: img17, 17: img18, 18: img19, 19: img20,
-             20: img21, 21: img22, 22: img23, 23: img24,
-             24: img25, 25: img26, 26: img27, 27: img28,
-             28: img29, 29: img30, 30: img31, 31: img32,
-             32: img33, 33: img34, 34: img35, 35: img36,
-             36: img37, 37: img38, 38: img39,
-             39: img40, 40: img41, 41: img42, 42: img43,
-             43: img44, 44: img45, 45: img46, 46: img47,
-             47: img48, 48: img49, 49: img50, 50: img51,
-             51: img52, 52: img53, 53: img54, 54: img55,
-             55: img56, 56: img57, 57: img58, 58: img59,
-             59: img60, 60: img61, 61: img62, 62: img63,
-             63: img64, 64: img65, 65: img66, 66: img67,
-             67: img68, 68: img69, 69: img70, 70: img71,
-             71: img72, 72: img73, 73: img74, 74: img75,
-             75: img76, 76: img77, 77: img78, 78: img79,
-             79: img80, 80: img81, 81: img82, 82: img83,
-             83: img84, 84: img85, 85: img86}
-    return(rectangles_final, regions_final)
-
 def calc_features(rectangles, regions, templates, num_reg):
     list_bats,_=AD.set_batscolor()
     _, num_total=AD.set_numbats(list_bats)
@@ -751,14 +569,15 @@ def calc_col_labels2(features, features_freq): #based upon percentage scores
     return(label_colors, per_total, per_total2)
 
 def set_numbats(list_bats): #sets the number of templates per bat
-    path1='C:/Users/arne/Documents/School/Thesis/Templates'; #Change this to directory that stores the data
-    full_path=''
+    path=AD.set_path()
+    AD.make_folders(path)
+    full_path='' #will be overwritten every time
     num_bats=np.zeros((len(list_bats),), dtype=np.uint8)
     for i in range(len(list_bats)):
         path2=list_bats[i]
-        full_path=path1+ '/' + path2
-        files_list= os.listdir(full_path)
-        num_bats[i] = len(files_list)
+        full_path=path + '/Templates_arrays/' + path2
+        files_list= os.listdir(full_path) #list all templates in folder
+        num_bats[i] = len(files_list) #number of templates
     num_total=sum(num_bats)
     return(num_bats, num_total)
 
@@ -813,10 +632,9 @@ def show_region2(rectangles, spectros, features_key, i, **optional): #uses featu
     plt.close()
     return()
 
-def hier_clustering(file_name, **optional):
+def hier_clustering(file_name, templates, **optional):
     rectangles, regions, spectros=AD.spect_loop(file_name)
     num_reg=AD.calc_num_regions(regions)
-    _, templates=AD.set_templates2()
     features, features_key, features_freq=AD.calc_features(rectangles, regions, templates, num_reg)
     col_labels, per_total, per_total2=AD.calc_col_labels2(features, features_freq)
     if 'write' in optional:
@@ -828,7 +646,20 @@ def hier_clustering(file_name, **optional):
         AD.plot_dendrogram(features, col_labels)
     return(col_labels, features_key, rectangles, spectros, per_total, per_total2)
 
-def write_output(list_files, output_file):
+def write_output(list_files, output_file, templates, **optional): #Optional only works on non TE data
+    if 'full' in optional:
+       if optional['full']: #True 
+           path=AD.set_path()
+           list_files2=os.listdir(path + '/Audio_data') #write out results for everything
+           count=0
+           for i in range(len(list_files2)):
+               if list_files2[i-count][-4:]!='.WAV':
+                   del list_files2[i-count] #delete files that aren't audio
+                   count+=1 #len changes, take this into account
+       else:
+           list_files2=list_files
+    else:
+        list_files2=list_files
     list_bats, colors_bat=AD.set_batscolor()
     #Check directories
     if not os.path.exists('dendrograms'):
@@ -844,8 +675,8 @@ def write_output(list_files, output_file):
     per_total={}
     per_total2={}
     #run clustering and save output    
-    for i in range(len(list_files)):
-        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files[i], write=True)
+    for i in range(len(list_files2)):
+        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files2[i], templates, write=True)
     total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
     #output file
     f=open(output_file, 'a').close() #create file if it doesn't exist yet 
@@ -854,14 +685,14 @@ def write_output(list_files, output_file):
     for k in range(len(list_bats)):
         f.write(str(list_bats[k]) +': ' + '\n'); #name bat
         f.write('\n') #skip line
-        for i in range(len(list_files)):
-            f.write(str(i) + ': ' + list_files[i] + "\n") #name file
+        for i in range(len(list_files2)):
+            f.write(str(i) + ': ' + list_files2[i] + "\n") #name file
             count=0
             for j in range(len(col_labels[i])):
                 if col_labels[i][j]==colors_bat[list_bats[k]]:
-                    f.write('Time: ' + str(features_key[i][j][0]/10) + ' s, region: ' + str(features_key[i][j][1]) + ', score1: ' + str(int(100000*per_total[i][j][k])) + 'mil, score2: ' + str(int(100*per_total2[i][j][k])) + '% \n');
+                    f.write('Time: ' + str(features_key[i][j][0]/10) + ' s, region: ' + str(features_key[i][j][1]) + ', score1: ' + str(int(100000*per_total[i][j][k])) + ' mil, score2: ' + str(int(100*per_total2[i][j][k])) + '% \n');
                     count+=1
-                    temp_str=list_bats[k] + '/time_' + str(features_key[i][j][0]/10) + '_region_' + str(features_key[i][j][1]) + '_file_' + str(list_files[i])
+                    temp_str=list_bats[k] + '/time_' + str(features_key[i][j][0]/10) + '_region_' + str(features_key[i][j][1]) + '_file_' + str(list_files2[i])
                     show_region2(rectangles[i], spectros[i], features_key[i], j, name=temp_str)
             f.write('Total: ' + str(count) + '\n')
             f.write('\n') #empty line between different files
@@ -872,30 +703,49 @@ def write_output(list_files, output_file):
     f.close()
     return()
 
-def create_template(file_name, time, region_num, bat_name):
+def create_template(file_name, time, region_num, bat_name): #creates two templates (image and array)
+    path=AD.set_path()
+    AD.make_folders(path)
+    os.chdir(path)
     list_bats, _=AD.set_batscolor()
     num_bats, _=AD.set_numbats(list_bats)
     i=list_bats.index(bat_name)
-    path_total='Templates/' + bat_name + '/' + str(num_bats[i]) + '.png'
+    path_total='Templates_images/' + bat_name + '/' + str(num_bats[i]) + '.png'
     _, regions, _=AD.spect_loop(file_name)
     plt.imshow(regions[int(time*10)][region_num])
     plt.savefig(path_total)
     plt.close()
+    path_total='Templates_arrays/' + bat_name + '/' + str(num_bats[i]) + '.npy'
+    np.save(path_total, regions[int(time*10)][region_num])
     return()
 
-def read_templates():
-    #find another way to get rectangles out (need to be saved seperately)
+def read_templates(): #reads in templates from the path to the general folder
+    path=AD.set_path()
+    AD.make_folders(path)
+    full_path='' #string will be constructed every step
     list_bats, _=AD.set_batscolor()
     num_bats, _=AD.set_numbats(list_bats)
-    rectangles={}
     regions={}
     count=0
-    path1='C:/Users/arne/Documents/School/Thesis/Templates'
     for i in range(len(list_bats)):
         for j in range(num_bats[i]):
-            path2= list_bats[i]
-            full_path=path1+ '/' + path2 + '/' + str(i) +'.png'
-            os.chdir(full_path)
-            regions[count]=Image.open(full_path)
+            #Make path to go through each file one by one
+            full_path=path+ '/Templates_arrays/' + list_bats[i] + '/' + str(j) +'.npy'
+            regions[count]=np.load(full_path)
             count+=1
-    return(rectangles, regions)
+    return(regions)
+
+def make_folders(path): #makes folders if they don't exist yet
+    os.chdir(path)
+    if not os.path.exists('Templates_arrays'):
+        os.makedirs('Templates_arrays')
+    if not os.path.exists('Templates_images'):
+        os.makedirs('Templates_images')
+    list_bats,_=AD.set_batscolor()
+    for i in range(len(list_bats)):
+        if not os.path.exists('Templates_arrays/' +list_bats[i]):
+            os.makedirs('Templates_arrays/' +list_bats[i])
+        if not os.path.exists('Templates_images/' +list_bats[i]):
+            os.makedirs('Templates_images/' +list_bats[i])
+    return()
+    

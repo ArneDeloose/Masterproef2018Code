@@ -5,16 +5,6 @@ import AD_functions as AD
 path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
 os.chdir(path)
 
-#create folder
-path2='C:/Users/arne/Documents/School/Thesis/Templates';
-os.chdir(path2)
-list_bats,_=AD.set_batscolor()
-for i in range(len(list_bats)):
-    if not os.path.exists(list_bats[i]):
-        os.makedirs(list_bats[i])
-
-os.chdir(path)
-
 ppip_list1=(0,1,2,3,4,5,6,8,9,10,11,12,14,16,17,18,20,22,24,26,28,29,30,31,32,34,35,36,37,38,40,41,42,44,45,47,48,49,52)
 ppip_list2=(0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0)
 for i in range(len(ppip_list1)):
@@ -40,4 +30,5 @@ nlei_list2=(0,0,0,0,0,0)
 for i in range(len(nlei_list1)):
     AD.create_template('nlei-1_ppip-1µl1µA028_AAW.wav', nlei_list1[i]/10, nlei_list2[i], 'nlei')
 
-rectangles, regions=AD.read_templates()
+templates=AD.read_templates()
+_, regions2=AD.set_templates2()

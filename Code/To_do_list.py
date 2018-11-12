@@ -1,6 +1,6 @@
 #add freq range as second weight for col_label
 
-#save images as arrays instead
+#add function to save rectangles as well and a
 
 #Add function to check whether the file you want to write to already exists
 
