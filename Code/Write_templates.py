@@ -30,5 +30,5 @@ nlei_list2=(0,0,0,0,0,0)
 for i in range(len(nlei_list1)):
     AD.create_template('nlei-1_ppip-1µl1µA028_AAW.wav', nlei_list1[i]/10, nlei_list2[i], 'nlei')
 
-templates=AD.read_templates()
-_, regions2=AD.set_templates2()
+#templates=AD.read_templates()
+#_, regions2=AD.set_templates2()

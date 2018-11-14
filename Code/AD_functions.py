@@ -469,9 +469,7 @@ def run_TSNE(weight):
     AD.plot_MDS(pos)
     return()
 
-def calc_features(rectangles, regions, templates, num_reg):
-    list_bats,_=AD.set_batscolor()
-    _, num_total=AD.set_numbats(list_bats)
+def calc_features(rectangles, regions, templates, num_reg, list_bats, num_total):
     features=np.zeros((num_reg, len(templates)+5))
     features_freq=np.zeros((num_reg, 5)) #unscaled freq info
     count=0
@@ -526,10 +524,7 @@ def calc_col_labels(features): #based upon maximum ssim
             label_colors[i]= "#000000" #black      
     return(label_colors)
 
-def calc_col_labels2(features, features_freq): #based upon percentage scores
-    list_bats, colors_bat=AD.set_batscolor()
-    num_bats, _=AD.set_numbats(list_bats)
-    freq_bats=AD.set_batfreq()
+def calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_bats, colors_bat, num_bats): #based upon percentage scores
     label_colors={}
     per_total={}
     per_total2={}
@@ -547,14 +542,14 @@ def calc_col_labels2(features, features_freq): #based upon percentage scores
             for k in range(len(list_bats)):
                 if k==0: #k-1 doesn't exist at first
                     if j<=upper_bound and dummy[j]==True: #match
-                        weight=1+(features_freq[i,1]-freq_bats[k]/5)**2
+                        weight=1+((features_freq[i,1]-freq_bats[k]/5)**2)+((features_freq[i,0]-freq_range_bats[k]/5)**2)
                         count[k]+=(1/weight)
                         count2[k]+=1
                 else: #every other k
                     lower_bound+=num_bats[k-1]
                     upper_bound+=num_bats[k]
                     if lower_bound<j<=upper_bound and dummy[j]==True: #match
-                        weight=1+(features_freq[i,1]-freq_bats[k]/5)**2
+                        weight=1+((features_freq[i,1]-freq_bats[k]/5)**2)+((features_freq[i,0]-freq_range_bats[k]/5)**2)
                         count[k]+=(1/weight)
                         count2[k]+=1
             if sum(count)>0: #there are matches
@@ -581,20 +576,29 @@ def set_numbats(list_bats): #sets the number of templates per bat
     num_total=sum(num_bats)
     return(num_bats, num_total)
 
-def set_batfreq(): #sets the lowest frequency of each bat
-    _, _, _, _, min_spec_freq, max_spec_freq=AD.set_parameters()
-    freq_ppip=115-min_spec_freq #41 kHz
-    freq_eser=59-min_spec_freq #22 kHz
-    freq_mdau=67-min_spec_freq #25 kHz
-    freq_pnat=93-min_spec_freq #35 kHz
-    freq_nlei=59-min_spec_freq #22 kHz
-    freq_bats=(freq_ppip, freq_eser, freq_mdau, freq_pnat, freq_nlei)
-    return(freq_bats)
+def set_batfreq(rectangles_temp, list_bats, num_bats): #sets the lowest frequency of each bat
+    #Change this to use rectangles instead
+    freq_bats=[None] *len(list_bats)
+    freq_range_bats=[None] *len(list_bats)
+    max_index=0
+    for i in range(len(list_bats)):
+        tot_freq=0
+        for j in range(num_bats[i]):
+            tot_freq+=rectangles_temp[max_index+j][1]
+            tot_freq+=rectangles_temp[max_index+j][3]
+        max_index+=j #keep counting
+        freq_bats[i]=int(tot_freq/num_bats[i])
+    return(freq_bats, freq_range_bats)
 
 def set_batscolor(): #dictionary linking bats to colors
-    list_bats=('ppip', 'eser', 'mdau', 'pnat', 'nlei')
-    colors_bat={'ppip': "#ff0000", 'eser': "#008000", 'mdau': "#0000ff", 
-            'pnat': "#a52a2a", 'nlei': "#ee82ee"} 
+    path=AD.set_path()
+    colors_bat={}
+    list_bats=os.listdir(path + '/Templates_arrays')
+    colors=("#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
+            "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
+            "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700")
+    for i in range(len(list_bats)):
+        colors_bat[list_bats[i]]=colors[i]
     return(list_bats, colors_bat)
             
 def plot_dendrogram(features, label_colors, **optional):
@@ -632,11 +636,11 @@ def show_region2(rectangles, spectros, features_key, i, **optional): #uses featu
     plt.close()
     return()
 
-def hier_clustering(file_name, templates, **optional):
+def hier_clustering(file_name, freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, **optional):
     rectangles, regions, spectros=AD.spect_loop(file_name)
     num_reg=AD.calc_num_regions(regions)
-    features, features_key, features_freq=AD.calc_features(rectangles, regions, templates, num_reg)
-    col_labels, per_total, per_total2=AD.calc_col_labels2(features, features_freq)
+    features, features_key, features_freq=AD.calc_features(rectangles, regions, templates, num_reg, list_bats, num_total)
+    col_labels, per_total, per_total2=AD.calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_bats, colors_bat, num_bats)
     if 'write' in optional:
         if optional['write']: #true
             AD.plot_dendrogram(features, col_labels, name=file_name)
@@ -646,7 +650,9 @@ def hier_clustering(file_name, templates, **optional):
         AD.plot_dendrogram(features, col_labels)
     return(col_labels, features_key, rectangles, spectros, per_total, per_total2)
 
-def write_output(list_files, output_file, templates, **optional): #Optional only works on non TE data
+def write_output(list_files, output_file, **optional): #Optional only works on non TE data
+    #loading
+    freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init()
     if 'full' in optional:
        if optional['full']: #True 
            path=AD.set_path()
@@ -667,6 +673,13 @@ def write_output(list_files, output_file, templates, **optional): #Optional only
     for k in range(len(list_bats)):
         if not os.path.exists(list_bats[k]):
             os.makedirs(list_bats[k])
+    #write out color key
+    dummy_index=range(len(list_bats))
+    for i in range(len(list_bats)):
+        plt.scatter(0, dummy_index[i], color=colors_bat[list_bats[i]])
+        plt.annotate(list_bats[i], (0.001, dummy_index[i]))
+    plt.savefig('dendrograms/color_key.png')
+    plt.close()
     #create empty dictionaries
     col_labels={}
     features_key={}
@@ -676,7 +689,7 @@ def write_output(list_files, output_file, templates, **optional): #Optional only
     per_total2={}
     #run clustering and save output    
     for i in range(len(list_files2)):
-        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files2[i], templates, write=True)
+        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files2[i], freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, write=True)
     total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
     #output file
     f=open(output_file, 'a').close() #create file if it doesn't exist yet 
@@ -709,31 +722,42 @@ def create_template(file_name, time, region_num, bat_name): #creates two templat
     os.chdir(path)
     list_bats, _=AD.set_batscolor()
     num_bats, _=AD.set_numbats(list_bats)
-    i=list_bats.index(bat_name)
-    path_total='Templates_images/' + bat_name + '/' + str(num_bats[i]) + '.png'
-    _, regions, _=AD.spect_loop(file_name)
+    if bat_name in list_bats: #bat already exists
+        i=list_bats.index(bat_name)
+        dummy=str(num_bats[i])
+    else: #bat doesn't exist yet, create new folders
+        os.makedirs(path + '/Templates_arrays/' + bat_name)
+        os.makedirs(path + '/Templates_images/' + bat_name)
+        os.makedirs(path + '/Templates_rect/' + bat_name)
+        dummy=str(0)
+    path_total='Templates_images/' + bat_name + '/' + dummy + '.png'
+    rectangles, regions, _=AD.spect_loop(file_name)
     plt.imshow(regions[int(time*10)][region_num])
     plt.savefig(path_total)
     plt.close()
-    path_total='Templates_arrays/' + bat_name + '/' + str(num_bats[i]) + '.npy'
+    path_total='Templates_arrays/' + bat_name + '/' + dummy + '.npy'
+    path_total_rec='Templates_rect/' + bat_name + '/' + dummy + '.npy'
     np.save(path_total, regions[int(time*10)][region_num])
+    np.save(path_total_rec, rectangles[int(time*10)][:, region_num])
     return()
 
 def read_templates(): #reads in templates from the path to the general folder
     path=AD.set_path()
-    AD.make_folders(path)
     full_path='' #string will be constructed every step
     list_bats, _=AD.set_batscolor()
     num_bats, _=AD.set_numbats(list_bats)
     regions={}
+    rectangles={}
     count=0
     for i in range(len(list_bats)):
         for j in range(num_bats[i]):
             #Make path to go through each file one by one
             full_path=path+ '/Templates_arrays/' + list_bats[i] + '/' + str(j) +'.npy'
+            full_path_rec=path+ '/Templates_rect/' + list_bats[i] + '/' + str(j) +'.npy'
             regions[count]=np.load(full_path)
+            rectangles[count]=np.load(full_path_rec)
             count+=1
-    return(regions)
+    return(regions, rectangles)
 
 def make_folders(path): #makes folders if they don't exist yet
     os.chdir(path)
@@ -741,11 +765,14 @@ def make_folders(path): #makes folders if they don't exist yet
         os.makedirs('Templates_arrays')
     if not os.path.exists('Templates_images'):
         os.makedirs('Templates_images')
-    list_bats,_=AD.set_batscolor()
-    for i in range(len(list_bats)):
-        if not os.path.exists('Templates_arrays/' +list_bats[i]):
-            os.makedirs('Templates_arrays/' +list_bats[i])
-        if not os.path.exists('Templates_images/' +list_bats[i]):
-            os.makedirs('Templates_images/' +list_bats[i])
+    if not os.path.exists('Templates_rect'):
+        os.makedirs('Templates_rect')
     return()
+
+def loading_init(): #loads in certain things so they only run once
+    regions_temp, rectangles_temp=AD.read_templates()
+    list_bats, colors_bat=AD.set_batscolor()
+    num_bats, num_total=AD.set_numbats(list_bats)
+    freq_bats, freq_range_bats=AD.set_batfreq(rectangles_temp, list_bats, num_bats)
+    return(freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
     
