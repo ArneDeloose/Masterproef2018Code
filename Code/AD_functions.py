@@ -583,11 +583,13 @@ def set_batfreq(rectangles_temp, list_bats, num_bats): #sets the lowest frequenc
     max_index=0
     for i in range(len(list_bats)):
         tot_freq=0
+        tot_freq_range=0
         for j in range(num_bats[i]):
             tot_freq+=rectangles_temp[max_index+j][1]
-            tot_freq+=rectangles_temp[max_index+j][3]
+            tot_freq_range+=rectangles_temp[max_index+j][3]
         max_index+=j #keep counting
         freq_bats[i]=int(tot_freq/num_bats[i])
+        freq_range_bats[i]=int(tot_freq_range/num_bats[i])
     return(freq_bats, freq_range_bats)
 
 def set_batscolor(): #dictionary linking bats to colors
