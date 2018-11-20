@@ -587,11 +587,11 @@ def set_batfreq(rectangles_temp, list_bats, num_bats): #sets the lowest frequenc
     freq_range_bats=[None] *len(list_bats)
     max_index=0
     for i in range(len(list_bats)):
-        tot_freq=list()
-        tot_freq_range=list()
+        tot_freq=[None] *num_bats[i]
+        tot_freq_range=[None] *num_bats[i]
         for j in range(num_bats[i]):
-            tot_freq.append(rectangles_temp[max_index+j][1])
-            tot_freq_range.append(rectangles_temp[max_index+j][3])
+            tot_freq[j]=rectangles_temp[max_index+j][1]
+            tot_freq_range[j]=rectangles_temp[max_index+j][3]
         max_index+=j #keep counting
         freq_bats[i]=np.median(tot_freq)
         freq_range_bats[i]=np.median(tot_freq_range)
@@ -671,7 +671,6 @@ def write_output(list_files, output_file, **optional): #Optional only works on n
                path=optional['Audio_data']
            else:
                path=AD.set_path()
-           path=AD.set_path()
            list_files2=os.listdir(path + '/Audio_data') #write out results for everything
            count=0
            for i in range(len(list_files2)):
@@ -795,14 +794,9 @@ def make_folders(path): #makes folders if they don't exist yet
     return()
 
 def loading_init(**optional): #loads in certain things so they only run once
-    if 'Templates' in optional:
-        regions_temp, rectangles_temp=AD.read_templates(Templates=optional['Templates'])
-        list_bats, colors_bat=AD.set_batscolor(Templates=optional['Templates'])
-        num_bats, num_total=AD.set_numbats(list_bats, Templates=optional['Templates'])
-    else:
-        regions_temp, rectangles_temp=AD.read_templates()
-        list_bats, colors_bat=AD.set_batscolor()
-        num_bats, num_total=AD.set_numbats(list_bats)
+    regions_temp, rectangles_temp=AD.read_templates(**optional)
+    list_bats, colors_bat=AD.set_batscolor(**optional)
+    num_bats, num_total=AD.set_numbats(list_bats, **optional)
     freq_bats, freq_range_bats=AD.set_batfreq(rectangles_temp, list_bats, num_bats)
     return(freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
     
