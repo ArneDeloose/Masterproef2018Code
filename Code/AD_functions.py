@@ -13,10 +13,6 @@ import os
 from scipy.cluster.hierarchy import dendrogram, linkage
 #from sklearn.metrics.pairwise import euclidean_distances
 
-def set_path():
-    path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the needed data
-    return(path)
-
 def adjustable_parameters():
     binary_thresh=10 #Threshold for conversion to binary image. Given as a percentage (default: 10%)
     spec_min=20 #minimum frequency in a spectrogram, given in kHz (default: 20 kHz)
@@ -38,6 +34,10 @@ def set_parameters():
     #1 point= 375 Hz
     para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5])
     return(para)
+
+def set_path():
+    path=os.getcwd()
+    return(path)
     
 def set_freqthresh(num_class): #frequency number depends on minimum frequency used for the spectrum
     para=AD.set_parameters()
@@ -565,8 +565,11 @@ def calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_b
             per_total2[i]=per2
     return(label_colors, per_total, per_total2)
 
-def set_numbats(list_bats): #sets the number of templates per bat
-    path=AD.set_path()
+def set_numbats(list_bats, **optional): #sets the number of templates per bat
+    if 'Templates' in optional:
+        path=optional['Templates']
+    else:
+        path=AD.set_path()
     AD.make_folders(path)
     full_path='' #will be overwritten every time
     num_bats=np.zeros((len(list_bats),), dtype=np.uint8)
@@ -594,7 +597,11 @@ def set_batfreq(rectangles_temp, list_bats, num_bats): #sets the lowest frequenc
         freq_range_bats[i]=np.median(tot_freq_range)
     return(freq_bats, freq_range_bats)
 
-def set_batscolor(): #dictionary linking bats to colors
+def set_batscolor(**optional): #dictionary linking bats to colors
+    if 'Templates' in optional:
+        path=optional['Templates']
+    else:
+        path=AD.set_path()
     path=AD.set_path()
     colors_bat={}
     list_bats=os.listdir(path + '/Templates_arrays')
@@ -657,9 +664,13 @@ def hier_clustering(file_name, freq_bats, freq_range_bats, list_bats, colors_bat
 
 def write_output(list_files, output_file, **optional): #Optional only works on non TE data
     #loading
-    freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init()
+    freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init(**optional)
     if 'full' in optional:
-       if optional['full']: #True 
+       if optional['full']: #True
+           if 'Audio_data' in optional:
+               path=optional['Audio_data']
+           else:
+               path=AD.set_path()
            path=AD.set_path()
            list_files2=os.listdir(path + '/Audio_data') #write out results for everything
            count=0
@@ -721,12 +732,15 @@ def write_output(list_files, output_file, **optional): #Optional only works on n
     f.close()
     return()
 
-def create_template(file_name, time, region_num, bat_name): #creates two templates (image and array)
-    path=AD.set_path()
+def create_template(file_name, time, region_num, bat_name, **optional): #creates two templates (image and array)
+    if 'Templates' in optional:
+        path=optional['Templates']
+    else:
+        path=AD.set_path()
     AD.make_folders(path)
     os.chdir(path)
     list_bats, _=AD.set_batscolor()
-    num_bats, _=AD.set_numbats(list_bats)
+    num_bats, _=AD.set_numbats(list_bats, optional)
     if bat_name in list_bats: #bat already exists
         i=list_bats.index(bat_name)
         dummy=str(num_bats[i])
@@ -746,11 +760,17 @@ def create_template(file_name, time, region_num, bat_name): #creates two templat
     np.save(path_total_rec, rectangles[int(time*10)][:, region_num])
     return()
 
-def read_templates(): #reads in templates from the path to the general folder
-    path=AD.set_path()
+def read_templates(**optional): #reads in templates from the path to the general folder
+    if 'Templates' in optional:
+        path=optional['Templates']
+    else:
+        path=AD.set_path()
     full_path='' #string will be constructed every step
     list_bats, _=AD.set_batscolor()
-    num_bats, _=AD.set_numbats(list_bats)
+    if 'Templates' in optional:
+        num_bats, _=AD.set_numbats(list_bats, Templates=optional['Templates'])
+    else:
+        num_bats, _=AD.set_numbats(list_bats)
     regions={}
     rectangles={}
     count=0
@@ -774,10 +794,15 @@ def make_folders(path): #makes folders if they don't exist yet
         os.makedirs('Templates_rect')
     return()
 
-def loading_init(): #loads in certain things so they only run once
-    regions_temp, rectangles_temp=AD.read_templates()
-    list_bats, colors_bat=AD.set_batscolor()
-    num_bats, num_total=AD.set_numbats(list_bats)
+def loading_init(**optional): #loads in certain things so they only run once
+    if 'Templates' in optional:
+        regions_temp, rectangles_temp=AD.read_templates(Templates=optional['Templates'])
+        list_bats, colors_bat=AD.set_batscolor(Templates=optional['Templates'])
+        num_bats, num_total=AD.set_numbats(list_bats, Templates=optional['Templates'])
+    else:
+        regions_temp, rectangles_temp=AD.read_templates()
+        list_bats, colors_bat=AD.set_batscolor()
+        num_bats, num_total=AD.set_numbats(list_bats)
     freq_bats, freq_range_bats=AD.set_batfreq(rectangles_temp, list_bats, num_bats)
     return(freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
     
