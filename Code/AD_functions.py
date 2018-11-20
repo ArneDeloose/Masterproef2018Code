@@ -17,19 +17,32 @@ def set_path():
     path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the needed data
     return(path)
 
+def adjustable_parameters():
+    binary_thresh=10 #Threshold for conversion to binary image. Given as a percentage (default: 10%)
+    spec_min=20 #minimum frequency in a spectrogram, given in kHz (default: 20 kHz)
+    spec_max=120 #maximum frequency in a spectrogram, given in kHz (default: 120 kHz)
+    thresh=0.65 #threshold for SSIM classification, number between -1 and 1 (default: 0.65)
+    spect_window=200 #length of the local scaling window in ms (default: 200 ms)
+    spect_overlap_window=50 #overlap between windows in ms (default: 50 ms)
+    max_roi=10 #Maximum number of regions in a single spectrogram. (default: 10) Remember that the size of a spectrogram changes with spect_window
+    para=(binary_thresh, spec_min, spec_max, thresh, spect_window, spect_overlap_window, max_roi)
+    return(para)
+
 def set_parameters():
-    X=25 #Threshold for noise binary image
+    adj_para=AD.adjustable_parameters()
+    X=int(adj_para[0]*255) #Threshold for noise binary image
     kern=[3,3] #window for roi
-    thresh=0.65 #Threshold for ssim classification
-    max_roi=10 #Maximum number of regions in a single spectrogram
-    min_spec_freq=53 #20 kHz, restriction spectrogram
-    max_spec_freq=214 #80.25 kHz
+    min_spec_freq=int(adj_para[1]/0.375)
+    max_spec_freq=int(adj_para[2]/0.58)
     #1 point= 0.58 ms
     #1 point= 375 Hz
-    return(X, kern, thresh, max_roi, min_spec_freq, max_spec_freq)
+    para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5])
+    return(para)
     
 def set_freqthresh(num_class): #frequency number depends on minimum frequency used for the spectrum
-    _,_,_,_,min_spec_freq,max_spec_freq=AD.set_parameters()
+    para=AD.set_parameters()
+    min_spec_freq=para[4]
+    max_spec_freq=para[5]    
     if num_class==0: #ppip
         min_freq=115-min_spec_freq #43 kHz
         max_freq=135-min_spec_freq #50 kHz
@@ -42,6 +55,9 @@ def set_freqthresh(num_class): #frequency number depends on minimum frequency us
     return(min_freq, max_freq)
         
 def spect(file_name, **optional):
+    para=AD.set_parameters()
+    spect_window=para[6]
+    spect_window_overlap=para[7]
     #Reads information from audio file
     [sample_rate,samples]=scipy.io.wavfile.read(file_name, mmap=False);
     if 'channel' in optional:
@@ -52,14 +68,15 @@ def spect(file_name, **optional):
     N=len(samples); #number of samples
     t=np.linspace(0,N/sample_rate, num=N); #time_array
     total_time=N/sample_rate;
-    steps=math.floor(total_time)
-    microsteps=math.floor(10*(total_time-steps))
-    return(sample_rate, samples, t, total_time, steps, microsteps)
+    steps=math.floor(total_time/(spect_window+spect_window_overlap))
+    return(sample_rate, samples, t, total_time, steps)
 
 def spect_plot(samples, sample_rate):
     #Makes a spectrogram, data normalised to the range [0-1]
     #Change parameters of spectrogram (window, resolution)
-    _,_,_,_,min_spec_freq,max_spec_freq=AD.set_parameters()
+    para=AD.set_parameters()
+    min_spec_freq=para[4]
+    max_spec_freq=para[5]
     frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=('hamming'), nfft=1024)
     dummy=(spectrogram-spectrogram.min())/(spectrogram.max()-spectrogram.min())
     dummy=np.array(np.round(dummy*256), dtype=np.uint8) #Convert to grayscale
@@ -77,52 +94,33 @@ def spect_loop(file_name, **optional): #hybrid code, one plot for 100 ms
     #Each image is 100 ms, number within dictionary indicates 
     #image number (e.g rectangles(45: ...) is 4500ms to 4600ms or 4.5 secs to 4.6 secs)
     #Empty images are skipped
-    X, kern, _, _,_,_=AD.set_parameters()
+    para=AD.set_parameters()
+    X=para[0]
+    kern=para[1]
+    spect_window=para[6]
+    spect_overlap_window=para[7]
+    #change number of steps so it matches the window and overlap
+    #change algorithm so the spectrograms aren't fixed at 100 ms, but rather at the number of actual steps
+    #templates are already defined so the algorthitm becomes obsolete
     rectangles={};
     regions={};
     spectros={};
     if 'channel' in optional: #time dilation
-        sample_rate, samples, t, total_time,steps, microsteps= AD.spect('Audio_data/'+ file_name, channel=optional['channel']);
+        sample_rate, samples, _, _,steps= AD.spect('Audio_data/'+ file_name, channel=optional['channel']);
         sample_rate=10*sample_rate
-        microsteps=steps%10 #remainder after division
         steps=math.floor(steps/10) #time expansion factor
     else:
-        sample_rate, samples, t, total_time,steps, microsteps= AD.spect('Audio_data/'+ file_name);
+        sample_rate, samples, _, _,steps= AD.spect('Audio_data/'+ file_name);
+    start_index=0
+    stop_index=int(spect_overlap_window*len(samples)/(steps*spect_window))
     for i in range(steps):
-        for j in range(10):
-            if j%2==0: #Even number, make a 200 ms plot
-                samples_dummy=samples[int(i*sample_rate+sample_rate*j/10):int(i*sample_rate+sample_rate*(j+2)/10)]
-                temp_spect=AD.spect_plot(samples_dummy,sample_rate)
-            else: #odd number, assign spect_norm for j and j-1
-                #j-1
-                spect_norm=temp_spect[:, 0:int(len(temp_spect[0,:])/2)]# first half
-                ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
-                if dummy_flag:
-                    rectangles[i*10+(j-1)], regions[i*10+(j-1)]=AD.ROI2(ctrs, spect_norm)
-                spectros[i*10+(j-1)]=spect_norm
-                #j
-                spect_norm=temp_spect[:, int(len(temp_spect[0,:])/2):] #second half
-                ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
-                if dummy_flag:
-                    rectangles[i*10+j], regions[i*10+j]=AD.ROI2(ctrs, spect_norm)
-                spectros[i*10+j]=spect_norm
-    for j in range(microsteps):
-        if j%2==0: #Even number, make a 200 ms plot
-            samples_dummy=samples[int(i*sample_rate+sample_rate*j/10):int(i*sample_rate+sample_rate*(j+2)/10)]
-            temp_spect=AD.spect_plot(samples_dummy,sample_rate)
-        else: #odd number, assign spect_norm for j and j-1
-            #j-1
-            spect_norm=temp_spect[:, 0:int(len(temp_spect[0,:])/2)]# first half
-            ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
-            if dummy_flag:
-                rectangles[(i+1)*10+(j-1)], regions[(i+1)*10+(j-1)]=AD.ROI2(ctrs, spect_norm)
-            spectros[(i+1)*10+(j-1)]=spect_norm
-            #j
-            spect_norm=temp_spect[:, int(len(temp_spect[0,:])/2):] #second half
-            ctrs, dummy_flag=AD.ROI(spect_norm, kern, X)
-            if dummy_flag:
-                rectangles[(i+1)*10+j], regions[(i+1)*10+j]=AD.ROI2(ctrs, spect_norm)
-            spectros[(i+1)*10+j]=spect_norm
+        samples_dummy=samples[start_index:stop_index]
+        start_index=stop_index
+        stop_index+=int(spect_overlap_window*len(samples)/(steps*spect_window))
+        spectros[i]=AD.spect_plot(samples_dummy,sample_rate)
+        ctrs, dummy_flag=AD.ROI(spectros[i], kern, X)
+        if dummy_flag:
+            rectangles[i], regions[i]=AD.ROI2(ctrs, spectros[i])
     rectangles2, regions2=AD.overload(rectangles, regions)
     return(rectangles2, regions2, spectros)
     
@@ -168,7 +166,8 @@ def ROI2(ctrs, spect_norm):
     return(Mask, regions)
 
 def overload(rectangles, regions): #deletes entries with ten or more rectangles
-    _, _, _, max_roi, _,_=set_parameters()
+    para=AD.set_parameters()
+    max_roi=para[2]
     rectangles2=rectangles.copy() #copy dictionaries
     regions2=regions.copy()
     for i,j in rectangles.items(): #iterate over all items
@@ -296,7 +295,8 @@ def create_cmatrix(rectangles, spectros): #creates empty classify matrix
     return(c_mat)
 
 def calc_cmatrix(c_mat, s_mat): #Fills c_mat
-    _, _, thresh, _,_,_=set_parameters();
+    para=AD.set_parameters();
+    thresh=para[3]
     c_mat2=c_mat.copy()
     y=len(c_mat) #rows
     x=len(c_mat[0]) #colums
@@ -503,7 +503,8 @@ def calc_num_regions(regions):
 
 def calc_col_labels(features): #based upon maximum ssim
     label_colors={}
-    _, _, thresh, _, _, _=AD.set_parameters()
+    para=AD.set_parameters();
+    thresh=para[3]
     for i in range(len(features)):
         dummy_index=features[i,5:].argmax()+5 #index max ssim
         dummy_value=features[i,5:].max() #maximum ssim
@@ -528,7 +529,8 @@ def calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_b
     label_colors={}
     per_total={}
     per_total2={}
-    _, _, thresh, _, _, _=AD.set_parameters()
+    para=AD.set_parameters();
+    thresh=para[3]
     for i in range(len(features)): #check rows one by one
         count=np.zeros((len(list_bats),)) #counters per
         count2=np.zeros((len(list_bats),)) #counters reg
@@ -582,14 +584,14 @@ def set_batfreq(rectangles_temp, list_bats, num_bats): #sets the lowest frequenc
     freq_range_bats=[None] *len(list_bats)
     max_index=0
     for i in range(len(list_bats)):
-        tot_freq=0
-        tot_freq_range=0
+        tot_freq=list()
+        tot_freq_range=list()
         for j in range(num_bats[i]):
-            tot_freq+=rectangles_temp[max_index+j][1]
-            tot_freq_range+=rectangles_temp[max_index+j][3]
+            tot_freq.append(rectangles_temp[max_index+j][1])
+            tot_freq_range.append(rectangles_temp[max_index+j][3])
         max_index+=j #keep counting
-        freq_bats[i]=int(tot_freq/num_bats[i])
-        freq_range_bats[i]=int(tot_freq_range/num_bats[i])
+        freq_bats[i]=np.median(tot_freq)
+        freq_range_bats[i]=np.median(tot_freq_range)
     return(freq_bats, freq_range_bats)
 
 def set_batscolor(): #dictionary linking bats to colors
@@ -627,7 +629,8 @@ def show_region2(rectangles, spectros, features_key, i, **optional): #uses featu
                                 linewidth=1,edgecolor='r',facecolor='none')
     # Add the patch to the Axes
     ax1.add_patch(rect)
-    _, _, _, _, min_spec_freq, _=AD.set_parameters()
+    para=AD.set_parameters();
+    min_spec_freq=para[4]
     min_freq=int((rectangles[a][1,b]+min_spec_freq)*0.375)
     max_freq=int((rectangles[a][1,b]+rectangles[a][3,b]+min_spec_freq)*0.375)
     plt.title('%d-%d kHz, timestep: %d' %(min_freq,max_freq, a)) #Show frequency range and time as title
