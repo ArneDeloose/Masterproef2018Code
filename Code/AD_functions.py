@@ -14,23 +14,31 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 #from sklearn.metrics.pairwise import euclidean_distances
 
 def adjustable_parameters():
-    binary_thresh=10 #Threshold for conversion to binary image. Given as a percentage (default: 10%)
-    spec_min=20 #minimum frequency in a spectrogram, given in kHz (default: 20 kHz)
-    spec_max=120 #maximum frequency in a spectrogram, given in kHz (default: 120 kHz)
-    thresh=0.65 #threshold for SSIM classification, number between -1 and 1 (default: 0.65)
-    spect_window=200 #length of the local scaling window in ms (default: 200 ms)
-    spect_overlap_window=50 #overlap between windows in ms (default: 50 ms)
-    max_roi=10 #Maximum number of regions in a single spectrogram. (default: 10) Remember that the size of a spectrogram changes with spect_window
+    path=AD.set_path()
+    f=open(path+'\parameters.txt', 'r')
+    a=f.readlines()
+    words=[None]*len(a)
+    i=0
+    for line in a:
+        words[i]=line.split(';')
+        i+=1
+    binary_thresh=int(words[0][0])
+    spec_min=int(words[1][0])
+    spec_max=int(words[2][0])
+    thresh=float(words[3][0])
+    spect_window=int(words[4][0])
+    spect_overlap_window=int(words[5][0])
+    max_roi=int(words[6][0])
     para=(binary_thresh, spec_min, spec_max, thresh, spect_window, spect_overlap_window, max_roi)
     return(para)
 
 def set_parameters():
     adj_para=AD.adjustable_parameters()
-    X=int(adj_para[0]*255) #Threshold for noise binary image
-    kern=[3,3] #window for roi
+    X=int(adj_para[0]*255/100) #Threshold for noise binary image
+    kern=3 #window for roi
     min_spec_freq=int(adj_para[1]/0.375)
-    max_spec_freq=int(adj_para[2]/0.58)
-    #1 point= 0.58 ms
+    max_spec_freq=int(adj_para[2]/0.32)
+    #1 point= 0.32 ms
     #1 point= 375 Hz
     para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5])
     return(para)
@@ -65,10 +73,10 @@ def spect(file_name, **optional):
             samples=samples[:,0]
         elif optional['channel']=='r':
             samples=samples[:,1]
-    N=len(samples); #number of samples
+    N=len(samples) #number of samples
     t=np.linspace(0,N/sample_rate, num=N); #time_array
     total_time=N/sample_rate;
-    steps=math.floor(total_time/(spect_window+spect_window_overlap))
+    steps=math.floor((1000*total_time)/(spect_window-spect_window_overlap)) #number of windows
     return(sample_rate, samples, t, total_time, steps)
 
 def spect_plot(samples, sample_rate):
@@ -121,9 +129,24 @@ def spect_loop(file_name, **optional): #hybrid code, one plot for 100 ms
         ctrs, dummy_flag=AD.ROI(spectros[i], kern, X)
         if dummy_flag:
             rectangles[i], regions[i]=AD.ROI2(ctrs, spectros[i])
+            rectangles, regions=AD.check_overlap(rectangles, regions, spectros, i, spect_window, spect_overlap_window)
     rectangles2, regions2=AD.overload(rectangles, regions)
     return(rectangles2, regions2, spectros)
-    
+
+def check_overlap(rectangles, regions, spectros, i, spect_window, spect_overlap_window):
+    overlap=spect_overlap_window/spect_window
+    delta_x=int(len(spectros[0][0,:])*overlap)
+    rectangles1=rectangles.copy() #replace things in copies
+    regions1=regions.copy()
+    if i>0: #checks if the region already exists
+        if i in rectangles.keys() and i-1 in rectangles.keys(): #check if both regions actually exists
+            for j in range(len(regions[i])):
+                for k in range(len(regions[i-1])):
+                    if rectangles[i][0,j]==rectangles[i-1][0,k]+delta_x and rectangles[i][1,j]==rectangles[i-1][1,k]: #x and y coordinates match
+                        regions1[i].pop(j) #delete entry
+                        rectangles1[i]=np.delete(rectangles[i], j, axis=1) #delete column
+    return(rectangles1, regions1)
+
 def ROI(spect_norm, kern, X):
     #kern: parameters of the kernel size
     len_flag=True
@@ -131,7 +154,7 @@ def ROI(spect_norm, kern, X):
     #Conversion to uint8 for contours
     ret,thresh = cv2.threshold(spect_norm,X,256,cv2.THRESH_BINARY)
     #dilation
-    kernel = np.ones((kern[0],kern[1]), np.uint8)
+    kernel = np.ones((kern,kern), np.uint8)
     img_dilation = cv2.dilate(thresh, kernel, iterations=1)
     _,ctrs, _ = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
     #Retr_external: retrieval mode external. Only outer edges are considered,

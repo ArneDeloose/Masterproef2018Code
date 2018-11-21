@@ -1,0 +1,7 @@
+10; Threshold for conversion to binary image. Given as a percentage (default: 10%)
+20; minimum frequency in a spectrogram, given in kHz (default: 20 kHz)
+120; maximum frequency in a spectrogram, given in kHz (default: 120 kHz)
+0.65; threshold for SSIM classification, number between -1 and 1 (default: 0.65)
+200; length of the local scaling window in ms (default: 200 ms)
+50; overlap between windows in ms (default: 50 ms)
+10; Maximum number of regions in a single spectrogram. (default: 10) Remember that the size of a spectrogram changes with spect_window
