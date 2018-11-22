@@ -567,14 +567,14 @@ def calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_b
             for k in range(len(list_bats)):
                 if k==0: #k-1 doesn't exist at first
                     if j<=upper_bound and dummy[j]==True: #match
-                        weight=1+((features_freq[i,1]-freq_bats[k]/5)**2)+((features_freq[i,0]-freq_range_bats[k]/5)**2)
+                        weight=AD.col_weight(features_freq, freq_bats, freq_range_bats, i, k)
                         count[k]+=(1/weight)
                         count2[k]+=1
                 else: #every other k
                     lower_bound+=num_bats[k-1]
                     upper_bound+=num_bats[k]
                     if lower_bound<j<=upper_bound and dummy[j]==True: #match
-                        weight=1+((features_freq[i,1]-freq_bats[k]/5)**2)+((features_freq[i,0]-freq_range_bats[k]/5)**2)
+                        weight=AD.col_weight(features_freq, freq_bats, freq_range_bats, i, k)
                         count[k]+=(1/weight)
                         count2[k]+=1
             if sum(count)>0: #there are matches
@@ -587,6 +587,14 @@ def calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_b
             per_total[i]=per
             per_total2[i]=per2
     return(label_colors, per_total, per_total2)
+
+def col_weight(features_freq, freq_bats, freq_range_bats, i, k):
+    weight1=(features_freq[i,1]+features_freq[i,3]-freq_bats[k]/5)**2
+    weight2=(features_freq[i,0]-freq_range_bats[k]/5)**2
+    weight3=0
+    weight4=0
+    weight=1+weight1+weight2+weight3+weight4
+    return(weight)
 
 def set_numbats(list_bats, **optional): #sets the number of templates per bat
     if 'Templates' in optional:
@@ -604,21 +612,33 @@ def set_numbats(list_bats, **optional): #sets the number of templates per bat
     num_total=sum(num_bats)
     return(num_bats, num_total)
 
-def set_batfreq(rectangles_temp, list_bats, num_bats): #sets the lowest frequency of each bat
+def set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats): #sets the lowest frequency of each bat
     #Change this to use rectangles instead
     freq_bats=[None] *len(list_bats)
     freq_range_bats=[None] *len(list_bats)
+    freq_peakT_bats=[None] *len(list_bats) #relative time
+    freq_peakF_bats=[None] *len(list_bats) #frequency
     max_index=0
     for i in range(len(list_bats)):
         tot_freq=[None] *num_bats[i]
         tot_freq_range=[None] *num_bats[i]
+        tot_freq_peakT=[None] *num_bats[i]
+        tot_freq_peakF=[None] *num_bats[i]
         for j in range(num_bats[i]):
-            tot_freq[j]=rectangles_temp[max_index+j][1]
+            tot_freq[j]=rectangles_temp[max_index+j][1]+rectangles_temp[max_index+j][3]
             tot_freq_range[j]=rectangles_temp[max_index+j][3]
+            index=np.argmax(regions_temp[max_index+j])
+            l=len(regions_temp[max_index+j][0,:]) #timesteps
+            a=index%l #timestep
+            b=math.floor(index/l) #frequency
+            tot_freq_peakT[j]=a/l #relative time
+            tot_freq_peakF[j]=b+rectangles_temp[max_index+j][1]
         max_index+=j #keep counting
         freq_bats[i]=np.median(tot_freq)
         freq_range_bats[i]=np.median(tot_freq_range)
-    return(freq_bats, freq_range_bats)
+        freq_peakT_bats[i]=np.median(tot_freq_peakT)
+        freq_peakF_bats[i]=np.median(tot_freq_peakF)
+    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats)
 
 def set_batscolor(**optional): #dictionary linking bats to colors
     if 'Templates' in optional:
@@ -685,9 +705,9 @@ def hier_clustering(file_name, freq_bats, freq_range_bats, list_bats, colors_bat
         AD.plot_dendrogram(features, col_labels)
     return(col_labels, features_key, rectangles, spectros, per_total, per_total2)
 
-def write_output(list_files, output_file, **optional): #Optional only works on non TE data
+def write_output(list_files, **optional): #Optional only works on non TE data
     #loading
-    freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init(**optional)
+    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init(**optional)
     if 'full' in optional:
        if optional['full']: #True
            if 'Audio_data' in optional:
@@ -730,28 +750,40 @@ def write_output(list_files, output_file, **optional): #Optional only works on n
         col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files2[i], freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, write=True)
     total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
     #output file
-    f=open(output_file, 'a').close() #create file if it doesn't exist yet 
-    open(output_file, 'w').close() #clear file
-    f=open(output_file, 'a')
+    if 'results1' in optional and 'results2' in optional:
+        open(optional['results1'], 'a').close() #create file if it doesn't exist yet 
+        open(optional['results1'], 'w').close() #clear file
+        f1=open(optional['results1'], 'a') #edit file
+        open(optional['results2'], 'a').close() #create file if it doesn't exist yet 
+        open(optional['results2'], 'w').close() #clear file
+        f2=open(optional['results2'], 'a') #edit file
+    else:
+        open('results1', 'a').close() #create file if it doesn't exist yet 
+        open('results1', 'w').close() #clear file
+        f1=open('results1', 'a') #edit file
+        open('results2', 'a').close() #create file if it doesn't exist yet 
+        open('results2', 'w').close() #clear file
+        f2=open('results2', 'a') #edit file
     for k in range(len(list_bats)):
-        f.write(str(list_bats[k]) +': ' + '\n'); #name bat
-        f.write('\n') #skip line
+        f1.write(str(list_bats[k]) +': ' + '\n'); #name bat
+        f1.write('\n') #skip line
         for i in range(len(list_files2)):
-            f.write(str(i) + ': ' + list_files2[i] + "\n") #name file
+            f1.write(str(i) + ': ' + list_files2[i] + "\n") #name file
             count=0
             for j in range(len(col_labels[i])):
                 if col_labels[i][j]==colors_bat[list_bats[k]]:
-                    f.write('Time: ' + str(features_key[i][j][0]/10) + ' s, region: ' + str(features_key[i][j][1]) + ', score1: ' + str(int(100000*per_total[i][j][k])) + ' mil, score2: ' + str(int(100*per_total2[i][j][k])) + '% \n');
+                    f1.write('Time: ' + str(features_key[i][j][0]/10) + ' s, region: ' + str(features_key[i][j][1]) + ', score1: ' + str(int(100000*per_total[i][j][k])) + ' mil, score2: ' + str(int(100*per_total2[i][j][k])) + '% \n');
                     count+=1
                     temp_str=list_bats[k] + '/time_' + str(features_key[i][j][0]/10) + '_region_' + str(features_key[i][j][1]) + '_file_' + str(list_files2[i])
                     show_region2(rectangles[i], spectros[i], features_key[i], j, name=temp_str)
-            f.write('Total: ' + str(count) + '\n')
-            f.write('\n') #empty line between different files
+            f1.write('Total: ' + str(count) + '\n')
+            f1.write('\n') #empty line between different files
             total_count[k]+=count
-    f.write('Summary: \n')
+    f1.write('Summary: \n')
     for k in range(len(list_bats)):
-        f.write(str(list_bats[k]) +': ' + str(total_count[k]) + '\n');
-    f.close()
+        f2.write(str(list_bats[k]) +': ' + str(total_count[k]) + '\n');
+    f1.close()
+    f2.close()
     return()
 
 def create_template(file_name, time, region_num, bat_name, **optional): #creates two templates (image and array)
@@ -820,6 +852,6 @@ def loading_init(**optional): #loads in certain things so they only run once
     regions_temp, rectangles_temp=AD.read_templates(**optional)
     list_bats, colors_bat=AD.set_batscolor(**optional)
     num_bats, num_total=AD.set_numbats(list_bats, **optional)
-    freq_bats, freq_range_bats=AD.set_batfreq(rectangles_temp, list_bats, num_bats)
-    return(freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
+    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats=AD.set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats)
+    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
     
