@@ -786,32 +786,29 @@ def write_output(list_files, **optional): #Optional only works on non TE data
     f2.close()
     return()
 
-def create_template(file_name, time, region_num, bat_name, **optional): #creates two templates (image and array)
+def create_template(file_name, time, region_num, bat_name, **optional): #creates three templates (image, rectangle and array)
     if 'Templates' in optional:
         path=optional['Templates']
     else:
         path=AD.set_path()
     AD.make_folders(path)
-    os.chdir(path)
     list_bats, _=AD.set_batscolor()
     num_bats, _=AD.set_numbats(list_bats, optional)
-    if bat_name in list_bats: #bat already exists
-        i=list_bats.index(bat_name)
-        dummy=str(num_bats[i])
-    else: #bat doesn't exist yet, create new folders
+    if not bat_name in list_bats: #bat already exists
         os.makedirs(path + '/Templates_arrays/' + bat_name)
         os.makedirs(path + '/Templates_images/' + bat_name)
         os.makedirs(path + '/Templates_rect/' + bat_name)
-        dummy=str(0)
-    path_total='Templates_images/' + bat_name + '/' + dummy + '.png'
     rectangles, regions, _=AD.spect_loop(file_name)
+    hash_image=hash(str(regions[int(time*10)][region_num]))
+    hash_rect=hash(str(rectangles[int(time*10)][:, region_num]))
+    path_image=path + 'Templates_images/' + bat_name + '/' + str(hash_image) + '.png'
     plt.imshow(regions[int(time*10)][region_num])
-    plt.savefig(path_total)
+    plt.savefig(path_image)
     plt.close()
-    path_total='Templates_arrays/' + bat_name + '/' + dummy + '.npy'
-    path_total_rec='Templates_rect/' + bat_name + '/' + dummy + '.npy'
-    np.save(path_total, regions[int(time*10)][region_num])
-    np.save(path_total_rec, rectangles[int(time*10)][:, region_num])
+    path_array=path + 'Templates_arrays/' + bat_name + '/' + str(hash_image) + '.npy'
+    path_rect=path + 'Templates_rect/' + bat_name + '/' + str(hash_rect) + '.npy'
+    np.save(path_array, regions[int(time*10)][region_num])
+    np.save(path_rect, rectangles[int(time*10)][:, region_num])
     return()
 
 def read_templates(**optional): #reads in templates from the path to the general folder
