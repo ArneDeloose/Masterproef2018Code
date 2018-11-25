@@ -42,7 +42,7 @@ def set_parameters():
     X=int(adj_para[0]*255/100) #Threshold for noise binary image
     kern=3 #window for roi
     min_spec_freq=int(adj_para[1]/0.375)
-    max_spec_freq=int(adj_para[2]/0.32)
+    max_spec_freq=int(adj_para[2]/0.375)
     #1 point= 0.32 ms
     #1 point= 375 Hz
     para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5], adj_para[7])
@@ -398,12 +398,12 @@ def calc_sim_matrix(rectangles, regions): #calculates sim_matrices
     sim_mat1=(1-sim_mat1)/2 #0-1
     return(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6)
 
-def calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight):
-    w1,w2,w3,w4,w5,w6=AD.set_weights(weight)
+def calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, m_weight):
+    w1,w2,w3,w4,w5,w6=AD.set_weights(m_weight)
     dist_mat=(w1*sim_mat1)+(w2*sim_mat2)+(w3*sim_mat3)+(w4*sim_mat4)+(w4*sim_mat4)+(w4*sim_mat4)
     return(dist_mat)
 
-def set_weights(weight):
+def set_mweights(weight):
     if weight==0:
         w1=1
         w2=1/144
@@ -481,18 +481,18 @@ def plot_MDS(pos):
     plt.show()
     return()
 
-def run_MDS(weight):
+def run_MDS(m_weight):
     rectangles_final, regions_final=AD.set_templates2()
     sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6=AD.calc_sim_matrix(rectangles_final, regions_final)
-    dist_mat=AD.calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight)
+    dist_mat=AD.calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, m_weight)
     pos=AD.calc_pos(dist_mat)
     AD.plot_MDS(pos)
     return()
 
-def run_TSNE(weight):
+def run_TSNE(m_weight):
     rectangles_final, regions_final=AD.set_templates2()
     sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6=AD.calc_sim_matrix(rectangles_final, regions_final)
-    dist_mat=AD.calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight)
+    dist_mat=AD.calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, m_weight)
     pos=AD.calc_pos_TSNE(dist_mat)
     AD.plot_MDS(pos)
     return()
@@ -574,10 +574,10 @@ def calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_pe
     return(label_colors, per_total, per_total2)
 
 def col_weight(features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, i, k, w_impor):
-    weight1=(features_freq[i,1]+features_freq[i,3]-freq_bats[k])**2
-    weight2=(features_freq[i,0]-freq_range_bats[k])**2
-    weight3=(features_freq[i, 5]-freq_peakT_bats)**2
-    weight4=(features_freq[i, 5]-freq_peakF_bats)**2
+    weight1=(features_freq[i, 1]+features_freq[i,3]-freq_bats[k])**2
+    weight2=(features_freq[i, 0]-freq_range_bats[k])**2
+    weight3=(features_freq[i, 5]-freq_peakT_bats[k])**2
+    weight4=(features_freq[i, 6]-freq_peakF_bats[k])**2
     weight=1+(weight1*w_impor[0])+(weight2*w_impor[1])+(weight3*w_impor[2])+(weight4*w_impor[3])
     return(weight)
 
@@ -691,6 +691,9 @@ def hier_clustering(file_name, freq_bats, freq_range_bats, freq_peakT_bats, freq
     return(col_labels, features_key, rectangles, spectros, per_total, per_total2)
 
 def write_output(list_files, **optional): #Optional only works on non TE data
+    para=AD.set_parameters()
+    spect_window=para[6]
+    spect_overlap_window=para[7]
     #loading
     freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init(**optional)
     if 'full' in optional:
@@ -736,19 +739,19 @@ def write_output(list_files, **optional): #Optional only works on non TE data
     total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
     #output file
     if 'results1' in optional and 'results2' in optional:
-        open(optional['results1'], 'a').close() #create file if it doesn't exist yet 
-        open(optional['results1'], 'w').close() #clear file
-        f1=open(optional['results1'], 'a') #edit file
-        open(optional['results2'], 'a').close() #create file if it doesn't exist yet 
-        open(optional['results2'], 'w').close() #clear file
-        f2=open(optional['results2'], 'a') #edit file
-    else:
-        open('results1', 'a').close() #create file if it doesn't exist yet 
-        open('results1', 'w').close() #clear file
-        f1=open('results1', 'a') #edit file
-        open('results2', 'a').close() #create file if it doesn't exist yet 
-        open('results2', 'w').close() #clear file
-        f2=open('results2', 'a') #edit file
+        if os.path.exists(optional['results1'] + '.txt'): #file already exists
+            open(optional['results1']+ '.txt', 'w').close() #clear file
+        f1=open(optional['results1']+ '.txt', 'a') #edit file
+        if os.path.exists(optional['results2'] + '.txt'):
+            open(optional['results2']+ '.txt', 'w').close() #clear file
+        f2=open(optional['results2']+ '.txt', 'a') #edit file
+    else: #no output file is given, create standard one
+        if os.path.exists('results1.txt'):
+            open('results1.txt', 'w').close() #clear file
+        f1=open('results1.txt', 'a') #edit file
+        if os.path.exists('results1.txt'):
+            open('results2.txt', 'w').close() #clear file
+        f2=open('results2.txt', 'a') #edit file
     for k in range(len(list_bats)):
         f1.write(str(list_bats[k]) +': ' + '\n'); #name bat
         f1.write('\n') #skip line
@@ -757,21 +760,27 @@ def write_output(list_files, **optional): #Optional only works on non TE data
             count=0
             for j in range(len(col_labels[i])):
                 if col_labels[i][j]==colors_bat[list_bats[k]]:
-                    f1.write('Time: ' + str(features_key[i][j][0]/10) + ' s, region: ' + str(features_key[i][j][1]) + ', score1: ' + str(int(100000*per_total[i][j][k])) + ' mil, score2: ' + str(int(100*per_total2[i][j][k])) + '% \n');
+                    #print('k:', k)
+                    #print('i:', i)
+                    #print('j:', j)
+                    f1.write('Timestep: ' + str(features_key[i][j][0]) + ', region: ' + str(features_key[i][j][1])
+                    + ', score1: ' + str(int(100000*per_total[i][j][k])) + ' mil, score2: ' + str(int(100*per_total2[i][j][k])) + ' %'
+                    + ', coordinates (x1, x2, y1, y2): ' + str(int(features_key[i][j][0]*(spect_window-spect_overlap_window)+rectangles[i][features_key[i][j][0]][0, features_key[i][j][1]]*0.32))
+                    + '-' + str(int(features_key[i][j][0]*(spect_window-spect_overlap_window)+(rectangles[i][features_key[i][j][0]][0, features_key[i][j][1]]+rectangles[i][features_key[i][j][0]][2,features_key[i][j][1]])*0.32)) + ' ms, '
+                    + str(int(rectangles[i][features_key[i][j][0]][1, features_key[i][j][1]]*0.375)) + '-' 
+                    + str(int((rectangles[i][features_key[i][j][0]][1, features_key[i][j][1]]+rectangles[i][features_key[i][j][0]][3, features_key[i][j][1]])*0.375)) + ' kHz' + ' \n');                    
                     count+=1
-                    temp_str=list_bats[k] + '/time_' + str(features_key[i][j][0]/10) + '_region_' + str(features_key[i][j][1]) + '_file_' + str(list_files2[i])
+                    temp_str=list_bats[k] + '/timestep_' + str(features_key[i][j][0]) + '_region_' + str(features_key[i][j][1]) + '_file_' + str(list_files2[i])
                     show_region2(rectangles[i], spectros[i], features_key[i], j, name=temp_str)
-            f1.write('Total: ' + str(count) + '\n')
             f1.write('\n') #empty line between different files
             total_count[k]+=count
-    f1.write('Summary: \n')
     for k in range(len(list_bats)):
         f2.write(str(list_bats[k]) +': ' + str(total_count[k]) + '\n');
     f1.close()
     f2.close()
-    return()
+    return(features_key, rectangles, k, i, j)
 
-def create_template(file_name, time, region_num, bat_name, **optional): #creates three templates (image, rectangle and array)
+def create_template(file_name, timestep, region_num, bat_name, **optional): #creates three templates (image, rectangle and array)
     if 'Templates' in optional:
         path=optional['Templates']
     else:
@@ -784,16 +793,16 @@ def create_template(file_name, time, region_num, bat_name, **optional): #creates
         os.makedirs(path + '/Templates_images/' + bat_name)
         os.makedirs(path + '/Templates_rect/' + bat_name)
     rectangles, regions, _=AD.spect_loop(file_name)
-    hash_image=hash(str(regions[int(time*10)][region_num]))
-    hash_rect=hash(str(rectangles[int(time*10)][:, region_num]))
+    hash_image=hash(str(regions[int(timestep)][region_num]))
+    hash_rect=hash(str(rectangles[int(timestep)][:, region_num]))
     path_image=path + 'Templates_images/' + bat_name + '/' + str(hash_image) + '.png'
-    plt.imshow(regions[int(time*10)][region_num])
+    plt.imshow(regions[int(timestep)][region_num])
     plt.savefig(path_image)
     plt.close()
     path_array=path + 'Templates_arrays/' + bat_name + '/' + str(hash_image) + '.npy'
     path_rect=path + 'Templates_rect/' + bat_name + '/' + str(hash_rect) + '.npy'
-    np.save(path_array, regions[int(time*10)][region_num])
-    np.save(path_rect, rectangles[int(time*10)][:, region_num])
+    np.save(path_array, regions[int(timestep)][region_num])
+    np.save(path_rect, rectangles[int(timestep)][:, region_num])
     return()
 
 def read_templates(**optional): #reads in templates from the path to the general folder
@@ -835,5 +844,5 @@ def loading_init(**optional): #loads in certain things so they only run once
     list_bats, colors_bat=AD.set_batscolor(**optional)
     num_bats, num_total=AD.set_numbats(list_bats, **optional)
     freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats=AD.set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats)
-    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp, w_impor)
+    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
     
