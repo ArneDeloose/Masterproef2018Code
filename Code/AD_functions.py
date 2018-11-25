@@ -778,7 +778,7 @@ def write_output(list_files, **optional): #Optional only works on non TE data
         f2.write(str(list_bats[k]) +': ' + str(total_count[k]) + '\n');
     f1.close()
     f2.close()
-    return(features_key, rectangles, k, i, j)
+    return()
 
 def create_template(file_name, timestep, region_num, bat_name, **optional): #creates three templates (image, rectangle and array)
     if 'Templates' in optional:
