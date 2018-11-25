@@ -29,7 +29,12 @@ def adjustable_parameters():
     spect_window=int(words[4][0])
     spect_overlap_window=int(words[5][0])
     max_roi=int(words[6][0])
-    para=(binary_thresh, spec_min, spec_max, thresh, spect_window, spect_overlap_window, max_roi)
+    w_1=float(words[7][0])
+    w_2=float(words[8][0])
+    w_3=float(words[9][0])
+    w_4=float(words[10][0])
+    w_impor=(w_1, w_2, w_3, w_4)
+    para=(binary_thresh, spec_min, spec_max, thresh, spect_window, spect_overlap_window, max_roi, w_impor)
     return(para)
 
 def set_parameters():
@@ -40,7 +45,7 @@ def set_parameters():
     max_spec_freq=int(adj_para[2]/0.32)
     #1 point= 0.32 ms
     #1 point= 375 Hz
-    para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5])
+    para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5], adj_para[7])
     return(para)
 
 def set_path():
@@ -493,8 +498,8 @@ def run_TSNE(weight):
     return()
 
 def calc_features(rectangles, regions, templates, num_reg, list_bats, num_total):
-    features=np.zeros((num_reg, len(templates)+5))
-    features_freq=np.zeros((num_reg, 5)) #unscaled freq info
+    features=np.zeros((num_reg, len(templates)+7))
+    features_freq=np.zeros((num_reg, 7)) #unscaled freq info
     count=0
     features_key={}
     for i,d in regions.items():
@@ -504,17 +509,20 @@ def calc_features(rectangles, regions, templates, num_reg, list_bats, num_total)
             features[count, 1]=rectangles[i][1,j] #min freq
             features[count, 2]=rectangles[i][1,j]+rectangles[i][3,j] #max freq
             features[count, 3]=rectangles[i][1,j]+rectangles[i][3,j]/2 #av freq
-            features[count, 4]=rectangles[i][2,j] #duration    
+            features[count, 4]=rectangles[i][2,j] #duration
+            index=np.argmax(regions[i][j]) #position peak frequency
+            l=len(regions[i][j][0,:]) #number of timesteps
+            a=index%l #timestep at peak freq
+            b=math.floor(index/l) #frequency at peak freq
+            features[count, 5]=a/l #peak frequency T
+            features[count, 6]=b+rectangles[i][1,j] #peak frequency F
             for k in range(len(templates)):
-                features[count, k+5]=AD.compare_img2(regions[i][j], templates[k])
-            features_freq[count]=features[count, :5]
+                features[count, k+7]=AD.compare_img2(regions[i][j], templates[k])
+            features_freq[count]=features[count, :7]
             count+=1
     #Feature scaling, half of the clustering is based on freq and time information
-    features[:,0]=(num_total/5)*(features[:,0]-features[:,0].min())/(features[:,0].max()-features[:,0].min())
-    features[:,1]=(num_total/5)*(features[:,1]-features[:,1].min())/(features[:,1].max()-features[:,1].min())
-    features[:,2]=(num_total/5)*(features[:,2]-features[:,2].min())/(features[:,2].max()-features[:,2].min())
-    features[:,3]=(num_total/5)*(features[:,3]-features[:,3].min())/(features[:,3].max()-features[:,3].min())
-    features[:,4]=(num_total/5)*(features[:,4]-features[:,4].min())/(features[:,4].max()-features[:,4].min())
+    for k in range(7):
+        features[:,k]=(num_total/7)*(features[:,k]-features[:,k].min())/(features[:,k].max()-features[:,k].min())
     return(features, features_key, features_freq)
 
 def calc_num_regions(regions):
@@ -524,36 +532,13 @@ def calc_num_regions(regions):
             num_reg+=1
     return(num_reg)
 
-def calc_col_labels(features): #based upon maximum ssim
-    label_colors={}
-    para=AD.set_parameters();
-    thresh=para[3]
-    for i in range(len(features)):
-        dummy_index=features[i,5:].argmax()+5 #index max ssim
-        dummy_value=features[i,5:].max() #maximum ssim
-        if dummy_value>thresh: #bat
-            if 4<dummy_index<44: #ppip, 5-43
-               label_colors[i]="#ff0000" #red
-            elif 43<dummy_index<61: #eser, 44-60
-                label_colors[i]="#008000" #green
-            elif 60<dummy_index<67: #mdau, 61-66
-                label_colors[i]="#0000ff" #blue
-            elif 66<dummy_index<85: #pnat, 67-84
-                label_colors[i]="#a52a2a" #brown
-            elif 84<dummy_index<91: #nlei, 85-90
-                label_colors[i]="#ee82ee" #violet
-            else: #temp code
-                label_colors[i]="#000000" #black
-        else: #noise
-            label_colors[i]= "#000000" #black      
-    return(label_colors)
-
-def calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_bats, colors_bat, num_bats): #based upon percentage scores
+def calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats): #based upon percentage scores
     label_colors={}
     per_total={}
     per_total2={}
     para=AD.set_parameters();
     thresh=para[3]
+    w_impor=para[8]
     for i in range(len(features)): #check rows one by one
         count=np.zeros((len(list_bats),)) #counters per
         count2=np.zeros((len(list_bats),)) #counters reg
@@ -567,14 +552,14 @@ def calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_b
             for k in range(len(list_bats)):
                 if k==0: #k-1 doesn't exist at first
                     if j<=upper_bound and dummy[j]==True: #match
-                        weight=AD.col_weight(features_freq, freq_bats, freq_range_bats, i, k)
+                        weight=AD.col_weight(features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, i, k, w_impor)
                         count[k]+=(1/weight)
                         count2[k]+=1
                 else: #every other k
                     lower_bound+=num_bats[k-1]
                     upper_bound+=num_bats[k]
                     if lower_bound<j<=upper_bound and dummy[j]==True: #match
-                        weight=AD.col_weight(features_freq, freq_bats, freq_range_bats, i, k)
+                        weight=AD.col_weight(features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, i, k, w_impor)
                         count[k]+=(1/weight)
                         count2[k]+=1
             if sum(count)>0: #there are matches
@@ -588,12 +573,12 @@ def calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_b
             per_total2[i]=per2
     return(label_colors, per_total, per_total2)
 
-def col_weight(features_freq, freq_bats, freq_range_bats, i, k):
-    weight1=(features_freq[i,1]+features_freq[i,3]-freq_bats[k]/5)**2
-    weight2=(features_freq[i,0]-freq_range_bats[k]/5)**2
-    weight3=0
-    weight4=0
-    weight=1+weight1+weight2+weight3+weight4
+def col_weight(features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, i, k, w_impor):
+    weight1=(features_freq[i,1]+features_freq[i,3]-freq_bats[k])**2
+    weight2=(features_freq[i,0]-freq_range_bats[k])**2
+    weight3=(features_freq[i, 5]-freq_peakT_bats)**2
+    weight4=(features_freq[i, 5]-freq_peakF_bats)**2
+    weight=1+(weight1*w_impor[0])+(weight2*w_impor[1])+(weight3*w_impor[2])+(weight4*w_impor[3])
     return(weight)
 
 def set_numbats(list_bats, **optional): #sets the number of templates per bat
@@ -691,11 +676,11 @@ def show_region2(rectangles, spectros, features_key, i, **optional): #uses featu
     plt.close()
     return()
 
-def hier_clustering(file_name, freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, **optional):
+def hier_clustering(file_name, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, **optional):
     rectangles, regions, spectros=AD.spect_loop(file_name)
     num_reg=AD.calc_num_regions(regions)
     features, features_key, features_freq=AD.calc_features(rectangles, regions, templates, num_reg, list_bats, num_total)
-    col_labels, per_total, per_total2=AD.calc_col_labels2(features, features_freq, freq_bats, freq_range_bats, list_bats, colors_bat, num_bats)
+    col_labels, per_total, per_total2=AD.calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats)
     if 'write' in optional:
         if optional['write']: #true
             AD.plot_dendrogram(features, col_labels, name=file_name)
@@ -747,7 +732,7 @@ def write_output(list_files, **optional): #Optional only works on non TE data
     per_total2={}
     #run clustering and save output    
     for i in range(len(list_files2)):
-        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files2[i], freq_bats, freq_range_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, write=True)
+        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files2[i], freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, write=True)
     total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
     #output file
     if 'results1' in optional and 'results2' in optional:
@@ -850,5 +835,5 @@ def loading_init(**optional): #loads in certain things so they only run once
     list_bats, colors_bat=AD.set_batscolor(**optional)
     num_bats, num_total=AD.set_numbats(list_bats, **optional)
     freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats=AD.set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats)
-    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
+    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp, w_impor)
     
