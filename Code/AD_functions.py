@@ -811,6 +811,7 @@ def read_templates(**optional): #reads in templates from the path to the general
     else:
         path=AD.set_path()
     full_path='' #string will be constructed every step
+    full_path_rec=''
     list_bats, _=AD.set_batscolor()
     if 'Templates' in optional:
         num_bats, _=AD.set_numbats(list_bats, Templates=optional['Templates'])
