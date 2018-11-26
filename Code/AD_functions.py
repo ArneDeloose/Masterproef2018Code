@@ -120,8 +120,12 @@ def spect_loop(file_name, **optional): #hybrid code, one plot for 100 ms
     spectros={};
     if 'channel' in optional: #time dilation
         sample_rate, samples, _, _,steps= AD.spect('Audio_data/'+ file_name, channel=optional['channel']);
-        sample_rate=10*sample_rate
-        steps=math.floor(steps/10) #time expansion factor
+        if 'exp_factor' in optional:
+            sample_rate=optional['exp_factor']*sample_rate
+            steps=math.floor(steps/optional['exp_factor'])
+        else: #default value
+            sample_rate=10*sample_rate
+            steps=math.floor(steps/10)
     else:
         sample_rate, samples, _, _,steps= AD.spect('Audio_data/'+ file_name);
     start_index=0
@@ -374,8 +378,8 @@ def show_class(class_num, c_mat, rectangles, regions, spectros):
                 input('Press enter to continue')
     return()
 
-def loop_full(file_name):
-    rectangles, regions, spectros=AD.spect_loop(file_name)
+def loop_full(file_name, **optional):
+    rectangles, regions, spectros=AD.spect_loop(file_name, optional)
     templates=AD.create_template_set()
     res, _, _=AD.loop_res(rectangles, spectros, regions, templates)
     return(res)
@@ -677,7 +681,7 @@ def show_region2(rectangles, spectros, features_key, i, **optional): #uses featu
     return()
 
 def hier_clustering(file_name, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, **optional):
-    rectangles, regions, spectros=AD.spect_loop(file_name)
+    rectangles, regions, spectros=AD.spect_loop(file_name, optional)
     num_reg=AD.calc_num_regions(regions)
     features, features_key, features_freq=AD.calc_features(rectangles, regions, templates, num_reg, list_bats, num_total)
     col_labels, per_total, per_total2=AD.calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats)
@@ -700,9 +704,10 @@ def write_output(list_files, **optional): #Optional only works on non TE data
        if optional['full']: #True
            if 'Audio_data' in optional:
                path=optional['Audio_data']
+               list_files2=os.listdir(path)
            else:
                path=AD.set_path()
-           list_files2=os.listdir(path + '/Audio_data') #write out results for everything
+               list_files2=os.listdir(path + '/Audio_data') 
            count=0
            for i in range(len(list_files2)):
                if list_files2[i-count][-4:]!='.WAV':
@@ -733,9 +738,10 @@ def write_output(list_files, **optional): #Optional only works on non TE data
     spectros={}
     per_total={}
     per_total2={}
+    optional['write']=True
     #run clustering and save output    
     for i in range(len(list_files2)):
-        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files2[i], freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, write=True)
+        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files2[i], freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, optional)
     total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
     #output file
     if 'results1' in optional and 'results2' in optional:
@@ -821,10 +827,21 @@ def read_templates(**optional): #reads in templates from the path to the general
     rectangles={}
     count=0
     for i in range(len(list_bats)):
-        for j in range(num_bats[i]):
-            #Make path to go through each file one by one
-            full_path=path+ '/Templates_arrays/' + list_bats[i] + '/' + str(j) +'.npy'
-            full_path_rec=path+ '/Templates_rect/' + list_bats[i] + '/' + str(j) +'.npy'
+        list_files_arrays=os.listdir(path + '/Templates_arrays/' + list_bats[i]) #list all files in folder
+        list_files_rect=os.listdir(path + '/Templates_rect/' + list_bats[i])
+        count1=0
+        count2=0
+        for k in range(len(list_files_arrays)):
+            if list_files_arrays[k-count1][-4:]!='.npy':
+                del list_files_arrays[k-count1] #remove files that aren't npy extensions
+                count1+=1 #len of list changes, take this into account
+        for k in range(len(list_files_rect)): #repeat for rectangles
+            if list_files_rect[k-count2][-4:]!='.npy':
+                del list_files_rect[k-count2] #remove files that aren't npy extensions
+                count2+=1 #len of list changes, take this into account
+        for j in range(num_bats[i]): #go through the files one by one
+            full_path=path+ '/Templates_arrays/' + list_bats[i] + '/' + list_files_arrays[j]
+            full_path_rec=path+ '/Templates_rect/' + list_bats[i] + '/' + list_files_rect[j]
             regions[count]=np.load(full_path)
             rectangles[count]=np.load(full_path_rec)
             count+=1

@@ -1,0 +1,10 @@
+channel: l or r
+exp_factor: number
+path (show_region): path to save a region
+Templates: path to the templates folder (must contain subfolders Templates_arrays and Templates_rect)
+Audio_data: path to the Audio_data folder
+name (plot_dendrogram): save a dendrogram under this name, if absent, written out to the screen
+name (show_regions2): same as dendrogram
+write (hier_clustering): True or False, write out all dendrograms
+full (write_output): if True, all files in the Audio_data folder are analysed
+results1 and results2 (write_output): names of output files
