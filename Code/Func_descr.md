@@ -2,23 +2,20 @@
 
 ---
 
-set_parameters(), return(X, kern, thresh, max_roi, min_spec_freq, max_spec_freq)  
+adjustable_parameters, return(para)
+Reads in parameters defined by the user in the textfile 'parameters.txt'
+
+---
+
+set_parameters(), return(para)  
 
 This function sets a number of parameters needed in other functions. It is called automatically in other functions when needed. Keeping all parameters in one place allows for easier tuning.  
 
-The parameters are:
+---
 
-* X: threshold for binary image (number between 0 and 256)
+set_path(), return(path)
 
-* kern: kernel size for ROI
-
-* thresh: threshold for SSIM
-
-* max_roi: maximum number of regions within one image (100 ms)
-
-* min_spec_freq: lowest frequency in the spectrogram (1 point =0.375 kHz)
-
-* max_spec_freq: highest frequency in the spectrogram
+Sets the path as the current working directory (needed to read and write files). Called whenever needed.
 
 ---
 
@@ -58,6 +55,12 @@ Spectros contains the full spectrograms (also stored as dictionary with numbered
 
 ---
 
+check_overlap(rectangles, regions, spectros, i, spect_window, spect_overlap_window), return(rectangles1, spectros1)
+
+Deletes a region when there is an overlap with the previous spectrogram.
+
+---
+
 ROI(spect_norm, kern, X), return(ctrs, len_flag)
 
 Extracts ROIs from an image. Spect_norm is the spectrogram, kern and X are called using set_parameters. Returns contours and a len_flag. If len_flag is falsem the image is empty and ROI2 is skipped.
@@ -76,9 +79,9 @@ Deletes entries from rectangles and regions if there are more than max_roi (to r
 
 ---
 
-show_region(rectangles, spectros, i), return()
+show_region(rectangles, spectros, i, \**optional), return()
 
-Shows a plot of all the regions as red rectangles on the spectrogram. i is the time key to extract the correct spectrogram from the dictionary.
+Shows a plot of all the regions as red rectangles on the spectrogram. i is the time key to extract the correct spectrogram from the dictionary. If a path is given in optional, the image is saved to this path.
 
 ---
 
@@ -91,6 +94,18 @@ Shows the regions of the entire file one by one. This calls show_region for ever
 compare_img(img1, img2, rectangle, min_freq, max_freq), return(score)
 
 Calculates the SSIM between two images and returns it as a score. If the frequency isn't in the right range, score is set to the minimum (-1). For this, the function set_freqthresh is needed with the correct class number.
+
+---
+
+compare_img2(img1, img2), return(score)
+
+Calculates the SSIM between two images and returns it as a score. Images are scaled to the largest image.
+
+---
+
+resize_img_plot(img1, img2), return()
+
+Plots two images on the same size. Can be used to compare with 'compare_img_plot'
 
 ---
 
@@ -169,7 +184,7 @@ Calculates a total distance based on the similarity measures calculated in 'calc
 
 ---
 
-set_weights(weight), return(w1,w2,w3,w4,w5,w6)
+set_mweights(weight), return(w1,w2,w3,w4,w5,w6)
 
 Sets weights for 'calc_dist_matrix'. The variable 'weight' allows you to drop one weight from the set to study the importance of it. If weight=0 nothing is dropped. Standard weights are set at roughly 1/mean(sim)
 
@@ -193,27 +208,21 @@ Plots an MDS or TSNE from the given positions. This is calibrated to use labels 
 
 ---
 
-run_MDS(weight), return()
+run_MDS(m_weight), return()
 
 Pools the functions: 'set_templates2', 'calc_sim_matrix', 'calc_dist_matrix', 'calc_pos' and 'plot_MDS'.
 
 ---
 
-run_TSNE, return()
+run_TSNE(m_weight), return()
 
 Analogous to 'run_MDS' but with the TSNE.
 
 ---
 
-set_templates2(), return(rectangles_final, regions_final)
+calc_features(rectangles, regions, templates, num_reg, list_bats, num_total), return(features, features_key, features_freq)
 
-Extracts pulses from five different bats (ppip, eser, mdau, pnat and nlei) to use as reference images.
-
----
-
-calc_features(rectangles, regions, templates, num_reg), return(features, features_key, features_freq)
-
-Transforms regions into a feature matrix. Every row is one region. The first five columns contain frequency information (freq range, min freq, max freq, av freq, duration). These are scaled to contain half of the information in total divided equally over the five metrics. The remaining columns are the ssim scores with every reference in 'templates' (set by 'set_templates2'). Num_reg is the total number of regions to allow pre-allocation (can be calculated by 'calc_num_regions').
+Transforms regions into a feature matrix. Every row is one region. The first seven columns contain frequency information (freq range, min freq, max freq, av freq, duration, peak T freq and peak F freq). These are scaled to contain half of the information in total divided equally over the seven metrics. The remaining columns are the ssim scores with every reference in 'templates'. Num_reg, list_bats and num_total is information needed to read the templates. All of these can be set by running 'loading_init'.
 
 Features_key links the row number to a position in the original dictionary and features_freq are the first five columns unscaled.
 
@@ -225,27 +234,27 @@ Calculates number of regions in a dictionary.
 
 ---
 
-calc_col_labels(features), return(label_colors)
+calc_col_labels(features), return(label_colors, per_total, per_total2)
 
-Labels every sound in features based on the maximum ssim in the row. If this max ssim is above a threshold (set by 'set_parameters' automatically) the pulse is labeled to be this species. Labels are stored as a dictionary with the row number as key containing a python coded color.
-
----
-
-calc_col_labels2(features, features_freq), return(label_colors)
-
-More advanced version of 'calc_col_labels'. Instead of only the maximum ssim, it takes all ssims above a threshold and adds them up to calculate a percentage matching (so if 20 of the 40 ppip ssim scores are above the threshold, the score is 50 %). Scores are weighed according to the squared difference between the lowest frequency and a fixed literature value for a certain bat. These values are called automatically using the function 'set_batfreq'. Number of templates per bat are called using 'set_numbats'.
+Labels every sound in features based on the ssim scores in teh row. For this,  it takes all ssims above a threshold and adds them up to calculate a percentage matching (so if 20 of the 40 ppip ssim scores are above the threshold, the score is 50 %). Scores are then weighed according to the squared difference with a few values: minimum frequency, frequency range, peak T frequency and peak F frequency. References are defined as the mean over the templates for that species. The weights for each metric are set in 'adjustable_parameters'. Per_total is the unweighed score, per_total2 is the weighed score.
 
 ---
 
-set_numbats(), return(num_total, num_ppip, num_eser, num_mdau, num_pnat, num_nlei)
+set_numbats(list_bats, \**optional), return(num_bats, num_total)
 
-Sets the number of reference images for each bat. Called in 'calc_col_labels2'.
+Sets the number of reference images for each bat. For this the code assumes there is a folder 'Templates_arrays' in the working directory. If this is not the case, an alternate path can be specified as the optional argument 'Templates'.
 
 ---
 
-set_batfreq(), return(freq_ppip, freq_eser, freq_mdau, freq_pnat, freq_nlei)
+set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats), return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats)
 
-Sets the lowest frequencies for each bat. Called in 'calc_col_labels2'.
+Sets a number of frequencies needed for the calculation of the scores (see cacl_col_labels). For this, the median value over the references is taken.
+
+---
+
+set_batscolor(\**optional), return(list_bats, colors_bat)
+
+Assigns a color to each bat. The optional argument 'Templates' can be used to specify an alternate path to the templates.
 
 ---
 
