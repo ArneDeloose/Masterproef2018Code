@@ -224,20 +224,32 @@ def wave_plot(data, wavelet):
     return(fig)
 
 def show_region(rectangles, spectros, i, **optional):
+    para=AD.adjustable_parameters()
+    spec_min=para[1]
+    spec_max=para[2]
+    t_max=para[4]
     f, ax1 = plt.subplots()
-    ax1.imshow(spectros[i])
+    ax1.imshow(spectros[i], origin='lower')
     dummy=rectangles[i].shape
     for j in range(dummy[1]):
-       rect = patches.Rectangle((rectangles[i][0,j],rectangles[i][1,j]),
+        rect = patches.Rectangle((rectangles[i][0,j],rectangles[i][1,j]),
                                 rectangles[i][2,j],rectangles[i][3,j],
                                 linewidth=1,edgecolor='r',facecolor='none')
-       # Add the patch to the Axes
-       ax1.add_patch(rect)
+   # Add the patch to the Axes
+    ax1.add_patch(rect)
     plt.title(i)
-    plt.show()
+    labels_X = [item.get_text() for item in ax1.get_xticklabels()]
+    labels_Y = [item.get_text() for item in ax1.get_yticklabels()]
+    labels_X[1]=0
+    labels_X[2]=t_max
+    for i in range(1, len(labels_Y)-1):
+       labels_Y[i]=int((spec_max-spec_min)*(i-1)/(len(labels_Y)-3)+spec_min)
+    ax1.set_xticklabels(labels_X)
+    ax1.set_yticklabels(labels_Y)
+    plt.show()    
     if 'path' in optional:
         plt.savefig(optional['path'])
-        plt.close()
+    plt.close()
     return()
 
 def show_mregions(rectangles, spectros):
@@ -367,7 +379,7 @@ def show_class(class_num, c_mat, rectangles, regions, spectros):
         for j in range(len(c_mat[0,:])): #Colums, time
             if c_mat[i,j]==class_num:
                 f, ax1 = plt.subplots()
-                ax1.imshow(spectros[j])
+                ax1.imshow(spectros[j], origin='lower')
                 rect = patches.Rectangle((rectangles[j][0, i],rectangles[j][1, i]),
                                 rectangles[j][2, i],rectangles[j][3, i],
                                 linewidth=1,edgecolor='r',facecolor='none')
@@ -661,18 +673,25 @@ def plot_dendrogram(features, label_colors, **optional):
 
 def show_region2(rectangles, spectros, features_key, i, **optional): #uses feature label
     (a,b)=features_key[i]
+    para=AD.adjustable_parameters()
+    spec_min=para[1]
+    spec_max=para[2]
+    t_max=para[4]
     f, ax1 = plt.subplots()
-    ax1.imshow(spectros[a])
+    ax1.imshow(spectros[a], origin='lower')
     rect = patches.Rectangle((rectangles[a][0,b],rectangles[a][1,b]),
                                 rectangles[a][2,b],rectangles[a][3,b],
                                 linewidth=1,edgecolor='r',facecolor='none')
     # Add the patch to the Axes
     ax1.add_patch(rect)
-    para=AD.set_parameters();
-    min_spec_freq=para[4]
-    min_freq=int((rectangles[a][1,b]+min_spec_freq)*0.375)
-    max_freq=int((rectangles[a][1,b]+rectangles[a][3,b]+min_spec_freq)*0.375)
-    plt.title('%d-%d kHz, timestep: %d' %(min_freq,max_freq, a)) #Show frequency range and time as title
+    labels_X = [item.get_text() for item in ax1.get_xticklabels()]
+    labels_Y = [item.get_text() for item in ax1.get_yticklabels()]
+    labels_X[1]=0
+    labels_X[2]=t_max
+    for i in range(1, len(labels_Y)-1):
+       labels_Y[i]=int((spec_max-spec_min)*(i-1)/(len(labels_Y)-3)+spec_min)
+    ax1.set_xticklabels(labels_X)
+    ax1.set_yticklabels(labels_Y)
     if 'name' in optional:
         plt.savefig(optional['name'] + '.png')
     else:
