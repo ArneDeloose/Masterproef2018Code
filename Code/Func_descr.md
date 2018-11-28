@@ -264,12 +264,36 @@ Plots a dendrogram based upon a hierarchical clustering of the features. Row num
 
 ---
 
-show_region2(rectangles, spectros, features_key, i), return()
+show_region2(rectangles, spectros, features_key, i, \**optional), return()
 
-Shows a plot of a region on a spectrogram based on the number in the feature data (i). The title of the plot gives the frequency range of the sound and the timestep.
+Shows a plot of a region on a spectrogram based on the number in the feature data (i). The title of the plot gives the frequency range of the sound and the timestep. The optional argument 'name' saves teh figure to a specified path.
 
 ---
 
-hier_clustering(file_name), return()
+hier_clustering(file_name, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, \**optional), return(col_labels, features_key, rectangles, spectros, per_total, per_total2), return()
 
-Function that pools various functions together to create a dendrogram right away from the name of a file. (Functions called: spect_loop, calc_num_regions, set_templates2, calc_features, calc_col_labels2, plot_dendrogram).
+Function that pools various functions together to create a dendrogram right away from the name of a file. (Functions called: spect_loop, calc_num_regions, set_templates2, calc_features, calc_col_labels2, plot_dendrogram). Other inputs are derived from loading_init (which is called seperately for computational efficiency). The optional input 'write' will  save the dendrogram if set to True.
+
+---
+
+write_output(list_files, \**optional), return()
+
+Applies clustering and classification and writes out the output to a bunch of files. Two text files are created (results1 and results2, other names can be specified as an optional argument) and folders for every classified sound.
+
+---
+
+create_template(file_name, timestep, region_num, bat_name, \**optional), return()
+
+Creates a template (array, image and rectangle). The name of the file must be given, along with the timestep and the region number. The code name (eser, ppip, pnat,...) must be given. If this bat doesn't exist yet, folders are created. The optional argument 'Templates' can be given to specify an alternate path to the templates folders.
+
+---
+
+make_folders(path), return()
+
+Checks whether necessary folders exist and creates new ones if need be.
+
+---
+
+loading_init(\**optional), return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
+
+Loads a bunch of parameters.
