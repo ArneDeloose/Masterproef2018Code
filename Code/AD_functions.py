@@ -392,7 +392,7 @@ def show_class(class_num, c_mat, rectangles, regions, spectros):
     return()
 
 def loop_full(file_name, **optional):
-    rectangles, regions, spectros=AD.spect_loop(file_name, optional)
+    rectangles, regions, spectros=AD.spect_loop(file_name, **optional)
     templates=AD.create_template_set()
     res, _, _=AD.loop_res(rectangles, spectros, regions, templates)
     return(res)
@@ -498,6 +498,14 @@ def plot_MDS(pos):
     plt.show()
     return()
 
+def plot_MDS2(pos):
+    s=10
+    plot1=plt.scatter(pos[0:25, 0], pos[0:25, 1], color='red', s=s, lw=0, label='neurons')
+    plot2=plt.scatter(pos[26:, 0], pos[26:, 1], color='black', s=s, lw=0, label='data')
+    plt.legend(handles=[plot1,plot2])
+    plt.show()
+    return()
+    
 def run_MDS(m_weight):
     rectangles_final, regions_final=AD.set_templates2()
     sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6=AD.calc_sim_matrix(rectangles_final, regions_final)
@@ -515,31 +523,31 @@ def run_TSNE(m_weight):
     return()
 
 def calc_features(rectangles, regions, templates, num_reg, list_bats, num_total):
-    features=np.zeros((num_reg, len(templates)+7))
-    features_freq=np.zeros((num_reg, 7)) #unscaled freq info
+    features=np.zeros((len(templates)+7, num_reg))
+    features_freq=np.zeros((7, num_reg)) #unscaled freq info
     count=0
     features_key={}
     for i,d in regions.items():
         for j,d in regions[i].items():
             features_key[count]=(i,j)
-            features[count, 0]=rectangles[i][3,j] #freq range
-            features[count, 1]=rectangles[i][1,j] #min freq
-            features[count, 2]=rectangles[i][1,j]+rectangles[i][3,j] #max freq
-            features[count, 3]=rectangles[i][1,j]+rectangles[i][3,j]/2 #av freq
-            features[count, 4]=rectangles[i][2,j] #duration
+            features[0, count]=rectangles[i][3,j] #freq range
+            features[1, count]=rectangles[i][1,j] #min freq
+            features[2, count]=rectangles[i][1,j]+rectangles[i][3,j] #max freq
+            features[3, count]=rectangles[i][1,j]+rectangles[i][3,j]/2 #av freq
+            features[4, count]=rectangles[i][2,j] #duration
             index=np.argmax(regions[i][j]) #position peak frequency
             l=len(regions[i][j][0,:]) #number of timesteps
             a=index%l #timestep at peak freq
             b=math.floor(index/l) #frequency at peak freq
-            features[count, 5]=a/l #peak frequency T
-            features[count, 6]=b+rectangles[i][1,j] #peak frequency F
+            features[5, count]=a/l #peak frequency T
+            features[6, count]=b+rectangles[i][1,j] #peak frequency F
             for k in range(len(templates)):
-                features[count, k+7]=AD.compare_img2(regions[i][j], templates[k])
-            features_freq[count]=features[count, :7]
+                features[k+7, count]=AD.compare_img2(regions[i][j], templates[k])
+            features_freq[:, count]=features[:7, count]
             count+=1
     #Feature scaling, half of the clustering is based on freq and time information
     for k in range(7):
-        features[:,k]=(num_total/7)*(features[:,k]-features[:,k].min())/(features[:,k].max()-features[:,k].min())
+        features[k,:]=(num_total/7)*(features[k, :]-features[k, :].min())/(features[k, :].max()-features[k, :].min())
     return(features, features_key, features_freq)
 
 def calc_num_regions(regions):
@@ -556,13 +564,13 @@ def calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_pe
     para=AD.set_parameters();
     thresh=para[3]
     w_impor=para[8]
-    for i in range(len(features)): #check rows one by one
+    for i in range(features.shape[1]): #check columns one by one
         count=np.zeros((len(list_bats),)) #counters per
         count2=np.zeros((len(list_bats),)) #counters reg
         per=np.zeros((len(list_bats),)) #percentage scores
         per2=np.zeros((len(list_bats),)) #percentage scores reg
         weight=0
-        dummy=(features[i,5:]>thresh) #matching bats
+        dummy=(features[5:, i]>thresh) #matching bats
         for j in range(len(dummy)):
             lower_bound=0
             upper_bound=num_bats[0]
@@ -591,10 +599,10 @@ def calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_pe
     return(label_colors, per_total, per_total2)
 
 def col_weight(features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, i, k, w_impor):
-    weight1=(features_freq[i, 1]+features_freq[i,3]-freq_bats[k])**2
-    weight2=(features_freq[i, 0]-freq_range_bats[k])**2
-    weight3=(features_freq[i, 5]-freq_peakT_bats[k])**2
-    weight4=(features_freq[i, 6]-freq_peakF_bats[k])**2
+    weight1=(features_freq[1, i]+features_freq[3, i]-freq_bats[k])**2
+    weight2=(features_freq[0, i]-freq_range_bats[k])**2
+    weight3=(features_freq[5, i]-freq_peakT_bats[k])**2
+    weight4=(features_freq[6, i]-freq_peakF_bats[k])**2
     weight=1+(weight1*w_impor[0])+(weight2*w_impor[1])+(weight3*w_impor[2])+(weight4*w_impor[3])
     return(weight)
 
@@ -658,7 +666,8 @@ def set_batscolor(**optional): #dictionary linking bats to colors
     return(list_bats, colors_bat)
             
 def plot_dendrogram(features, label_colors, **optional):
-    linked = linkage(features, 'average')
+    features_new=np.transpose(features) #map only works on rows, not columns
+    linked = linkage(features_new, 'average')
     plt.figure(figsize=(20, 14))
     dendrogram(linked)
     ax = plt.gca()
@@ -700,8 +709,8 @@ def show_region2(rectangles, spectros, features_key, i, **optional): #uses featu
     plt.close()
     return()
 
-def hier_clustering(file_name, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, **optional):
-    rectangles, regions, spectros=AD.spect_loop(file_name, optional)
+def hier_clustering(file_name, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, **optional):  
+    rectangles, regions, spectros=AD.spect_loop(file_name, **optional)
     num_reg=AD.calc_num_regions(regions)
     features, features_key, features_freq=AD.calc_features(rectangles, regions, templates, num_reg, list_bats, num_total)
     col_labels, per_total, per_total2=AD.calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats)
@@ -761,7 +770,7 @@ def write_output(list_files, **optional): #Optional only works on non TE data
     optional['write']=True
     #run clustering and save output    
     for i in range(len(list_files2)):
-        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(list_files2[i], freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, optional)
+        col_labels[i], features_key[i], rectangles[i], spectros[i], per_total[i], per_total2[i]=AD.hier_clustering(str(list_files2[i]), freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, **optional)
     total_count=np.zeros((len(list_bats), 1), dtype=np.uint8)
     #output file
     if 'results1' in optional and 'results2' in optional:
@@ -782,7 +791,7 @@ def write_output(list_files, **optional): #Optional only works on non TE data
         f1.write(str(list_bats[k]) +': ' + '\n'); #name bat
         f1.write('\n') #skip line
         for i in range(len(list_files2)):
-            f1.write(str(i) + ': ' + list_files2[i] + "\n") #name file
+            f1.write(str(i) + ': ' + str(list_files2[i]) + "\n") #name file
             count=0
             for j in range(len(col_labels[i])):
                 if col_labels[i][j]==colors_bat[list_bats[k]]:
@@ -813,7 +822,7 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
         path=AD.set_path()
     AD.make_folders(path)
     list_bats, _=AD.set_batscolor()
-    num_bats, _=AD.set_numbats(list_bats, optional)
+    num_bats, _=AD.set_numbats(list_bats, **optional)
     if not bat_name in list_bats: #bat already exists
         os.makedirs(path + '/Templates_arrays/' + bat_name)
         os.makedirs(path + '/Templates_images/' + bat_name)
@@ -1007,4 +1016,19 @@ def calc_BMU_scores(data, net):
         score_BMU[i, 0]=bmu_idx[0]
         score_BMU[i, 1]=bmu_idx[1]
     return(score_BMU)
-    
+
+def calc_net_features(net, network_dim): #transforms network features to more suitable form
+    net_features=np.zeros((net.shape[2], network_dim[0]*network_dim[1]))
+    count=0
+    for i in range(network_dim[0]):
+        for j in range(network_dim[1]):
+            net_features[:, count]=net[i, j, :]
+            count+=1
+    return(net_features)
+
+def calc_dist_matrix2(array, axis): #calculates distance per column
+    D=np.zeros((array.shape[axis], array.shape[axis]), dtype=np.float)
+    for i in range(array.shape[axis]):
+        for j in range(array.shape[axis]):
+            D[i,j]=sum((array[:, i]-array[:,j])**2)
+    return(D)
