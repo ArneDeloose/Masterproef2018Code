@@ -22,6 +22,8 @@ D=AD.calc_dist_matrix2(raw_data, net_features, 1)
 pos=AD.calc_pos(D)
 AD.plot_MDS2(pos)
 
+score=AD.calc_BMU_scores(raw_data, net)
+
 #####
 
 
