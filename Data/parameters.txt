@@ -9,3 +9,6 @@
 1; weight of the freq range in final score, given as a float (default: 1)
 30; weight of the peak freq T in final score, given as a float (default: 30), higher because peak freq T is a number between 0 and 1.
 1; weight of the peak freq F in final score, given as a float (default: 1)
+5; first dimension SOFM (default: 5)
+5; second dimension SOFM (default: 5)
+

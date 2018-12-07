@@ -35,7 +35,10 @@ def adjustable_parameters():
     w_3=float(words[9][0])
     w_4=float(words[10][0])
     w_impor=(w_1, w_2, w_3, w_4)
-    para=(binary_thresh, spec_min, spec_max, thresh, spect_window, spect_overlap_window, max_roi, w_impor)
+    network_dim1=int(words[11][0])
+    network_dim2=int(words[12][0])
+    para=(binary_thresh, spec_min, spec_max, thresh, spect_window, spect_overlap_window, max_roi, w_impor, \
+          network_dim1, network_dim2)
     return(para)
 
 def set_parameters():
@@ -44,9 +47,15 @@ def set_parameters():
     kern=3 #window for roi
     min_spec_freq=int(adj_para[1]/0.375)
     max_spec_freq=int(adj_para[2]/0.375)
+    network_dim = (adj_para[8], adj_para[9])
+    n_iter = 10000
+    init_learning_rate = 0.01
+    normalise_data = False
+    normalise_by_column = False
     #1 point= 0.32 ms
     #1 point= 375 Hz
-    para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5], adj_para[7])
+    para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5], adj_para[7], \
+          network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column)
     return(para)
 
 def set_path():
@@ -838,6 +847,8 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
     path_rect=path + 'Templates_rect/' + bat_name + '/' + str(hash_rect) + '.npy'
     np.save(path_array, regions[int(timestep)][region_num])
     np.save(path_rect, rectangles[int(timestep)][:, region_num])
+    print('hash code image:', hash_image)
+    print('hash code array:', hash_rect)
     return()
 
 def read_templates(**optional): #reads in templates from the path to the general folder
@@ -892,6 +903,47 @@ def loading_init(**optional): #loads in certain things so they only run once
     num_bats, num_total=AD.set_numbats(list_bats, **optional)
     freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats=AD.set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats)
     return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
+
+def fit_SOM(list_files, **optional):
+    if 'full' in optional: #read all files in folder
+       if optional['full']: #True
+           if 'Audio_data' in optional:
+               path=optional['Audio_data']
+               list_files2=os.listdir(path)
+           else:
+               path=AD.set_path()
+               list_files2=os.listdir(path + '/Audio_data') 
+           count=0
+           for i in range(len(list_files2)):
+               if list_files2[i-count][-4:]!='.WAV':
+                   del list_files2[i-count] #delete files that aren't audio
+                   count+=1 #len changes, take this into account
+       else:
+           list_files2=list_files
+    else:
+        list_files2=list_files
+    #parameters
+    para=AD.set_parameters()
+    network_dim= para[9]
+    n_iter= para[10]
+    init_learning_rate= para[11]
+    normalise_data= para[12]
+    normalise_by_column= para[13]
+    #first file
+    rectangles1, regions1, spectros1=AD.spect_loop(list_files2[0])
+    num_reg=AD.calc_num_regions(regions1)
+    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD.loading_init(**optional)
+    features1, _, _=AD.calc_features(rectangles1, regions1, regions_temp, num_reg, list_bats, num_total)
+    raw_data=np.zeros((features1.shape[0], 0))
+    raw_data=np.concatenate((raw_data, features1), axis=1)
+    #other files
+    for i in range(1, len(list_files2)):
+        rectangles1, regions1, spectros1=AD.spect_loop(list_files2[i])
+        num_reg=AD.calc_num_regions(regions1)
+        features1, features_key1, features_freq1=AD.calc_features(rectangles1, regions1, regions_temp, num_reg, list_bats, num_total)
+        raw_data=np.concatenate((raw_data, features1), axis=1)
+    net=AD.SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column)
+    return(net, raw_data)
 
 def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column):
     m = raw_data.shape[0]
@@ -1017,7 +1069,9 @@ def calc_BMU_scores(data, net):
         score_BMU[i, 1]=bmu_idx[1]
     return(score_BMU)
 
-def calc_net_features(net, network_dim): #transforms network features to more suitable form
+def calc_net_features(net): #transforms network features to more suitable form
+    para=AD.set_parameters()
+    network_dim= para[9]
     net_features=np.zeros((net.shape[2], network_dim[0]*network_dim[1]))
     count=0
     for i in range(network_dim[0]):
@@ -1026,9 +1080,12 @@ def calc_net_features(net, network_dim): #transforms network features to more su
             count+=1
     return(net_features)
 
-def calc_dist_matrix2(array, axis): #calculates distance per column
+def calc_dist_matrix2(array1, array2, axis): #calculates distance per column (if axis=1)
+    array=np.concatenate((array1, array2), axis=1)
     D=np.zeros((array.shape[axis], array.shape[axis]), dtype=np.float)
     for i in range(array.shape[axis]):
         for j in range(array.shape[axis]):
             D[i,j]=sum((array[:, i]-array[:,j])**2)
     return(D)
+
+
