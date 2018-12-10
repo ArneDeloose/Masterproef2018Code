@@ -33,14 +33,13 @@ score_BMU=AD.calc_BMU_scores(raw_data, net)
 U=AD.calc_Umat(net)
 import matplotlib.pyplot as plt
 plt.imshow(U)
+plt.show()
 
 #plot MDS for full data
 
-net_features=AD.calc_net_features(net, network_dim)
+net_features=AD.calc_net_features(net)
 
-total_data=np.concatenate((net_features, features1), axis=1)
-
-D=AD.calc_dist_matrix2(total_data, 1)
+D=AD.calc_dist_matrix2(net_features, features1, 1)
 
 pos=AD.calc_pos(D)
 AD.plot_MDS2(pos)
