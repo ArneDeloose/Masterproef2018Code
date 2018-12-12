@@ -1,6 +1,7 @@
 from __future__ import division #changes / to 'true division'
 import scipy.io.wavfile
 import numpy as np
+import pandas as pd
 import math
 import matplotlib.pyplot as plt
 from scipy import signal
@@ -1088,4 +1089,14 @@ def calc_dist_matrix2(array1, array2, axis): #calculates distance per column (if
             D[i,j]=sum((array[:, i]-array[:,j])**2)
     return(D)
 
-
+def cor_plot(features, index): #index: start and stop index to make the plot
+    fig = plt.figure(figsize=(8, 6))
+    features_red=np.transpose(features[index[0]:index[1], :])
+    data = pd.DataFrame(data=features_red)
+    correlations = data.corr()
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(correlations, vmin=-1, vmax=1)
+    fig.colorbar(cax)    
+    plt.show()
+    return(correlations)
+    
