@@ -14,6 +14,13 @@ import os
 from scipy.cluster.hierarchy import dendrogram, linkage
 #from sklearn.metrics.pairwise import euclidean_distances
 
+def loading_init(**optional): #loads in certain things so they only run once
+    regions_temp, rectangles_temp=AD.read_templates(**optional)
+    list_bats, colors_bat=AD.set_batscolor(**optional)
+    num_bats, num_total=AD.set_numbats(list_bats, **optional)
+    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats=AD.set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats)
+    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
+
 def adjustable_parameters():
     path=AD.set_path()
     f=open(path+'\parameters.txt', 'r')
@@ -896,13 +903,6 @@ def make_folders(path): #makes folders if they don't exist yet
     if not os.path.exists('Templates_rect'):
         os.makedirs('Templates_rect')
     return()
-
-def loading_init(**optional): #loads in certain things so they only run once
-    regions_temp, rectangles_temp=AD.read_templates(**optional)
-    list_bats, colors_bat=AD.set_batscolor(**optional)
-    num_bats, num_total=AD.set_numbats(list_bats, **optional)
-    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats=AD.set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats)
-    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
 
 def fit_SOM(list_files, **optional):
     if 'full' in optional: #read all files in folder
