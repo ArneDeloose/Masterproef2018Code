@@ -920,15 +920,15 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
                 full_name[i][j][m]=temp_name[temp_order[m]]
     return(full_region, full_rectangle, full_spectro, full_name)
 
-def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, a, b, c):
+def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim1, dim2, point):
     para=AD.adjustable_parameters()
     spec_min=para[1]
     spec_max=para[2]
     t_max=para[4]
     f, (ax1, ax2) = plt.subplots(1, 2)
-    ax1.imshow(full_spectro[a][b][c], origin='lower')
-    rect = patches.Rectangle((full_rectangle[a][b][c][0], full_rectangle[a][b][c][1]),
-                              full_rectangle[a][b][c][2], full_rectangle[a][b][c][3],
+    ax1.imshow(full_spectro[dim1][dim2][point], origin='lower')
+    rect = patches.Rectangle((full_rectangle[dim1][dim2][point][0], full_rectangle[dim1][dim2][point][1]),
+                              full_rectangle[dim1][dim2][point][2], full_rectangle[dim1][dim2][point][3],
                               linewidth=1, edgecolor='r',facecolor='none')
     # Add the patch to the Axes
     ax1.add_patch(rect)
@@ -940,11 +940,22 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, a, 
        labels_Y[i]=int((spec_max-spec_min)*(i-1)/(len(labels_Y)-3)+spec_min)
     ax1.set_xticklabels(labels_X)
     ax1.set_yticklabels(labels_Y)
-    ax2.imshow(full_region[a][b][c], origin='lower')
-    plt.title(full_name[a][b][c])
+    ax2.imshow(full_region[dim1][dim2][point], origin='lower')
+    plt.title(full_name[dim1][dim2][point])
     plt.show()
     plt.close()
     return()
+
+def calc_maxc(full_names):
+    para=AD.set_parameters()
+    network_dim=para[9]
+    max_c=0
+    for i in range(network_dim[0]):
+        for j in range(network_dim[1]):
+            temp_c=len(full_names[i][j])
+            if temp_c>max_c:
+                max_c=temp_c
+    return(max_c)
 
 def create_template(file_name, timestep, region_num, bat_name, **optional): #creates three templates (image, rectangle and array)
     if 'Templates' in optional:
