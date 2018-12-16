@@ -12,8 +12,11 @@ net, raw_data=AD.fit_SOM(list_files)
 
 U=AD.calc_Umat(net)
 import matplotlib.pyplot as plt
+f, ax1 = plt.subplots()
 plt.imshow(U)
 plt.show()
+f.savefig('Umat.jpg', format='jpg', dpi=1200)
+plt.close()
 
 
 #plot MDS for full data
@@ -23,6 +26,13 @@ pos=AD.calc_pos(D)
 AD.plot_MDS2(pos)
 
 score=AD.calc_BMU_scores(raw_data, net)
+
+
+net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2=AD.calc_output(list_files, net)
+
+full_region, full_rectangle, full_spectro, full_name=AD.rearrange_output(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2, net)
+
+AD.plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, 1, 2, 3)
 
 #####
 
@@ -137,3 +147,6 @@ pca_samples = pca.transform(data_red)
 reduced_data = pd.DataFrame(reduced_data, columns = ['Dimension 1', 'Dimension 2'])
 
 biplot(data_red, reduced_data, pca)
+
+
+

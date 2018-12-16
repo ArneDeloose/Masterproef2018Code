@@ -266,7 +266,7 @@ def show_region(rectangles, spectros, i, **optional):
     ax1.set_yticklabels(labels_Y)
     plt.show()    
     if 'path' in optional:
-        plt.savefig(optional['path'])
+        f.savefig(optional['path']+'.jpg', format='jpg', dpi=1200)
     plt.close()
     return()
 
@@ -832,6 +832,120 @@ def write_output(list_files, **optional): #Optional only works on non TE data
     f2.close()
     return()
 
+def calc_output(list_files, net, **optional): #Optional only works on non TE data
+    #loading
+    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init(**optional)
+    if 'full' in optional:
+       if optional['full']: #True
+           if 'Audio_data' in optional:
+               path=optional['Audio_data']
+               list_files2=os.listdir(path)
+           else:
+               path=AD.set_path()
+               list_files2=os.listdir(path + '/Audio_data') 
+           count=0
+           for i in range(len(list_files2)):
+               if list_files2[i-count][-4:]!='.WAV':
+                   del list_files2[i-count] #delete files that aren't audio
+                   count+=1 #len changes, take this into account
+       else:
+           list_files2=list_files
+    else:
+        list_files2=list_files
+    list_bats, colors_bat=AD.set_batscolor()
+    #Check directories
+    if not os.path.exists('dendrograms'):
+        os.makedirs('dendrograms')
+    for k in range(len(list_bats)):
+        if not os.path.exists(list_bats[k]):
+            os.makedirs(list_bats[k])
+    #create empty dictionaries
+    net_label={}
+    features={}
+    features_key={}
+    features_freq={}
+    rectangles={}
+    regions={}
+    spectros={}
+    optional['write']=True
+    #run clustering and save output    
+    for i in range(len(list_files2)):
+        rectangles[i], regions[i], spectros[i]=AD.spect_loop(list_files2[i], **optional)
+        num_reg=AD.calc_num_regions(regions[i])
+        features[i], features_key[i], features_freq[i]=AD.calc_features(rectangles[i], regions[i], templates, num_reg, list_bats, num_total)
+        net_label[i]=AD.calc_BMU_scores(features[i], net)
+    return(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2)   
+
+def rearrange_output(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2, net):
+    para=AD.set_parameters()
+    network_dim= para[9]
+    temp_rectangle={}
+    temp_region={}
+    temp_spectro={}
+    temp_name={}
+    temp_key=()
+    full_rectangle={}
+    full_region={}
+    full_spectro={}
+    full_name={}
+    for i in range(network_dim[0]):
+        full_rectangle[i]={}
+        full_region[i]={}
+        full_spectro[i]={}
+        full_name[i]={}
+        for j in range(network_dim[1]):
+            full_rectangle[i][j]={}
+            full_region[i][j]={}
+            full_spectro[i][j]={}
+            full_name[i][j]={}
+            count=0
+            dist_temp=[]
+            for k in range(len(net_label)): #file
+                for l in range(len(net_label[k])): #number
+                    if net_label[k][l][0]==i and net_label[k][l][1]==j:
+                        temp_key=features_key[k][l]
+                        temp_region[count]=regions[k][temp_key[0]][temp_key[1]]
+                        temp_rectangle[count]=rectangles[k][temp_key[0]][:, temp_key[1]]
+                        temp_spectro[count]=spectros[k][temp_key[0]]
+                        distance=sum((features[k][:,l] - net[i,j,:])**2)
+                        temp_name[count]=list_files2[k] + ', timestep: ' + str(temp_key[0]) + ', region: ' + str(temp_key[1]) + ', distance: ' + str(distance) 
+                        #calc distance and save this
+                        dist_temp.append(distance)
+                        count+=1
+            temp_order=np.argsort(dist_temp) #index according to distance
+            for m in range(len(temp_order)):
+                full_region[i][j][m]=temp_region[temp_order[m]]
+                full_rectangle[i][j][m]=temp_rectangle[temp_order[m]]
+                full_spectro[i][j][m]=temp_spectro[temp_order[m]]
+                full_name[i][j][m]=temp_name[temp_order[m]]
+    return(full_region, full_rectangle, full_spectro, full_name)
+
+def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, a, b, c):
+    para=AD.adjustable_parameters()
+    spec_min=para[1]
+    spec_max=para[2]
+    t_max=para[4]
+    f, (ax1, ax2) = plt.subplots(1, 2)
+    ax1.imshow(full_spectro[a][b][c], origin='lower')
+    rect = patches.Rectangle((full_rectangle[a][b][c][0], full_rectangle[a][b][c][1]),
+                              full_rectangle[a][b][c][2], full_rectangle[a][b][c][3],
+                              linewidth=1, edgecolor='r',facecolor='none')
+    # Add the patch to the Axes
+    ax1.add_patch(rect)
+    labels_X = [item.get_text() for item in ax1.get_xticklabels()]
+    labels_Y = [item.get_text() for item in ax1.get_yticklabels()]
+    labels_X[1]=0
+    labels_X[2]=t_max
+    for i in range(1, len(labels_Y)-1):
+       labels_Y[i]=int((spec_max-spec_min)*(i-1)/(len(labels_Y)-3)+spec_min)
+    ax1.set_xticklabels(labels_X)
+    ax1.set_yticklabels(labels_Y)
+    ax2.imshow(full_region[a][b][c], origin='lower')
+    plt.title(full_name[a][b][c])
+    plt.show()
+    plt.close()
+    return()
+
 def create_template(file_name, timestep, region_num, bat_name, **optional): #creates three templates (image, rectangle and array)
     if 'Templates' in optional:
         path=optional['Templates']
@@ -946,7 +1060,7 @@ def fit_SOM(list_files, **optional):
     net=AD.SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column)
     return(net, raw_data)
 
-def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column):
+def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column, **optional):
     m = raw_data.shape[0]
     n = raw_data.shape[1]
     # initial neighbourhood radius
@@ -992,6 +1106,10 @@ def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, norma
                     new_w = w + (l * influence * (t - w))
                     # commit the new weight
                     net[x, y, :] = new_w.reshape(1, m)
+    if 'export' in optional:
+        if optional['export']: #True
+            path=AD.set_path()
+            np.save(path+ 'net.npy', net) 
     return(net)
 
 def find_bmu(t, net, m):
@@ -1089,7 +1207,7 @@ def calc_dist_matrix2(array1, array2, axis): #calculates distance per column (if
             D[i,j]=sum((array[:, i]-array[:,j])**2)
     return(D)
 
-def cor_plot(features, index): #index: start and stop index to make the plot
+def cor_plot(features, index, **optional): #index: start and stop index to make the plot
     fig = plt.figure(figsize=(8, 6))
     features_red=np.transpose(features[index[0]:index[1], :])
     data = pd.DataFrame(data=features_red)
@@ -1098,5 +1216,8 @@ def cor_plot(features, index): #index: start and stop index to make the plot
     cax = ax.matshow(correlations, vmin=-1, vmax=1)
     fig.colorbar(cax)    
     plt.show()
+    if 'name' in optional:
+        fig.savefig(optional['name']+'.jpg', format='jpg', dpi=1200)
+    plt.close
     return(correlations)
     
