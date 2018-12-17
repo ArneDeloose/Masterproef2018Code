@@ -876,9 +876,12 @@ def calc_output(list_files, net, **optional): #Optional only works on non TE dat
         net_label[i]=AD.calc_BMU_scores(features[i], net)
     return(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2)   
 
-def rearrange_output(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2, net):
-    para=AD.set_parameters()
-    network_dim= para[9]
+def rearrange_output(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2, net, **optional):
+    if 'dim1' in optional and 'dim2' in optional:
+        network_dim=(optional['dim1'], optional['dim2'])
+    else:
+        para=AD.set_parameters()
+        network_dim= para[9]
     temp_rectangle={}
     temp_region={}
     temp_spectro={}
@@ -920,6 +923,19 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
                 full_name[i][j][m]=temp_name[temp_order[m]]
     return(full_region, full_rectangle, full_spectro, full_name)
 
+def calc_matching(full_name, **optional):
+    if 'dim1' in optional and 'dim2' in optional:
+        network_dim=(optional['dim1'], optional['dim2'])
+    else:
+        para=AD.set_parameters()
+        network_dim= para[9]
+    M=np.zeros((network_dim[0], network_dim[1]), dtype=np.uint8)
+    for i in range(network_dim[0]):
+        for j in range(network_dim[1]):
+            M[i,j]=len(full_name[i][j])
+    return(M)
+    
+
 def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim1, dim2, point):
     para=AD.adjustable_parameters()
     spec_min=para[1]
@@ -946,9 +962,12 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     plt.close()
     return()
 
-def calc_maxc(full_names):
-    para=AD.set_parameters()
-    network_dim=para[9]
+def calc_maxc(full_names, **optional):
+    if 'dim1' in optional and 'dim2' in optional:
+        network_dim=(optional['dim1'], optional['dim2'])
+    else:
+        para=AD.set_parameters()
+        network_dim= para[9]
     max_c=0
     for i in range(network_dim[0]):
         for j in range(network_dim[1]):
@@ -969,15 +988,15 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
         os.makedirs(path + '/Templates_arrays/' + bat_name)
         os.makedirs(path + '/Templates_images/' + bat_name)
         os.makedirs(path + '/Templates_rect/' + bat_name)
-    rectangles, regions, _=AD.spect_loop(file_name)
+    rectangles, regions, _=AD.spect_loop(file_name, **optional)
     hash_image=hash(str(regions[int(timestep)][region_num]))
     hash_rect=hash(str(rectangles[int(timestep)][:, region_num]))
-    path_image=path + 'Templates_images/' + bat_name + '/' + str(hash_image) + '.png'
+    path_image=path + '/Templates_images/' + bat_name + '/' + str(hash_image) + '.png'
     plt.imshow(regions[int(timestep)][region_num])
     plt.savefig(path_image)
     plt.close()
-    path_array=path + 'Templates_arrays/' + bat_name + '/' + str(hash_image) + '.npy'
-    path_rect=path + 'Templates_rect/' + bat_name + '/' + str(hash_rect) + '.npy'
+    path_array=path + '/Templates_arrays/' + bat_name + '/' + str(hash_image) + '.npy'
+    path_rect=path + '/Templates_rect/' + bat_name + '/' + str(hash_rect) + '.npy'
     np.save(path_array, regions[int(timestep)][region_num])
     np.save(path_rect, rectangles[int(timestep)][:, region_num])
     print('hash code image:', hash_image)
@@ -1030,6 +1049,14 @@ def make_folders(path): #makes folders if they don't exist yet
         os.makedirs('Templates_rect')
     return()
 
+def import_map(map_name, **optional):
+    if 'path' in optional:
+        path=optional['path']
+    else:
+        path=AD.set_path()
+    net=np.load(path+map_name+'.npy')
+    return(net)
+
 def fit_SOM(list_files, **optional):
     if 'full' in optional: #read all files in folder
        if optional['full']: #True
@@ -1050,7 +1077,10 @@ def fit_SOM(list_files, **optional):
         list_files2=list_files
     #parameters
     para=AD.set_parameters()
-    network_dim= para[9]
+    if 'dim1' in optional and 'dim2' in optional:
+        network_dim=(optional['dim1'], optional['dim2'])
+    else:
+        network_dim= para[9]
     n_iter= para[10]
     init_learning_rate= para[11]
     normalise_data= para[12]
@@ -1118,9 +1148,8 @@ def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, norma
                     # commit the new weight
                     net[x, y, :] = new_w.reshape(1, m)
     if 'export' in optional:
-        if optional['export']: #True
-            path=AD.set_path()
-            np.save(path+ 'net.npy', net) 
+        path=AD.set_path()
+        np.save(path + optional['export'] + '.npy', net) 
     return(net)
 
 def find_bmu(t, net, m):
@@ -1199,9 +1228,12 @@ def calc_BMU_scores(data, net):
         score_BMU[i, 1]=bmu_idx[1]
     return(score_BMU)
 
-def calc_net_features(net): #transforms network features to more suitable form
-    para=AD.set_parameters()
-    network_dim= para[9]
+def calc_net_features(net, **optional): #transforms network features to more suitable form
+    if 'dim1' in optional and 'dim2' in optional:
+        network_dim=(optional['dim1'], optional['dim2'])
+    else:
+        para=AD.set_parameters()
+        network_dim= para[9]
     net_features=np.zeros((net.shape[2], network_dim[0]*network_dim[1]))
     count=0
     for i in range(network_dim[0]):
