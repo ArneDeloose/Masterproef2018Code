@@ -3,30 +3,10 @@ Python code for the master thesis about bat sounds.
 
 **Tutorial**:
 
-The code uses a specific folder structure which goes as follows:
+Copy the folder 'Data' from Github. This contains all the necessary files. The code can be run in two ways. For simple applications, there is a 'Notebook' file. This contains several simple Jupyter blocks that can be run. For more complex analysis, specific functions can be called by loading in the file 'AD_functions'. A full overview of every function is given in 'func_description'. 
 
--Top folder. This folder needs to be set as the current directory for the code to run. It has to contain the following (all of which can be found in the 'data folder'):
-->AD_functions.py: contains all the python functions.
-->templates_arrays and templates_rectangles folder: initial sets can be downloaded from Github. These can be expanded. Contains subfolders with codes for each specific bat.
-->Audio_data: the data you want to analyse. Must all be of the same type (no mixes of TE and non-TE data).
-->parameters.txt: a txt file with a number of adjustable parameters defined.
+The files to be analyses must be copied to the folder 'Audio_data' within the Data folder or the full pathway must be specified in the optional argument Audio_data=path
 
-The templates or the audio data can be in a different folder, but then this must be specified with an optional argument 'Templates' and/or 'Aduio_data'. i.e. AD.write_output(***, Audio_data='C//users/documents/..., templates=***).
-Any results will get written out to a folder 'results' that is created in the top folder by default. If you want to write them out anywhere else, you need to specify this in an optional argument 'results'.
-Time-expanded data can be analysed by defining the optional argument 'channel' as 'l' or 'r' (left or right channel) and exp_factor as the time expansion factor (if this isn't given the default is used (10)).
+Parameters can be adjusted in the txt-file 'parameters'. Templates are stored in three folders: templates_arrays, templates_rectangles and templates_images. The third folder is present only for reference purposes. When a new template is created, hash-codes for the rectangle and region are written out (the image shares the hash code of the region).
 
-The easiest way to run the code is with a script that starts in the following way:
-
->import os
-
->path='...';
-
->os.chdir(path)
-
->import AD_functions as AD
-
-Where 'path' must be set to refer to the top directory that stores the files and folders. All functions can now be called using AD.funcName(). A full description of all functions can be found in the file 'func_descr' in the code folder.
-
-Parameters can be changed in the parameters.txt file. It is not recommended to adjust anything in the AD_functions.py file.
-
-A number of python packages are used. The anaconda environment can be found on Github.
+A number of python packages are used. The anaconda environment can be found on Github as 'bats_environment'.
