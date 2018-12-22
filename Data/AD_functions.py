@@ -158,6 +158,7 @@ def spect_loop(file_name, **optional): #hybrid code, one plot for 100 ms
             rectangles[i], regions[i]=AD.ROI2(ctrs, spectros[i])
             rectangles, regions=AD.check_overlap(rectangles, regions, spectros, i, spect_window, spect_overlap_window)
     rectangles2, regions2=AD.overload(rectangles, regions)
+    #rectangles3, regions3=AD.rescale_region(regions2)
     return(rectangles2, regions2, spectros)
 
 def check_overlap(rectangles, regions, spectros, i, spect_window, spect_overlap_window):
@@ -173,6 +174,13 @@ def check_overlap(rectangles, regions, spectros, i, spect_window, spect_overlap_
                         regions1[i].pop(j) #delete entry
                         rectangles1[i]=np.delete(rectangles[i], j, axis=1) #delete column
     return(rectangles1, regions1)
+
+def rescale_region(reg):
+    region={}
+    for i in range(len(reg)):
+        for j in range(len(reg[i])):
+            region[i][j]=int(256*(reg-reg.min())/(reg.max()-reg.min()))   
+    return(region)
 
 def ROI(spect_norm, kern, X):
     #kern: parameters of the kernel size
@@ -1258,15 +1266,39 @@ def calc_dist_matrix2(net_features, axis, **optional): #calculates distance per 
 
 def cor_plot(features, index, **optional): #index: start and stop index to make the plot
     fig = plt.figure(figsize=(8, 6))
-    features_red=np.transpose(features[index[0]:index[1], :])
+    features_red=np.transpose(features[0][int(index[0]):int(index[1]), :])
+    for i in range(1, len(features)):
+        dummy=np.transpose(features[i][int(index[0]):int(index[1]), :])
+        features_red=np.concatenate((features_red, dummy), axis=0)
     data = pd.DataFrame(data=features_red)
     correlations = data.corr()
     ax = fig.add_subplot(111)
     cax = ax.matshow(correlations, vmin=-1, vmax=1)
     fig.colorbar(cax)    
     plt.show()
-    if 'name' in optional:
-        fig.savefig(optional['name']+'.jpg', format='jpg', dpi=1200)
+    if 'export' in optional:
+        fig.savefig(optional['export']+'.jpg', format='jpg', dpi=1200)
     plt.close
     return(correlations)
-    
+
+def plot_U(net, **optional):
+    U=AD.calc_Umat(net)
+    f, ax1 = plt.subplots()
+    plt.imshow(U)
+    plt.colorbar()
+    plt.show()
+    if 'export' in optional:
+        f.savefig(optional['export']+ '.jpg', format='jpg', dpi=1200)
+    plt.close()
+    return()
+
+def heatmap_neurons(M, **optional):
+    f, ax1 = plt.subplots()
+    plt.imshow(M)
+    plt.colorbar()
+    plt.show()
+    if 'export' in optional:
+        f.savefig(optional['export']+ '.jpg', format='jpg', dpi=1200)
+    plt.close()
+    return()
+   

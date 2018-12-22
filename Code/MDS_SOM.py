@@ -1,5 +1,5 @@
 import os
-path='C:/Users/arne/Documents/Github/Masterproef2018Code/Code';
+path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data';
 os.chdir(path)
 import AD_functions as AD
 path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
@@ -14,6 +14,7 @@ U=AD.calc_Umat(net)
 import matplotlib.pyplot as plt
 f, ax1 = plt.subplots()
 plt.imshow(U)
+plt.colorbar()
 plt.show()
 f.savefig('Umat.jpg', format='jpg', dpi=1200)
 plt.close()
