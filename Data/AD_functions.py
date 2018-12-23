@@ -45,25 +45,28 @@ def adjustable_parameters():
     w_impor=(w_1, w_2, w_3, w_4)
     network_dim1=int(words[11][0])
     network_dim2=int(words[12][0])
+    context_window=int(words[13][0])
+    context_window_freq=int(words[13][0])
     para=(binary_thresh, spec_min, spec_max, thresh, spect_window, spect_overlap_window, max_roi, w_impor, \
-          network_dim1, network_dim2)
+          network_dim1, network_dim2, context_window, context_window_freq)
     return(para)
 
 def set_parameters():
     adj_para=AD.adjustable_parameters()
     X=int(adj_para[0]*255/100) #Threshold for noise binary image
     kern=3 #window for roi
-    min_spec_freq=int(adj_para[1]/0.375)
+    min_spec_freq=int(adj_para[1]/0.375) #freq to pixels
     max_spec_freq=int(adj_para[2]/0.375)
     network_dim = (adj_para[8], adj_para[9])
     n_iter = 10000
     init_learning_rate = 0.01
     normalise_data = False
     normalise_by_column = False
+    context_window_freq=int(adj_para[11]/0.375)
     #1 point= 0.32 ms
     #1 point= 375 Hz
     para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5], adj_para[7], \
-          network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column)
+          network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column, adj_para[10], context_window_freq)
     return(para)
 
 def set_path():
@@ -158,8 +161,8 @@ def spect_loop(file_name, **optional): #hybrid code, one plot for 100 ms
             rectangles[i], regions[i]=AD.ROI2(ctrs, spectros[i])
             rectangles, regions=AD.check_overlap(rectangles, regions, spectros, i, spect_window, spect_overlap_window)
     rectangles2, regions2=AD.overload(rectangles, regions)
-    #rectangles3, regions3=AD.rescale_region(regions2)
-    return(rectangles2, regions2, spectros)
+    regions3=AD.rescale_region(regions2)
+    return(rectangles2, regions3, spectros)
 
 def check_overlap(rectangles, regions, spectros, i, spect_window, spect_overlap_window):
     overlap=spect_overlap_window/spect_window
@@ -177,9 +180,11 @@ def check_overlap(rectangles, regions, spectros, i, spect_window, spect_overlap_
 
 def rescale_region(reg):
     region={}
-    for i in range(len(reg)):
-        for j in range(len(reg[i])):
-            region[i][j]=int(256*(reg-reg.min())/(reg.max()-reg.min()))   
+    for i,d in reg.items():
+        region[i]={}
+        for j,d in reg[i].items():
+            dummy=(reg[i][j]-reg[i][j].min())/(reg[i][j].max()-reg[i][j].min()) 
+            region[i][j]=np.array(np.round(dummy*256), dtype=np.uint8) #Convert to grayscale
     return(region)
 
 def ROI(spect_norm, kern, X):
@@ -918,7 +923,9 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
                         temp_key=features_key[k][l]
                         temp_region[count]=regions[k][temp_key[0]][temp_key[1]]
                         temp_rectangle[count]=rectangles[k][temp_key[0]][:, temp_key[1]]
-                        temp_spectro[count]=spectros[k][temp_key[0]]
+                        temp_spectro[count], extra_time=AD.calc_context_spec(spectros, k, temp_key)
+                        temp_rectangle[count][0]+=extra_time #correct for bigger spect
+                        #temp_spectro[count]=spectros[k][temp_key[0]]
                         distance=sum((features[k][:,l] - net[i,j,:])**2)
                         temp_name[count]=list_files2[k] + ', timestep: ' + str(temp_key[0]) + ', region: ' + str(temp_key[1]) + ', distance: ' + str(distance) 
                         #calc distance and save this
@@ -944,32 +951,65 @@ def calc_matching(full_name, **optional):
             M[i,j]=len(full_name[i][j])
     return(M)
     
-
 def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim1, dim2, point):
-    para=AD.adjustable_parameters()
-    spec_min=para[1]
-    spec_max=para[2]
-    t_max=para[4]
+    para=AD.set_parameters()
+    context_window_freq=para[15]
+    #set frequency cutoff
+    freq1_index=full_rectangle[dim1][dim2][point][1]-context_window_freq
+    if freq1_index<0:
+        freq1_index=0
+    freq2_index=full_rectangle[dim1][dim2][point][1]+full_rectangle[dim1][dim2][point][3]+context_window_freq
+    if freq2_index>full_spectro[dim1][dim2][point].shape[0]:
+        freq2_index=full_spectro[dim1][dim2][point].shape[0]
     f, (ax1, ax2) = plt.subplots(1, 2)
-    ax1.imshow(full_spectro[dim1][dim2][point], origin='lower')
-    rect = patches.Rectangle((full_rectangle[dim1][dim2][point][0], full_rectangle[dim1][dim2][point][1]),
+    ax1.imshow(full_spectro[dim1][dim2][point][freq1_index:freq2_index], origin='lower', aspect='auto')
+    rect = patches.Rectangle((full_rectangle[dim1][dim2][point][0]-freq1_index, full_rectangle[dim1][dim2][point][1]),
                               full_rectangle[dim1][dim2][point][2], full_rectangle[dim1][dim2][point][3],
                               linewidth=1, edgecolor='r',facecolor='none')
     # Add the patch to the Axes
     ax1.add_patch(rect)
+    plt.draw() #sets up the ticks
+    labels_Y = [item.get_text() for item in ax1.get_yticklabels()] #original labels
+    labels_y=list() #new labels
+    labels_y.append(labels_Y[0])
+    for i in range(1, len(labels_Y)):
+        labels_y.append(str(int((int(labels_Y[i])+freq1_index)*0.375)))
     labels_X = [item.get_text() for item in ax1.get_xticklabels()]
-    labels_Y = [item.get_text() for item in ax1.get_yticklabels()]
-    labels_X[1]=0
-    labels_X[2]=t_max
-    for i in range(1, len(labels_Y)-1):
-       labels_Y[i]=int((spec_max-spec_min)*(i-1)/(len(labels_Y)-3)+spec_min)
-    ax1.set_xticklabels(labels_X)
-    ax1.set_yticklabels(labels_Y)
+    labels_x=list()
+    labels_x.append(labels_X[0])
+    for i in range(1, len(labels_X)):
+        labels_x.append(str(int(int(labels_X[i])*2.34375))) #convert to ms
+    ax1.set_xticklabels(labels_x)
+    ax1.set_yticklabels(labels_y)
+    ax1.set_xlabel('Time (ms)')
+    ax1.set_ylabel('Frequency (kHz)')
     ax2.imshow(full_region[dim1][dim2][point], origin='lower')
-    plt.title(full_name[dim1][dim2][point])
+    ax1.set_title(full_name[dim1][dim2][point])
     plt.show()
     plt.close()
     return()
+
+def calc_context_spec(spectros, k, temp_key): #add windows to spectrogram
+    para=AD.set_parameters()
+    spect_window=para[6]
+    spect_overlap_window=para[7]
+    overlap_factor=(1-spect_overlap_window/spect_window) #corrects for overlap between windows
+    context_window=para[14]
+    max_key=len(spectros[k])-1
+    extra_time=0 #extra time points to correct rectangle 
+    context_spec=spectros[k][temp_key[0]]
+    steps=context_spec.shape[1]
+    #left
+    for i in range(1, context_window+1):
+        if (temp_key[0]-i)>=0: #window the left exists
+            context_spec=np.concatenate((spectros[k][temp_key[0]-i][:, 0:int(steps*overlap_factor)], context_spec), axis=1)
+            extra_time+=len(spectros[k][temp_key[0]-i][0,:])
+    #right
+    for i in range(1, context_window+1):
+        if (temp_key[0]+i)<=max_key: #window to the right exists
+            context_spec=np.concatenate((context_spec, spectros[k][temp_key[0]+i][:, int(steps*(1-overlap_factor)):]), axis=1)
+    return(context_spec, extra_time)
+
 
 def calc_maxc(full_names, **optional):
     if 'dim1' in optional and 'dim2' in optional:
@@ -1301,4 +1341,5 @@ def heatmap_neurons(M, **optional):
         f.savefig(optional['export']+ '.jpg', format='jpg', dpi=1200)
     plt.close()
     return()
+
    

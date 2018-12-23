@@ -11,4 +11,6 @@
 1; weight of the peak freq F in final score, given as a float (default: 1)
 5; first dimension SOFM (default: 5)
 5; second dimension SOFM (default: 5)
+3; number of context windows on either side for SOFM visualisation (default: 3)
+4; padding above and below the window on SOFM visualisation in kHz (default: 4)
 
