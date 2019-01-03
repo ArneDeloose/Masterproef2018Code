@@ -1020,7 +1020,7 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
     hash_image=hash(str(regions[int(timestep)][region_num]))
     hash_rect=hash(str(rectangles[int(timestep)][:, region_num]))
     path_image=path + '/Templates_images/' + bat_name + '/' + str(hash_image) + '.png'
-    plt.imshow(regions[int(timestep)][region_num])
+    plt.imshow(regions[int(timestep)][region_num], origin='lower')
     plt.savefig(path_image)
     plt.close()
     path_array=path + '/Templates_arrays/' + bat_name + '/' + str(hash_image) + '.npy'
