@@ -28,11 +28,11 @@ def calc_output(list_files, net, **optional): #Optional only works on non TE dat
         t_temp[i, 3]=time.time()
         net_label[i]=AD.calc_BMU_scores(features[i], net)
         t_temp[i, 4]=time.time()
-    t[3]=np.mean(t_temp[:,0])
-    t[4]=np.mean(t_temp[:,1])
-    t[5]=np.mean(t_temp[:,2])
-    t[6]=np.mean(t_temp[:,3])
-    t[7]=np.mean(t_temp[:,4])
+    t[3]=np.mean(t_temp[:, 0])
+    t[4]=np.mean(t_temp[:, 1])
+    t[5]=np.mean(t_temp[:, 2])
+    t[6]=np.mean(t_temp[:, 3])
+    t[7]=np.mean(t_temp[:, 4])
     return(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2, t)   
 
 import time
@@ -95,5 +95,67 @@ plt.xticks([0, 1], ['rearrange regions', 'calc M'])
 plt.show()
 plt.close()
 
-    
+##calc features
+
+import math
+
+def calc_features(rectangles, regions, templates, num_reg, list_bats, num_total):
+    t=np.zeros((14,))
+    features=np.zeros((len(templates)+7, num_reg))
+    features_freq=np.zeros((7, num_reg)) #unscaled freq info
+    count=0
+    features_key={}
+    for i,d in regions.items():
+        for j,d in regions[i].items():
+            t=np.hstack([t, np.zeros((14,1))])
+            t[0, count]=time.time()
+            features_key[count]=(i,j)
+            features[0, count]=rectangles[i][3,j] #freq range
+            features[1, count]=rectangles[i][1,j] #min freq
+            features[2, count]=rectangles[i][1,j]+rectangles[i][3,j] #max freq
+            features[3, count]=rectangles[i][1,j]+rectangles[i][3,j]/2 #av freq
+            features[4, count]=rectangles[i][2,j] #duration
+            t[1, count]=time.time()
+            index=np.argmax(regions[i][j]) #position peak frequency
+            l=len(regions[i][j][0,:]) #number of timesteps
+            a=index%l #timestep at peak freq
+            b=math.floor(index/l) #frequency at peak freq
+            features[5, count]=a/l #peak frequency T
+            features[6, count]=b+rectangles[i][1,j] #peak frequency F
+            t[2, count]=time.time()
+            for k in range(len(templates)):
+                features[k+7, count]=AD.compare_img2(regions[i][j], templates[k])
+            features_freq[:, count]=features[:7, count]
+            t[3, count]=time.time()
+            count+=1
+    #Feature scaling, half of the clustering is based on freq and time information
+    for k in range(7):
+        features[k,:]=(num_total/7)*(features[k, :]-features[k, :].min())/(features[k, :].max()-features[k, :].min())
+    return(features, features_key, features_freq, t)
+
+t2=np.zeros((14,))
+dt2=np.zeros((13,))
+
+freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init()
+list_bats, colors_bat=AD.set_batscolor()
+net_label={}
+features={}
+features_key={}
+features_freq={}
+rectangles={}
+regions={}
+spectros={}
+t_temp=np.zeros((len(list_files), 5))
+#run clustering and save output    
+for i in range(len(list_files)):
+    rectangles[i], regions[i], spectros[i]=AD.spect_loop(list_files2[i], write=True)
+    num_reg=AD.calc_num_regions(regions[i])
+    features[i], features_key[i], features_freq[i], t_temp=calc_features(rectangles[i], regions[i], templates, num_reg, list_bats, num_total)
+
+for i in range(14):
+    t2[i]=np.mean(t_temp[i, :])
+
+for i in range(len(t2)-1):
+    dt2[i]=t2[i+1]-t2[i]
+
     
