@@ -22,9 +22,9 @@ plt.close()
 
 #plot MDS for full data
 net_features=AD.calc_net_features(net)
-D=AD.calc_dist_matrix2(raw_data, net_features, 1)
+D=AD.calc_dist_matrix2(net_features, 1, raw_data=raw_data)
 pos=AD.calc_pos(D)
-AD.plot_MDS2(pos)
+AD.plot_MDS2(pos, 5, 5)
 
 score=AD.calc_BMU_scores(raw_data, net)
 
@@ -148,6 +148,4 @@ pca_samples = pca.transform(data_red)
 reduced_data = pd.DataFrame(reduced_data, columns = ['Dimension 1', 'Dimension 2'])
 
 biplot(data_red, reduced_data, pca)
-
-
 

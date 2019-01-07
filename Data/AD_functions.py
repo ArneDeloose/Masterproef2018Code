@@ -934,7 +934,7 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
         freq2_index=full_spectro[dim1][dim2][point].shape[0]
     f, (ax1, ax2) = plt.subplots(1, 2)
     ax1.imshow(full_spectro[dim1][dim2][point][freq1_index:freq2_index], origin='lower', aspect='auto')
-    rect = patches.Rectangle((full_rectangle[dim1][dim2][point][0]-freq1_index, full_rectangle[dim1][dim2][point][1]),
+    rect = patches.Rectangle((full_rectangle[dim1][dim2][point][0], full_rectangle[dim1][dim2][point][1]-freq1_index),
                               full_rectangle[dim1][dim2][point][2], full_rectangle[dim1][dim2][point][3],
                               linewidth=1, edgecolor='r',facecolor='none')
     # Add the patch to the Axes
@@ -944,7 +944,7 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     labels_y=list() #new labels
     labels_y.append(labels_Y[0])
     for i in range(1, len(labels_Y)):
-        labels_y.append(str(int((int(labels_Y[i])+freq1_index)*0.375)))
+        labels_y.append(str(float((float(labels_Y[i])+freq1_index)*0.375)))
     labels_X = [item.get_text() for item in ax1.get_xticklabels()]
     labels_x=list()
     labels_x.append(labels_X[0])
@@ -983,7 +983,7 @@ def calc_context_spec(spectros, k, temp_key, **optional): #add windows to spectr
     for i in range(1, context_window+1):
         if (temp_key[0]-i)>=0: #window the left exists
             context_spec=np.concatenate((spectros[k][temp_key[0]-i][:, 0:int(steps*overlap_factor)], context_spec), axis=1)
-            extra_time+=len(spectros[k][temp_key[0]-i][0,:])
+            extra_time+=int(len(spectros[k][temp_key[0]-i][0,:])*overlap_factor)
     #right
     for i in range(1, context_window+1):
         if (temp_key[0]+i)<=max_key: #window to the right exists
