@@ -932,7 +932,10 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     freq2_index=full_rectangle[dim1][dim2][point][1]+full_rectangle[dim1][dim2][point][3]+context_window_freq
     if freq2_index>full_spectro[dim1][dim2][point].shape[0]:
         freq2_index=full_spectro[dim1][dim2][point].shape[0]
-    f, (ax1, ax2) = plt.subplots(1, 2)
+    f, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    
+    #image 1 (full spectro)
+    
     ax1.imshow(full_spectro[dim1][dim2][point][freq1_index:freq2_index], origin='lower', aspect='auto')
     rect = patches.Rectangle((full_rectangle[dim1][dim2][point][0], full_rectangle[dim1][dim2][point][1]-freq1_index),
                               full_rectangle[dim1][dim2][point][2], full_rectangle[dim1][dim2][point][3],
@@ -954,8 +957,30 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     ax1.set_yticklabels(labels_y)
     ax1.set_xlabel('Time (ms)')
     ax1.set_ylabel('Frequency (kHz)')
+    
+    #image 2 (detail spectro)
+    
     ax2.imshow(full_region[dim1][dim2][point], origin='lower')
+    
+    #Image 3 (FI plot)
+    
+    FI_matrix=AD.calc_FI_matrix(full_region[dim1][dim2][point])
+    ax3.imshow(FI_matrix, origin='lower', aspect='auto')
+    plt.draw()
+    
+    labels_X = [item.get_text() for item in ax3.get_xticklabels()] #original labels
+    labels_x=list() #new labels
+    labels_x.append(labels_X[0])
+    for i in range(1, len(labels_X)):
+        labels_x.append(str(float((float(labels_X[i])+freq1_index+context_window_freq)*0.375)))
+    
+    ax3.set_xticklabels(labels_y)
+    ax3.set_xlabel('Frequency (kHz)')
+    ax3.set_ylabel('Intensity')
+
+    #title
     ax1.set_title(full_name[dim1][dim2][point])
+    
     plt.show()
     plt.close()
     return()
@@ -1330,3 +1355,11 @@ def heatmap_neurons(M, **optional):
         f.savefig(optional['export']+ '.jpg', format='jpg', dpi=1200)
     plt.close()
     return()
+
+def calc_FI_matrix(spectro):
+    FI_matrix=np.zeros((256, spectro.shape[0]), dtype=np.uint8)
+    for i in range(spectro.shape[0]):
+        for j in range(spectro.shape[1]):
+            dummy=spectro[i,j] #intensity
+            FI_matrix[dummy, i]+=1
+    return(FI_matrix[1:, :])
