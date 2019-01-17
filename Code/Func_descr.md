@@ -2,14 +2,21 @@
 
 ---
 
+loading_init(\**optional), return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
+
+Loads several important variables. Called automatically in several functions.
+
+---
+
 adjustable_parameters, return(para)
+
 Reads in parameters defined by the user in the textfile 'parameters.txt'
 
 ---
 
 set_parameters(), return(para)  
 
-This function sets a number of parameters needed in other functions. It is called automatically in other functions when needed. Keeping all parameters in one place allows for easier tuning.  
+This function sets a number of parameters needed in other functions. It is called automatically in other functions when needed. Keeping all parameters in one place allows for easier tuning.  Parameters can be overwritten with an optional argument in other functions.
 
 ---
 
@@ -19,19 +26,13 @@ Sets the path as the current working directory (needed to read and write files).
 
 ---
 
-set_freqthresh(num_class), return(min_freq, max_freq)
-
-Sets the frequency of different bats for classification. Every bat has a number called num_class. Needed for the function compare_img.
-
----
-
 spect(file_name, \**optional), return(sample_rate, samples, t, total_time, steps, microsteps)
 
 Reads a file and returns the necessary information to make a spectrogram. For time dilation spectrograms an optinional argument 'channel' needs to be given which needs to be 'r' or 'l' (right or left channel). Steps and microsteps give information about the number of spectrograms that will be created.
 
 ---
 
-spect_plot(samples, sample_rate),return(spectro)
+spect_plot(samples, sample_rate, \**optional),return(spectro)
 
 Makes a spectrogram and converts it to grayscale values. Information from spect is needed.
 
@@ -63,7 +64,7 @@ Deletes a region when there is an overlap with the previous spectrogram.
 
 ROI(spect_norm, kern, X), return(ctrs, len_flag)
 
-Extracts ROIs from an image. Spect_norm is the spectrogram, kern and X are called using set_parameters. Returns contours and a len_flag. If len_flag is falsem the image is empty and ROI2 is skipped.
+Extracts ROIs from an image. Spect_norm is the spectrogram, kern and X are called using set_parameters (or specified in the previous function). Returns contours and a len_flag. If len_flag is falsem the image is empty and ROI2 is skipped.
 
 ---
 
@@ -73,7 +74,7 @@ Converts the contours to coordinates stored in Mask (mask is then assigned to th
 
 ---
 
-overload(rectangles, regions), return(rectangles2, regions2)
+overload(rectangles, regions, \**optional), return(rectangles2, regions2)
 
 Deletes entries from rectangles and regions if there are more than max_roi (to reduce noise). Called within spect_loop.
 
@@ -115,62 +116,6 @@ Plots two images so they can be compared by hand. Used to visualise the SSIM.
 
 ---
 
-create_smatrix(rectangles, spectros, num_classes), return(s_mat)
-
-Creates an empty score matrix to store the SSIMs for every regio.
-
----
-
-calc_smatrix(s_mat, regions, rectangles, templates, num), return(s_mat2)
-
-Calculates the score matrix. Must be called again for every class and needs templates and an empty score matrix.
-
----
-
-create_cmatrix(rectangles, spectros), return(c_mat)
-
-Creates an empty classification matrix to store the label for every regio.
-
----
-
-calc_cmatrix(c_mat, s_mat), return(c_mat2)
-
-Fills the c matrix. Uses the threshold from set_parameters and the score matrix.
-
-Classes:
-
-* 0: empty
-
-* 1: non-classified
-
-* n-2: class 0
-
----
-
-calc_result(c_mat, num_classes), return(res)
-
-Calculates a result matrix counting the instances of every class in c_mat.
-
----
-
-loop_res(rectangles, spectros, regions, templates), return(res, c_mat, s_mat)
-
-Pools the functions create_smatrix, calc_smatrix, create_cmatrix, calc_cmatrix and calc_result.
-
----
-
-show_class(class_num, c_mat, rectangles, regions, spectros), return()
-
-Shows all regions from a class one by one. Press enter for a new plot.
-
----
-
-loop_full(file_name), return(res)
-
-Uses spect_loop, create_template_set and loop_res to analyse a full sound returning only the result.
-
----
-
  calc_sim_matrix(rectangles, regions), return(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6)
 
  Compares all possible pairings between two regions from a given dictionary of regions and rectangles (rectangles contains freq info).
@@ -208,6 +153,12 @@ Plots an MDS or TSNE from the given positions. This is calibrated to use labels 
 
 ---
 
+plot_MDS2(pos, dim1, dim2), return()
+
+Plots an MDS of data and SOM neurons (dim1 and dim2 are dimensions of the SOM). Neurons are red and datapoints are black.
+
+---
+
 run_MDS(m_weight), return()
 
 Pools the functions: 'set_templates2', 'calc_sim_matrix', 'calc_dist_matrix', 'calc_pos' and 'plot_MDS'.
@@ -234,9 +185,15 @@ Calculates number of regions in a dictionary.
 
 ---
 
-calc_col_labels(features), return(label_colors, per_total, per_total2)
+calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, \**optional), return(label_colors, per_total, per_total2)
 
-Labels every sound in features based on the ssim scores in teh row. For this,  it takes all ssims above a threshold and adds them up to calculate a percentage matching (so if 20 of the 40 ppip ssim scores are above the threshold, the score is 50 %). Scores are then weighed according to the squared difference with a few values: minimum frequency, frequency range, peak T frequency and peak F frequency. References are defined as the mean over the templates for that species. The weights for each metric are set in 'adjustable_parameters'. Per_total is the unweighed score, per_total2 is the weighed score.
+Labels every sound in features based on the ssim scores in the row. For this,  it takes all ssims above a threshold and adds them up to calculate a percentage matching (so if 20 of the 40 ppip ssim scores are above the threshold, the score is 50 %). Scores are then weighed according to the squared difference with a few values: minimum frequency, frequency range, peak T frequency and peak F frequency. References are defined as the mean over the templates for that species. The weights for each metric are set in 'adjustable_parameters'. Per_total is the unweighed score, per_total2 is the weighed score.
+
+---
+
+col_weight(features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, i, k, w_impor), return(weight)
+
+Calculates the weight of point based on frequency information.
 
 ---
 
@@ -258,9 +215,9 @@ Assigns a color to each bat. The optional argument 'Templates' can be used to sp
 
 ---
 
-plot_dendrogram(features, label_colors), return()
+plot_dendrogram(features, label_colors, \**optional), return()
 
-Plots a dendrogram based upon a hierarchical clustering of the features. Row numbers are colored based on label_colors. Linkage is set as 'average'.
+Plots a dendrogram based upon a hierarchical clustering of the features. Row numbers are colored based on label_colors. Linkage is set as 'average'. The optional argument 'name' can be used to save the figure.
 
 ---
 
@@ -282,18 +239,126 @@ Applies clustering and classification and writes out the output to a bunch of fi
 
 ---
 
+calc_output(list_files, net, \**optional), return(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2)
+
+Calculates the features and other output for a list of files and a SOM. If the optional argument 'full' is True all files in the Audio_data folder are analysed. With the optional argument 'Audio_data' an alternate pathway can be specified.
+
+---
+
+rearrange_output(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2, net, \**optional), return(full_region, full_rectangle, full_spectro, full_name)
+
+Rearranges the output to group per neuron for the plot function. Optional arguments are 'dim1' and 'dim2' for the SOM (if not given the standard values are read from set_parameters).
+
+---
+
+calc_matching(full_name, \**optional), return(M)
+
+Calculates the number of matches per neuron. (Optional arguments: dim1, dim2)
+
+---
+
+plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim1, dim2, point, \**optional), return()
+
+Plots a datapoint matching with a specific neuron. Neuron is specified with dim1 and dim2 and the datapoint with 'point'. Points are ordered from smallest distance to largest (so point 0 is the closest point).
+
+---
+
+calc_context_spec(spectros, k, temp_key, \**optional), return(context_spec, extra_time)
+
+Expands the spectrogram window for plot_region_neuron. The paramters used are: spect_window (size of a window), spect_overlap_window (overlap between windows) and context_window (extra windows added on either side). Returns context_spec (new windows) and extra_time (time added in total, needed to label x axis).
+
+---
+
+calc_maxc(full_names, \**optional), return(max_c)
+
+Calculates the maximum amount of matches. Needed to set a limit on the interactive plot slider.
+
+---
+
 create_template(file_name, timestep, region_num, bat_name, \**optional), return()
 
-Creates a template (array, image and rectangle). The name of the file must be given, along with the timestep and the region number. The code name (eser, ppip, pnat,...) must be given. If this bat doesn't exist yet, folders are created. The optional argument 'Templates' can be given to specify an alternate path to the templates folders.
+Creates a template (array, image and rectangle). The name of the file must be given, along with the timestep and the region number. The code name (eser, ppip, pnat,...) must be given. If this bat doesn't exist yet, folders are created. The optional argument 'Templates' can be given to specify an alternate path to the templates folders. Hash numbers for the image and array are printed out.
+
+---
+
+read_templates(\**optional), return(regions, rectangles)
+
+Reads in the templates from the correct folder. If the folder is somewhere else, this can be specified with the optional 'Templates' argument.
 
 ---
 
 make_folders(path), return()
 
-Checks whether necessary folders exist and creates new ones if need be.
+Checks whether necessary folders exist for templates and creates new ones if need be.
 
 ---
 
-loading_init(\**optional), return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
+import_map(map_name, \**optional), return(net, raw_data)
 
-Loads a bunch of parameters.
+Imports a map. Maps are stored as 'map_name'.npy and 'map_name'\_data.npy. Raw_data can be used to visualise the map on the data that was used.
+
+---
+
+fit_SOM(list_files, \**optional), return(net, raw_data)
+
+Fit a self-organising map. Optional arguments: full, dim1, dim2, n_iter (number of iterations), init_learning_rate, normalise_data, normalise_by_column (normalise data per column).
+
+---
+
+SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column, \**optional), return(net)
+
+Subcode called in fit_som. Optional argument 'export'=name can be used to save the map.
+
+---
+
+find_bmu, decay_radius, decay_learning_rate, calculate_influence
+
+Subcodes needed to run SOM.
+
+---
+
+calc_Umat(net), return(U)
+
+Calculates the U-matrix (distance from each neuron to nearest neuron).
+
+---
+
+calc_BMU_scores(data, net), return(score_BMU)
+
+Calculates the distance to the nearest neuron for each datapoint.
+
+---
+
+calc_net_features(net, \**optional), return(net_features)
+
+Transforms the network to a more suitable form.
+
+---
+
+calc_dist_matrix2(net_features, axis, \**optional), return(D)
+
+Calculate distances within a matrix. If axis=1 distance per column, if axis=0 distance per row. The optional argument 'raw_data' can be used to add datapoints to the net_features.
+
+---
+
+cor_plot(features, index, \**optional), return(correlation)
+
+Calculates the correlation between different features. Index is a 2-tuple with the start and stop index. 'Export' can be used to save the plot.
+
+---
+
+plot_U(net, \**optional), return()
+
+Calculates and plots the U-matrix. 'Export' can be used to save the plot.
+
+---
+
+heatmap_neurons(M, \**optional), return()
+
+Shows a heatmap of the neurons (number of matches per neuron).
+
+---
+
+calc_FI_matrix(spectros), return(FI_matrix)
+
+Transforms a spectrogram into an intensity-frequency matrix.

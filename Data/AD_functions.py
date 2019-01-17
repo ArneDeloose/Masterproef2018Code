@@ -120,10 +120,8 @@ def substraction(spect):
     spectro=np.array(spectro, dtype=np.uint8) #Convert back from float to uint8
     return(spectro)
 
-def spect_loop(file_name, **optional): #hybrid code, one plot for 100 ms
+def spect_loop(file_name, **optional): 
     #Function creates a dictionary 'rectangles' containing coordinates of the ROIs per image
-    #Each image is 100 ms, number within dictionary indicates 
-    #image number (e.g rectangles(45: ...) is 4500ms to 4600ms or 4.5 secs to 4.6 secs)
     #Empty images are skipped
     para=AD.set_parameters()
     if 'X' in optional:
@@ -356,22 +354,6 @@ def compare_img_plot(img1,img2):
     ax1.imshow(img1)
     ax2.imshow(img2)
     plt.show()
-    return()
-
-def show_class(class_num, c_mat, rectangles, regions, spectros):
-    for i in range(len(c_mat)): #Rows, region
-        for j in range(len(c_mat[0,:])): #Colums, time
-            if c_mat[i,j]==class_num:
-                f, ax1 = plt.subplots()
-                ax1.imshow(spectros[j], origin='lower')
-                rect = patches.Rectangle((rectangles[j][0, i],rectangles[j][1, i]),
-                                rectangles[j][2, i],rectangles[j][3, i],
-                                linewidth=1,edgecolor='r',facecolor='none')
-                # Add the patch to the Axes
-                ax1.add_patch(rect)
-                plt.title(j)
-                plt.show()
-                input('Press enter to continue')
     return()
 
 def calc_sim_matrix(rectangles, regions): #calculates sim_matrices
