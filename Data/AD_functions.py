@@ -63,10 +63,11 @@ def set_parameters():
     normalise_data = False
     normalise_by_column = False
     context_window_freq=int(adj_para[11]/0.375)
+    fig_size=(10,10)
     #1 point= 0.32 ms
     #1 point= 375 Hz
     para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5], adj_para[7], \
-          network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column, adj_para[10], context_window_freq)
+          network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column, adj_para[10], context_window_freq, fig_size)
     return(para)
 
 def set_path():
@@ -907,6 +908,11 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     else:
         para=AD.set_parameters()
         context_window_freq=para[15]
+    if 'fig_size' in optional:
+        fig_size=optional['fig_size']
+    else:
+        para=AD.set_parameters()
+        fig_size=para[16]
     #set frequency cutoff
     freq1_index=full_rectangle[dim1][dim2][point][1]-context_window_freq
     if freq1_index<0:
@@ -914,7 +920,7 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     freq2_index=full_rectangle[dim1][dim2][point][1]+full_rectangle[dim1][dim2][point][3]+context_window_freq
     if freq2_index>full_spectro[dim1][dim2][point].shape[0]:
         freq2_index=full_spectro[dim1][dim2][point].shape[0]
-    f, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=fig_size,  gridspec_kw = {'width_ratios':[4, 1, 1]})
     
     #image 1 (full spectro)
     
@@ -954,8 +960,8 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     labels_x=list() #new labels
     labels_x.append(labels_X[0])
     for i in range(1, len(labels_X)):
-        labels_x.append(str(float((float(labels_X[i])+freq1_index+context_window_freq)*0.375)))
-    
+        labels_x.append(str(round((float(labels_X[i])+freq1_index+context_window_freq)*0.375, 2)))
+
     ax3.set_xticklabels(labels_y)
     ax3.set_xlabel('Frequency (kHz)')
     ax3.set_ylabel('Intensity')
