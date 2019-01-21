@@ -1351,3 +1351,15 @@ def calc_FI_matrix(spectro):
             dummy=spectro[i,j] #intensity
             FI_matrix[dummy, i]+=1
     return(FI_matrix[1:, :])
+
+def print_features(**optional):
+    list_bats, colors_bat=AD.set_batscolor(**optional)
+    num_bats, num_total=AD.set_numbats(list_bats, **optional)
+    a=6
+    print('Frequency: 0-'+str(a))
+    for i in range(len(list_bats)):
+        a+=1
+        print(list_bats[i] + ': ' + str(a) + '-' + str(a+num_bats[i]))
+        a+=num_bats[i]
+    return()
+    

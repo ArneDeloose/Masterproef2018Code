@@ -362,3 +362,9 @@ Shows a heatmap of the neurons (number of matches per neuron).
 calc_FI_matrix(spectros), return(FI_matrix)
 
 Transforms a spectrogram into an intensity-frequency matrix.
+
+---
+
+print_features(\**optional), return()
+
+Prints out which feature index correlates to which bat (or frequency).
