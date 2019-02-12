@@ -484,31 +484,35 @@ def run_TSNE(m_weight):
     return()
 
 def calc_features(rectangles, regions, templates, num_reg, list_bats, num_total):
+    #regions and rectangles can have different index because regions can be deleted if they overlap with the previous spectrogram
     features=np.zeros((len(templates)+7, num_reg))
     features_freq=np.zeros((7, num_reg)) #unscaled freq info
     count=0
+    k=0 #index of the rectangle
     features_key={}
     for i,d in regions.items():
+        k=0 #reset index every timestep
         for j,d in regions[i].items():
             features_key[count]=(i,j)
-            features[0, count]=rectangles[i][3,j] #freq range
-            features[1, count]=rectangles[i][1,j] #min freq
-            features[2, count]=rectangles[i][1,j]+rectangles[i][3,j] #max freq
-            features[3, count]=rectangles[i][1,j]+rectangles[i][3,j]/2 #av freq
-            features[4, count]=rectangles[i][2,j] #duration
+            features[0, count]=rectangles[i][3,k] #freq range
+            features[1, count]=rectangles[i][1,k] #min freq
+            features[2, count]=rectangles[i][1,k]+rectangles[i][3,k] #max freq
+            features[3, count]=rectangles[i][1,k]+rectangles[i][3,k]/2 #av freq
+            features[4, count]=rectangles[i][2,k] #duration
             index=np.argmax(regions[i][j]) #position peak frequency
             l=len(regions[i][j][0,:]) #number of timesteps
             a=index%l #timestep at peak freq
             b=math.floor(index/l) #frequency at peak freq
             features[5, count]=a/l #peak frequency T
-            features[6, count]=b+rectangles[i][1,j] #peak frequency F
-            for k in range(len(templates)):
-                features[k+7, count]=AD.compare_img2(regions[i][j], templates[k])
+            features[6, count]=b+rectangles[i][1,k] #peak frequency F
+            for l in range(len(templates)):
+                features[l+7, count]=AD.compare_img2(regions[i][j], templates[l])
             features_freq[:, count]=features[:7, count]
             count+=1
+            k+=1
     #Feature scaling, half of the clustering is based on freq and time information
-    for k in range(7):
-        features[k,:]=(num_total/7)*(features[k, :]-features[k, :].min())/(features[k, :].max()-features[k, :].min())
+    for m in range(7):
+        features[m,:]=(num_total/7)*(features[m, :]-features[m, :].min())/(features[m, :].max()-features[m, :].min())
     return(features, features_key, features_freq)
 
 def calc_num_regions(regions):
@@ -847,6 +851,7 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
     else:
         para=AD.set_parameters()
         network_dim= para[9]
+    #initialisation
     temp_rectangle={}
     temp_region={}
     temp_spectro={}
@@ -856,6 +861,7 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
     full_region={}
     full_spectro={}
     full_name={}
+    temp_key2=0
     for i in range(network_dim[0]):
         full_rectangle[i]={}
         full_region[i]={}
@@ -873,7 +879,8 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
                     if net_label[k][l][0]==i and net_label[k][l][1]==j:
                         temp_key=features_key[k][l]
                         temp_region[count]=regions[k][temp_key[0]][temp_key[1]]
-                        temp_rectangle[count]=rectangles[k][temp_key[0]][:, temp_key[1]]
+                        temp_key2=AD.check_key(regions[k][temp_key[0]], temp_key[1])
+                        temp_rectangle[count]=rectangles[k][temp_key[0]][:, temp_key2]
                         temp_spectro[count], extra_time=AD.calc_context_spec(spectros, k, temp_key)
                         temp_rectangle[count][0]+=extra_time #correct for bigger spect
                         #temp_spectro[count]=spectros[k][temp_key[0]]
@@ -889,6 +896,13 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
                 full_spectro[i][j][m]=temp_spectro[temp_order[m]]
                 full_name[i][j][m]=temp_name[temp_order[m]]
     return(full_region, full_rectangle, full_spectro, full_name)
+
+def check_key(regions, temp_key): #matches indexes rectangles and regions
+    count_dummy=0
+    for i in range(temp_key+1):
+        if str(i) in regions.keys():
+            count_dummy+=1
+    return(count_dummy-1)
 
 def calc_matching(full_name, **optional):
     if 'dim1' in optional and 'dim2' in optional:
