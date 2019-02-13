@@ -112,7 +112,10 @@ def spect_plot(samples, sample_rate, **optional):
     frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate, window=('hamming'), nfft=1024)
     dummy=(spectrogram-spectrogram.min())/(spectrogram.max()-spectrogram.min())
     dummy=np.array(np.round(dummy*256), dtype=np.uint8) #Convert to grayscale
-    spectro=AD.substraction(dummy[min_spec_freq:max_spec_freq,:])
+    if 'nosub' in optional: #no subtraction
+        spectro=dummy[min_spec_freq:max_spec_freq,:]
+    else: #subtraction
+        spectro=AD.substraction(dummy[min_spec_freq:max_spec_freq,:])
     return(spectro) 
 
 def substraction(spect):
@@ -278,14 +281,14 @@ def show_region(rectangles, spectros, i, **optional):
     else:
         t_max=para[4]
     f, ax1 = plt.subplots()
-    ax1.imshow(spectros[i], origin='lower')
+    ax1.imshow(spectros[i], origin='lower', aspect='auto')
     dummy=rectangles[i].shape
     for j in range(dummy[1]):
         rect = patches.Rectangle((rectangles[i][0,j],rectangles[i][1,j]),
                                 rectangles[i][2,j],rectangles[i][3,j],
                                 linewidth=1,edgecolor='r',facecolor='none')
-   # Add the patch to the Axes
-    ax1.add_patch(rect)
+        #Add the patch to the Axes
+        ax1.add_patch(rect)
     plt.title(i)
     labels_X = [item.get_text() for item in ax1.get_xticklabels()]
     labels_Y = [item.get_text() for item in ax1.get_yticklabels()]
