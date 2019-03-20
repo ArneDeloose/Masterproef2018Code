@@ -518,6 +518,27 @@ def calc_features(rectangles, regions, templates, num_reg, list_bats, num_total)
         features[m,:]=(num_total/7)*(features[m, :]-features[m, :].min())/(features[m, :].max()-features[m, :].min())
     return(features, features_key, features_freq)
 
+#variant function for single dictionaries (non-nested), used in DML code
+def calc_features2(rectangles, regions, templates, list_bats, num_total):
+    #regions and rectangles can have different index because regions can be deleted if they overlap with the previous spectrogram
+    num_reg=len(regions)
+    features=np.zeros((len(templates)+7, num_reg))
+    for i in range(len(regions)):
+        features[0, i]=rectangles[i][3] #freq range
+        features[1, i]=rectangles[i][1] #min freq
+        features[2, i]=rectangles[i][1]+rectangles[i][3] #max freq
+        features[3, i]=rectangles[i][1]+rectangles[i][3]/2 #av freq
+        features[4, i]=rectangles[i][2] #duration
+        index=np.argmax(regions[i]) #position peak frequency
+        l=len(regions[i][0, :]) #number of timesteps
+        a=index%l #timestep at peak freq
+        b=math.floor(index/l) #frequency at peak freq
+        features[5, i]=a/l #peak frequency T
+        features[6, i]=b+rectangles[i][1] #peak frequency F
+        for l in range(len(templates)):
+            features[l+7, i]=AD.compare_img2(regions[i], templates[l])
+    return(features)
+
 def calc_num_regions(regions):
     num_reg=0
     for i,d in regions.items():
