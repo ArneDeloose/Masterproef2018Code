@@ -18,12 +18,19 @@ regions1=regions_temp
 templates1=regions_temp
 
 #calc features
-X=AD.calc_features2(rectangles1, regions1, templates1, list_bats, num_total)
+features=AD.calc_features2(rectangles1, regions1, templates1, list_bats, num_total)
+X=np.transpose(features)
 
-Y=np.zeros((92,), dtype=np.uint8)
+Y=np.zeros((85,), dtype=np.uint8)
 
 
 #fill in Y matrix
+Y[0:16]=0
+Y[17:23]=1
+Y[23:29]=2
+Y[29:47]=3
+Y[47:85]=4
+
 #...
 
 #apply 
@@ -33,5 +40,5 @@ model.fit(X,Y)
 A=model.transformer()
 
 #Export A-matrix
-
+np.save(path + '/' + 'DML_matrix' + '.npy', A)
 
