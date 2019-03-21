@@ -6,6 +6,7 @@ import AD_functions as AD
 path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
 os.chdir(path)
 import numpy as np
+import dml
 
 
 #read in data
@@ -17,12 +18,20 @@ regions1=regions_temp
 templates1=regions_temp
 
 #calc features
-features=AD.calc_features2(rectangles1, regions1, templates1, list_bats, num_total)
-X=np.transpose(features)
-Y=np.zeros((85,0), dtype=np.uint8)
+X=AD.calc_features2(rectangles1, regions1, templates1, list_bats, num_total)
+
+Y=np.zeros((92,), dtype=np.uint8)
+
 
 #fill in Y matrix
 #...
 
 #apply 
+
+model=dml.anmm.ANMM()
+model.fit(X,Y)
+A=model.transformer()
+
+#Export A-matrix
+
 
