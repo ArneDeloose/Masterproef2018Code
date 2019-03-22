@@ -514,8 +514,8 @@ def calc_features(rectangles, regions, templates, num_reg, list_bats, num_total)
             count+=1
             k+=1
     #Feature scaling, half of the clustering is based on freq and time information
-    for m in range(7):
-        features[m,:]=(num_total/7)*(features[m, :]-features[m, :].min())/(features[m, :].max()-features[m, :].min())
+    #for m in range(7):
+        #features[m,:]=(num_total/7)*(features[m, :]-features[m, :].min())/(features[m, :].max()-features[m, :].min())
     return(features, features_key, features_freq)
 
 #variant function for single dictionaries (non-nested), used in DML code
@@ -1177,23 +1177,32 @@ def fit_SOM(list_files, **optional):
         normalise_by_column=optional['normalise_by_column']
     else:
         normalise_by_column= para[13]
-    #first file
-    rectangles1, regions1, spectros1=AD.spect_loop(list_files2[0])
-    num_reg=AD.calc_num_regions(regions1)
-    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD.loading_init(**optional)
-    features1, _, _=AD.calc_features(rectangles1, regions1, regions_temp, num_reg, list_bats, num_total)
-    raw_data=np.zeros((features1.shape[0], 0))
-    raw_data=np.concatenate((raw_data, features1), axis=1)
-    #other files
-    for i in range(1, len(list_files2)):
-        rectangles1, regions1, spectros1=AD.spect_loop(list_files2[i])
+    
+    #data already present, override list_files
+    if 'features' in optional:
+        raw_data=optional['features']
+    else:
+        #first file
+        rectangles1, regions1, spectros1=AD.spect_loop(list_files2[0])
         num_reg=AD.calc_num_regions(regions1)
-        features1, features_key1, features_freq1=AD.calc_features(rectangles1, regions1, regions_temp, num_reg, list_bats, num_total)
+        freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD.loading_init(**optional)
+        features1, _, _=AD.calc_features(rectangles1, regions1, regions_temp, num_reg, list_bats, num_total)
+        raw_data=np.zeros((features1.shape[0], 0))
         raw_data=np.concatenate((raw_data, features1), axis=1)
+        #other files
+        for i in range(1, len(list_files2)):
+            rectangles1, regions1, spectros1=AD.spect_loop(list_files2[i])
+            num_reg=AD.calc_num_regions(regions1)
+            features1, features_key1, features_freq1=AD.calc_features(rectangles1, regions1, regions_temp, num_reg, list_bats, num_total)
+            raw_data=np.concatenate((raw_data, features1), axis=1)
     net=AD.SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column, **optional)
     return(net, raw_data)
 
 def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column, **optional):
+    if 'DML' in optional:
+        D=optional['DML']
+    else:
+        D=np.identity(raw_data.shape[0])
     m = raw_data.shape[0]
     n = raw_data.shape[1]
     # initial neighbourhood radius
@@ -1217,7 +1226,7 @@ def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, norma
         # select a training example at random
         t = data[:, np.random.randint(0, n)].reshape(np.array([m, 1]))    
         # find its Best Matching Unit
-        bmu, bmu_idx = AD.find_bmu(t, net, m)
+        bmu, bmu_idx = AD.find_bmu(t, net, m, D)
         # decay the SOM parameters
         r = AD.decay_radius(init_radius, i, time_constant)
         l = AD.decay_learning_rate(init_learning_rate, i, n_iter)
@@ -1228,7 +1237,7 @@ def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, norma
             for y in range(net.shape[1]):
                 w = net[x, y, :].reshape(m, 1)
                 # get the 2-D distance (again, not the actual Euclidean distance)
-                w_dist = np.sum((np.array([x, y]) - bmu_idx) ** 2)
+                w_dist = np.sum((np.array([x, y]) - bmu_idx)**2)
                 # if the distance is within the current neighbourhood radius
                 if w_dist <= r**2:
                     # calculate the degree of influence (based on the 2-D distance)
@@ -1245,7 +1254,7 @@ def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, norma
         np.save(path + '/' + optional['export'] + '_data.npy', raw_data)
     return(net)
 
-def find_bmu(t, net, m):
+def find_bmu(t, net, m, D):
     #Find the best matching unit for a given vector, t, in the SOM
     #Returns: a (bmu, bmu_idx) tuple where bmu is the high-dimensional BMU
      #            and bmu_idx is the index of this vector in the SOM
@@ -1257,7 +1266,7 @@ def find_bmu(t, net, m):
         for y in range(net.shape[1]):
             w = net[x, y, :].reshape(m, 1)
             # don't bother with actual Euclidean distance, to avoid expensive sqrt operation
-            sq_dist = np.sum((w - t) ** 2)
+            sq_dist = np.sum(np.dot(D, (w - t)**2))
             if sq_dist < min_dist:
                 min_dist = sq_dist
                 bmu_idx = np.array([x, y])
