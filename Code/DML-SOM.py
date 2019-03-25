@@ -40,7 +40,9 @@ Dim1=20
 Dim2=20
 D=np.load(path+'/DML_matrix.npy')
 
-net, raw_data=AD.fit_SOM(list_files, full=Full_flag, dim1=Dim1, dim2=Dim2, DML=D)
+raw_data2=np.concatenate((raw_data, features), axis=1)
+
+net, raw_data=AD.fit_SOM(list_files, full=Full_flag, dim1=Dim1, dim2=Dim2, DML=D, features=raw_data2)
 #, features=features
 
 #plot net
@@ -94,8 +96,8 @@ for i in range(features.shape[1]):
             label=None
     plt.plot(bmu_idx[0], bmu_idx[1], col, label=label)
 
-plt.title('SOM, different data + 10*labeled data, D-matrix, 20 X 20')
+plt.title('SOM, different data + labeled data, D-matrix, 20 X 20')
 plt.legend()
-plt.savefig('SOM_6')
+plt.savefig('SOM_5')
 
    
