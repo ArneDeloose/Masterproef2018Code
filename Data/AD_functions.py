@@ -866,7 +866,7 @@ def calc_output(list_files, net, **optional): #Optional only works on non TE dat
         rectangles[i], regions[i], spectros[i]=AD.spect_loop(list_files2[i], **optional)
         num_reg=AD.calc_num_regions(regions[i])
         features[i], features_key[i], features_freq[i]=AD.calc_features(rectangles[i], regions[i], templates, num_reg, list_bats, num_total)
-        net_label[i]=AD.calc_BMU_scores(features[i], net)
+        net_label[i]=AD.calc_BMU_scores(features[i], net, **optional)
     return(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2)   
 
 def rearrange_output(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2, net, **optional):
@@ -1317,13 +1317,17 @@ def calc_Umat(net):
                 np.linalg.norm(net[i,j,:]-net[i+1,j,:])+np.linalg.norm(net[i,j,:]-net[i-1,j,:])
     return(U)
 
-def calc_BMU_scores(data, net):
-    m=data.shape[0]
+def calc_BMU_scores(data, net, **optional):
+    m=data.shape[0] #number of features
     n=data.shape[1] #number of data points
     score_BMU=np.zeros((n, 2), dtype=np.uint8)
+    if 'DML' in optional:
+        D=optional['DML']
+    else:
+        D=np.identity(m)
     for i in range(n):
         t = data[:, i].reshape(np.array([m, 1]))    
-        _, bmu_idx=AD.find_bmu(t, net, m)
+        _, bmu_idx=AD.find_bmu(t, net, m, D)
         score_BMU[i, 0]=bmu_idx[0]
         score_BMU[i, 1]=bmu_idx[1]
     return(score_BMU)
