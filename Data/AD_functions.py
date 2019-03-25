@@ -513,9 +513,9 @@ def calc_features(rectangles, regions, templates, num_reg, list_bats, num_total)
             features_freq[:, count]=features[:7, count]
             count+=1
             k+=1
-    #Feature scaling, half of the clustering is based on freq and time information
-    #for m in range(7):
-        #features[m,:]=(num_total/7)*(features[m, :]-features[m, :].min())/(features[m, :].max()-features[m, :].min())
+    #Feature scaling
+    for m in range(7):
+        features[m,:]=(features[m, :]-features[m, :].min())/(features[m, :].max()-features[m, :].min())
     return(features, features_key, features_freq)
 
 #variant function for single dictionaries (non-nested), used in DML code
