@@ -15,11 +15,10 @@ freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_
 #set variables
 rectangles1=rectangles_temp
 regions1=regions_temp
-
-#change features (folders)
-freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD.loading_init()
-
 templates1=regions_temp
+#leave out last ten regions so you have more datapoints than features 
+for i in range(75,85):
+    del templates1[i]
 
 
 #calc features
