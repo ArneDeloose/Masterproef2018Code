@@ -1,6 +1,6 @@
 #init
 import os
-path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data';
+path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Modules';
 os.chdir(path)
 import AD_functions as AD
 path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data

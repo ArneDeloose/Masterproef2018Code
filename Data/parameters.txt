@@ -1,16 +1,25 @@
+Spectrogram and ROI; 
 10; Threshold for conversion to binary image. Given as a percentage (default: 10%)
 20; minimum frequency in a spectrogram, given in kHz (default: 20 kHz)
 120; maximum frequency in a spectrogram, given in kHz (default: 120 kHz)
+200; length of the local scaling window in ms (default: 200 ms)
+50; overlap between windows in ms (default: 50 ms)
+10; Maximum number of regions in a single spectrogram. (default: 10)
+3; kernel size for the ROI (default: 3)
+SOM; 
+5; first dimension SOM (default: 5)
+5; second dimension SOM (default: 5)
+10000; number of iterations for the SOM (default: 10000)
+0.01; initial learning rate SOM (default: 0.01)
+1; number of context windows on either side for SOM context visualisation (default: 1)
+4; padding above and below the window on SOM context visualisation in kHz (default: 4)
+Hierarchical clustering;
 0.65; threshold for SSIM classification, number between -1 and 1 (default: 0.65)
-100; length of the local scaling window in ms (default: 200 ms)
-20; overlap between windows in ms (default: 50 ms)
-10; Maximum number of regions in a single spectrogram. (default: 10) Remember that the size of a spectrogram changes with spect_window
 1; weight of the freq in final score, given as a float (default: 1)
 1; weight of the freq range in final score, given as a float (default: 1)
 30; weight of the peak freq T in final score, given as a float (default: 30), higher because peak freq T is a number between 0 and 1.
 1; weight of the peak freq F in final score, given as a float (default: 1)
-5; first dimension SOFM (default: 5)
-5; second dimension SOFM (default: 5)
-1; number of context windows on either side for SOFM visualisation (default: 1)
-4; padding above and below the window on SOFM visualisation in kHz (default: 4)
+
+
+
 

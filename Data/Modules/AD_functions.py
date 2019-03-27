@@ -6,7 +6,6 @@ import math
 import matplotlib.pyplot as plt
 from scipy import signal
 import cv2
-import AD_functions as AD
 import pywt
 import matplotlib.patches as patches
 from skimage.measure import compare_ssim as ssim
@@ -15,67 +14,12 @@ import os
 from scipy.cluster.hierarchy import dendrogram, linkage
 #from sklearn.metrics.pairwise import euclidean_distances
 
-def loading_init(**optional): #loads in certain things so they only run once
-    regions_temp, rectangles_temp=AD.read_templates(**optional)
-    list_bats, colors_bat=AD.set_batscolor(**optional)
-    num_bats, num_total=AD.set_numbats(list_bats, **optional)
-    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats=AD.set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats)
-    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp)
-
-def adjustable_parameters():
-    path=AD.set_path()
-    f=open(path+'\parameters.txt', 'r')
-    a=f.readlines()
-    words=[None]*len(a)
-    i=0
-    for line in a:
-        words[i]=line.split(';')
-        i+=1
-    binary_thresh=int(words[0][0])
-    spec_min=int(words[1][0])
-    spec_max=int(words[2][0])
-    thresh=float(words[3][0])
-    spect_window=int(words[4][0])
-    spect_window_overlap=int(words[5][0])
-    max_roi=int(words[6][0])
-    w_1=float(words[7][0])
-    w_2=float(words[8][0])
-    w_3=float(words[9][0])
-    w_4=float(words[10][0])
-    w_impor=(w_1, w_2, w_3, w_4)
-    network_dim1=int(words[11][0])
-    network_dim2=int(words[12][0])
-    context_window=int(words[13][0])
-    context_window_freq=int(words[13][0])
-    para=(binary_thresh, spec_min, spec_max, thresh, spect_window, spect_window_overlap, max_roi, w_impor, \
-          network_dim1, network_dim2, context_window, context_window_freq)
-    return(para)
-
-def set_parameters():
-    adj_para=AD.adjustable_parameters()
-    X=int(adj_para[0]*255/100) #Threshold for noise binary image
-    kern=3 #window for roi
-    min_spec_freq=int(adj_para[1]/0.375) #freq to pixels
-    max_spec_freq=int(adj_para[2]/0.375)
-    network_dim = (adj_para[8], adj_para[9])
-    n_iter = 10000
-    init_learning_rate = 0.01
-    normalise_data = False
-    normalise_by_column = False
-    context_window_freq=int(adj_para[11]/0.375)
-    fig_size=(10,10)
-    #1 point= 0.32 ms
-    #1 point= 375 Hz
-    para=(X, kern, adj_para[6], adj_para[3], min_spec_freq, max_spec_freq, adj_para[4], adj_para[5], adj_para[7], \
-          network_dim, n_iter, init_learning_rate, normalise_data, normalise_by_column, adj_para[10], context_window_freq, fig_size)
-    return(para)
-
-def set_path():
-    path=os.getcwd()
-    return(path)
+#load modules
+import AD_functions as AD
+import AD1_Loading as AD1
     
 def spect(file_name, **optional):
-    para=AD.set_parameters()
+    para=AD1.set_parameters()
     if 'spect_window' in optional:
         spect_window=optional['spect_window']
     else:
@@ -100,7 +44,7 @@ def spect(file_name, **optional):
 def spect_plot(samples, sample_rate, **optional):
     #Makes a spectrogram, data normalised to the range [0-1]
     #Change parameters of spectrogram (window, resolution)
-    para=AD.set_parameters()
+    para=AD1.set_parameters()
     if 'min_spec_freq' in optional:
         min_spec_freq=optional['min_spec_freq']
     else:
@@ -127,7 +71,7 @@ def substraction(spect):
 def spect_loop(file_name, **optional): 
     #Function creates a dictionary 'rectangles' containing coordinates of the ROIs per image
     #Empty images are skipped
-    para=AD.set_parameters()
+    para=AD1.set_parameters()
     if 'X' in optional:
         X=optional['X']
     else:
@@ -238,7 +182,7 @@ def ROI2(ctrs, spect_norm):
     return(Mask, regions)
 
 def overload(rectangles, regions, **optional): #deletes entries with ten or more rectangles
-    para=AD.set_parameters()
+    para=AD1.set_parameters()
     if 'max_roi' in optional:
         max_roi=optional['max_roi']
     else:
@@ -267,19 +211,19 @@ def wave_plot(data, wavelet):
     return(fig)
 
 def show_region(rectangles, spectros, i, **optional):
-    para=AD.adjustable_parameters()
+    para=AD1.set_parameters()
     if 'spec_min' in optional:
         spec_min=optional['spec_min']
     else:
-        spec_min=para[1]
+        spec_min=para[17]
     if 'spec_max' in optional:
         spec_max=optional['spec_max']
     else:
-        spec_max=para[2]
+        spec_max=para[18]
     if 't_max' in optional:
         t_max=optional['t_max']
     else:
-        t_max=para[4]
+        t_max=para[6]
     f, ax1 = plt.subplots()
     ax1.imshow(spectros[i], origin='lower', aspect='auto')
     dummy=rectangles[i].shape
@@ -306,7 +250,7 @@ def show_region(rectangles, spectros, i, **optional):
 
 def show_mregions(rectangles, spectros):
     for i,d in rectangles.items():
-        AD.show_region(rectangles, spectros, i)
+        AD1.show_region(rectangles, spectros, i)
         input('Press enter to continue')
     return()
 
@@ -550,7 +494,7 @@ def calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_pe
     label_colors={}
     per_total={}
     per_total2={}
-    para=AD.set_parameters()
+    para=AD1.set_parameters()
     if 'thresh' in optional:
         thresh=optional['thresh']
     else:
@@ -601,64 +545,7 @@ def col_weight(features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_
     weight=1+(weight1*w_impor[0])+(weight2*w_impor[1])+(weight3*w_impor[2])+(weight4*w_impor[3])
     return(weight)
 
-def set_numbats(list_bats, **optional): #sets the number of templates per bat
-    if 'Templates' in optional:
-        path=optional['Templates']
-    else:
-        path=AD.set_path()
-    AD.make_folders(path)
-    full_path='' #will be overwritten every time
-    num_bats=np.zeros((len(list_bats),), dtype=np.uint8)
-    for i in range(len(list_bats)):
-        path2=list_bats[i]
-        full_path=path + '/Templates_arrays/' + path2
-        files_list= os.listdir(full_path) #list all templates in folder
-        num_bats[i] = len(files_list) #number of templates
-    num_total=sum(num_bats)
-    return(num_bats, num_total)
 
-def set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats): #sets the lowest frequency of each bat
-    #Change this to use rectangles instead
-    freq_bats=[None] *len(list_bats)
-    freq_range_bats=[None] *len(list_bats)
-    freq_peakT_bats=[None] *len(list_bats) #relative time
-    freq_peakF_bats=[None] *len(list_bats) #frequency
-    max_index=0
-    for i in range(len(list_bats)):
-        tot_freq=[None] *num_bats[i]
-        tot_freq_range=[None] *num_bats[i]
-        tot_freq_peakT=[None] *num_bats[i]
-        tot_freq_peakF=[None] *num_bats[i]
-        for j in range(num_bats[i]):
-            tot_freq[j]=rectangles_temp[max_index+j][1]+rectangles_temp[max_index+j][3]
-            tot_freq_range[j]=rectangles_temp[max_index+j][3]
-            index=np.argmax(regions_temp[max_index+j])
-            l=len(regions_temp[max_index+j][0,:]) #timesteps
-            a=index%l #timestep
-            b=math.floor(index/l) #frequency
-            tot_freq_peakT[j]=a/l #relative time
-            tot_freq_peakF[j]=b+rectangles_temp[max_index+j][1]
-        max_index+=j #keep counting
-        freq_bats[i]=np.median(tot_freq)
-        freq_range_bats[i]=np.median(tot_freq_range)
-        freq_peakT_bats[i]=np.median(tot_freq_peakT)
-        freq_peakF_bats[i]=np.median(tot_freq_peakF)
-    return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats)
-
-def set_batscolor(**optional): #dictionary linking bats to colors
-    if 'Templates' in optional:
-        path=optional['Templates']
-    else:
-        path=AD.set_path()
-    path=AD.set_path()
-    colors_bat={}
-    list_bats=os.listdir(path + '/Templates_arrays')
-    colors=("#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
-            "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
-            "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700")
-    for i in range(len(list_bats)):
-        colors_bat[list_bats[i]]=colors[i]
-    return(list_bats, colors_bat)
             
 def plot_dendrogram(features, label_colors, **optional):
     features_new=np.transpose(features) #map only works on rows, not columns
@@ -678,19 +565,19 @@ def plot_dendrogram(features, label_colors, **optional):
 
 def show_region2(rectangles, spectros, features_key, i, **optional): #uses feature label
     (a,b)=features_key[i]
-    para=AD.adjustable_parameters()
+    para=AD1.set_parameters()
     if 'spec_min' in optional:
         spec_min=optional['spec_min']
     else:
-        spec_min=para[1]
+        spec_min=para[17]
     if 'spec_max' in optional:
         spec_max=optional['spec_max']
     else:
-        spec_max=para[2]
+        spec_max=para[18]
     if 't_max' in optional:
         t_max=optional['t_max']
     else:
-        t_max=para[4]
+        t_max=para[6]
     f, ax1 = plt.subplots()
     ax1.imshow(spectros[a], origin='lower')
     rect = patches.Rectangle((rectangles[a][0,b],rectangles[a][1,b]),
@@ -728,7 +615,7 @@ def hier_clustering(file_name, freq_bats, freq_range_bats, freq_peakT_bats, freq
     return(col_labels, features_key, rectangles, spectros, per_total, per_total2)
 
 def write_output(list_files, **optional): #Optional only works on non TE data
-    para=AD.set_parameters()
+    para=AD1.set_parameters()
     if 'spect_window' in optional:
         spect_window=optional['spect_window']
     else:
@@ -738,14 +625,14 @@ def write_output(list_files, **optional): #Optional only works on non TE data
     else:
         spect_window_overlap=para[7]
     #loading
-    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init(**optional)
+    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD1.loading_init(**optional)
     if 'full' in optional:
        if optional['full']: #True
            if 'Audio_data' in optional:
                path=optional['Audio_data']
                list_files2=os.listdir(path)
            else:
-               path=AD.set_path()
+               path=AD1.set_path()
                list_files2=os.listdir(path + '/Audio_data') 
            count=0
            for i in range(len(list_files2)):
@@ -756,7 +643,7 @@ def write_output(list_files, **optional): #Optional only works on non TE data
            list_files2=list_files
     else:
         list_files2=list_files
-    list_bats, colors_bat=AD.set_batscolor()
+    list_bats, colors_bat=AD1.set_batscolor()
     #Check directories
     if not os.path.exists('dendrograms'):
         os.makedirs('dendrograms')
@@ -827,14 +714,14 @@ def write_output(list_files, **optional): #Optional only works on non TE data
 
 def calc_output(list_files, net, **optional): #Optional only works on non TE data
     #loading
-    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD.loading_init(**optional)
+    freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD1.loading_init(**optional)
     if 'full' in optional:
        if optional['full']: #True
            if 'Audio_data' in optional:
                path=optional['Audio_data']
                list_files2=os.listdir(path)
            else:
-               path=AD.set_path()
+               path=AD1.set_path()
                list_files2=os.listdir(path + '/Audio_data') 
            count=0
            for i in range(len(list_files2)):
@@ -845,7 +732,7 @@ def calc_output(list_files, net, **optional): #Optional only works on non TE dat
            list_files2=list_files
     else:
         list_files2=list_files
-    list_bats, colors_bat=AD.set_batscolor()
+    list_bats, colors_bat=AD1.set_batscolor()
     #Check directories
     if not os.path.exists('dendrograms'):
         os.makedirs('dendrograms')
@@ -873,7 +760,7 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
     if 'dim1' in optional and 'dim2' in optional:
         network_dim=(optional['dim1'], optional['dim2'])
     else:
-        para=AD.set_parameters()
+        para=AD1.set_parameters()
         network_dim= para[9]
     #initialisation
     temp_rectangle={}
@@ -932,7 +819,7 @@ def calc_matching(full_name, **optional):
     if 'dim1' in optional and 'dim2' in optional:
         network_dim=(optional['dim1'], optional['dim2'])
     else:
-        para=AD.set_parameters()
+        para=AD1.set_parameters()
         network_dim= para[9]
     M=np.zeros((network_dim[0], network_dim[1]), dtype=np.uint8)
     for i in range(network_dim[0]):
@@ -944,12 +831,12 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     if 'context_window_freq' in optional:
         context_window_freq=optional['context_window_freq']
     else:
-        para=AD.set_parameters()
+        para=AD1.set_parameters()
         context_window_freq=para[15]
     if 'fig_size' in optional:
         fig_size=optional['fig_size']
     else:
-        para=AD.set_parameters()
+        para=AD1.set_parameters()
         fig_size=para[16]
     #set frequency cutoff
     freq1_index=full_rectangle[dim1][dim2][point][1]-context_window_freq
@@ -1012,7 +899,7 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     return()
 
 def calc_context_spec(spectros, k, temp_key, **optional): #add windows to spectrogram
-    para=AD.set_parameters()
+    para=AD1.set_parameters()
     if 'spect_window' in optional:
         spect_window=optional['spect_window']
     else:
@@ -1045,7 +932,7 @@ def calc_maxc(full_names, **optional):
     if 'dim1' in optional and 'dim2' in optional:
         network_dim=(optional['dim1'], optional['dim2'])
     else:
-        para=AD.set_parameters()
+        para=AD1.set_parameters()
         network_dim=para[9]
     max_c=0
     for i in range(network_dim[0]):
@@ -1059,10 +946,10 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
     if 'Templates' in optional:
         path=optional['Templates']
     else:
-        path=AD.set_path()
-    AD.make_folders(path)
-    list_bats, _=AD.set_batscolor()
-    num_bats, _=AD.set_numbats(list_bats, **optional)
+        path=AD1.set_path()
+    AD1.make_folders(path)
+    list_bats, _=AD1.set_batscolor()
+    num_bats, _=AD1.set_numbats(list_bats, **optional)
     if not bat_name in list_bats: #bat already exists
         os.makedirs(path + '/Templates_arrays/' + bat_name)
         os.makedirs(path + '/Templates_images/' + bat_name)
@@ -1082,60 +969,6 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
     print('hash code array:', hash_rect)
     return()
 
-def read_templates(**optional): #reads in templates from the path to the general folder
-    if 'Templates' in optional:
-        path=optional['Templates']
-    else:
-        path=AD.set_path()
-    full_path='' #string will be constructed every step
-    full_path_rec=''
-    list_bats, _=AD.set_batscolor()
-    if 'Templates' in optional:
-        num_bats, _=AD.set_numbats(list_bats, Templates=optional['Templates'])
-    else:
-        num_bats, _=AD.set_numbats(list_bats)
-    regions={}
-    rectangles={}
-    count=0
-    for i in range(len(list_bats)):
-        list_files_arrays=os.listdir(path + '/Templates_arrays/' + list_bats[i]) #list all files in folder
-        list_files_rect=os.listdir(path + '/Templates_rect/' + list_bats[i])
-        count1=0
-        count2=0
-        for k in range(len(list_files_arrays)):
-            if list_files_arrays[k-count1][-4:]!='.npy':
-                del list_files_arrays[k-count1] #remove files that aren't npy extensions
-                count1+=1 #len of list changes, take this into account
-        for k in range(len(list_files_rect)): #repeat for rectangles
-            if list_files_rect[k-count2][-4:]!='.npy':
-                del list_files_rect[k-count2] #remove files that aren't npy extensions
-                count2+=1 #len of list changes, take this into account
-        for j in range(num_bats[i]): #go through the files one by one
-            full_path=path+ '/Templates_arrays/' + list_bats[i] + '/' + list_files_arrays[j]
-            full_path_rec=path+ '/Templates_rect/' + list_bats[i] + '/' + list_files_rect[j]
-            regions[count]=np.load(full_path)
-            rectangles[count]=np.load(full_path_rec)
-            count+=1
-    return(regions, rectangles)
-
-def make_folders(path): #makes folders if they don't exist yet
-    os.chdir(path)
-    if not os.path.exists('Templates_arrays'):
-        os.makedirs('Templates_arrays')
-    if not os.path.exists('Templates_images'):
-        os.makedirs('Templates_images')
-    if not os.path.exists('Templates_rect'):
-        os.makedirs('Templates_rect')
-    return()
-
-def import_map(map_name, **optional):
-    if 'path' in optional:
-        path=optional['path']
-    else:
-        path=AD.set_path()
-    net=np.load(path+ '/' + map_name+ '.npy')
-    raw_data=np.load(path+ '/' + map_name+ '_data.npy')
-    return(net, raw_data)
 
 def fit_SOM(list_files, **optional):
     if 'full' in optional: #read all files in folder
@@ -1144,7 +977,7 @@ def fit_SOM(list_files, **optional):
                path=optional['Audio_data']
                list_files2=os.listdir(path)
            else:
-               path=AD.set_path()
+               path=AD1.set_path()
                list_files2=os.listdir(path + '/Audio_data') 
            count=0
            for i in range(len(list_files2)):
@@ -1156,7 +989,7 @@ def fit_SOM(list_files, **optional):
     else:
         list_files2=list_files
     #parameters
-    para=AD.set_parameters()
+    para=AD1.set_parameters()
     if 'dim1' in optional and 'dim2' in optional:
         network_dim=(optional['dim1'], optional['dim2'])
     else:
@@ -1185,7 +1018,7 @@ def fit_SOM(list_files, **optional):
         #first file
         rectangles1, regions1, spectros1=AD.spect_loop(list_files2[0])
         num_reg=AD.calc_num_regions(regions1)
-        freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD.loading_init(**optional)
+        freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD1.loading_init(**optional)
         features1, _, _=AD.calc_features(rectangles1, regions1, regions_temp, num_reg, list_bats, num_total)
         raw_data=np.zeros((features1.shape[0], 0))
         raw_data=np.concatenate((raw_data, features1), axis=1)
@@ -1249,7 +1082,7 @@ def SOM(raw_data, network_dim, n_iter, init_learning_rate, normalise_data, norma
                     # commit the new weight
                     net[x, y, :] = new_w.reshape(1, m)
     if 'export' in optional:
-        path=AD.set_path()
+        path=AD1.set_path()
         np.save(path + '/' + optional['export'] + '.npy', net)
         np.save(path + '/' + optional['export'] + '_data.npy', raw_data)
     return(net)
@@ -1336,7 +1169,7 @@ def calc_net_features(net, **optional): #transforms network features to more sui
     if 'dim1' in optional and 'dim2' in optional:
         network_dim=(optional['dim1'], optional['dim2'])
     else:
-        para=AD.set_parameters()
+        para=AD1.set_parameters()
         network_dim= para[9]
     net_features=np.zeros((net.shape[2], network_dim[0]*network_dim[1]))
     count=0
@@ -1404,8 +1237,8 @@ def calc_FI_matrix(spectro):
     return(FI_matrix[1:, :])
 
 def print_features(**optional):
-    list_bats, colors_bat=AD.set_batscolor(**optional)
-    num_bats, num_total=AD.set_numbats(list_bats, **optional)
+    list_bats, colors_bat=AD1.set_batscolor(**optional)
+    num_bats, num_total=AD1.set_numbats(list_bats, **optional)
     a=6
     print('Frequency: 0-'+str(a))
     for i in range(len(list_bats)):

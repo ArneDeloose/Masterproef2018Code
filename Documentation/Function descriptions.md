@@ -1,4 +1,6 @@
-# Decription of all the functions
+Decription of all the functions. Use ctrl+F to find a function
+
+**Module 1: AD1_Loading:**
 
 ---
 
@@ -8,21 +10,64 @@ Loads several important variables. Called automatically in several functions.
 
 ---
 
-adjustable_parameters, return(para)
-
-Reads in parameters defined by the user in the textfile 'parameters.txt'
-
----
-
 set_parameters(), return(para)  
 
-This function sets a number of parameters needed in other functions. It is called automatically in other functions when needed. Keeping all parameters in one place allows for easier tuning.  Parameters can be overwritten with an optional argument in other functions.
+This function sets a number of parameters needed in other functions. It reads in these parameters from the textfile 'parameters.txt'. This function is called automatically in other functions when needed. Keeping all parameters in one place allows for easier tuning.  Parameters can be overwritten with an optional argument in other functions.
 
 ---
 
 set_path(), return(path)
 
 Sets the path as the current working directory (needed to read and write files). Called whenever needed.
+
+---
+
+read_templates(\**optional), return(regions, rectangles)
+
+Reads in the templates from the correct folder. If the folder is somewhere else, this can be specified with the optional 'Templates' argument.
+
+---
+
+make_folders(path), return()
+
+Checks whether necessary folders exist for templates and creates new ones if need be.
+
+---
+
+import_map(map_name, \**optional), return(net, raw_data)
+
+Imports a SOM map. Maps are stored as 'map_name'.npy and 'map_name'\_data.npy. Raw_data can be used to visualise the map on the data that was used. Optional argument 'path' can be used to specify a different directory.
+
+---
+
+import_map(dml, \**optional), return(D)
+
+Imports a dml matrix. Optional argument 'path' can be used to specify a different directory.
+
+---
+
+set_numbats(list_bats, \**optional), return(num_bats, num_total)
+
+Sets the number of reference images for each bat. For this the code assumes there is a folder 'Templates_arrays' in the working directory. If this is not the case, an alternate path can be specified as the optional argument 'Templates'.
+
+---
+
+set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats), return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats)
+
+Sets a number of frequencies needed for the calculation of the scores (see cacl_col_labels). For this, the median value over the references is taken.
+
+---
+
+set_batscolor(\**optional), return(list_bats, colors_bat)
+
+Assigns a color to each bat. The optional argument 'Templates' can be used to specify an alternate path to the templates.
+
+
+---
+
+**Module 2:...:**
+
+
 
 ---
 
@@ -197,24 +242,6 @@ Calculates the weight of point based on frequency information.
 
 ---
 
-set_numbats(list_bats, \**optional), return(num_bats, num_total)
-
-Sets the number of reference images for each bat. For this the code assumes there is a folder 'Templates_arrays' in the working directory. If this is not the case, an alternate path can be specified as the optional argument 'Templates'.
-
----
-
-set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats), return(freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats)
-
-Sets a number of frequencies needed for the calculation of the scores (see cacl_col_labels). For this, the median value over the references is taken.
-
----
-
-set_batscolor(\**optional), return(list_bats, colors_bat)
-
-Assigns a color to each bat. The optional argument 'Templates' can be used to specify an alternate path to the templates.
-
----
-
 plot_dendrogram(features, label_colors, \**optional), return()
 
 Plots a dendrogram based upon a hierarchical clustering of the features. Row numbers are colored based on label_colors. Linkage is set as 'average'. The optional argument 'name' can be used to save the figure.
@@ -278,24 +305,6 @@ Calculates the maximum amount of matches. Needed to set a limit on the interacti
 create_template(file_name, timestep, region_num, bat_name, \**optional), return()
 
 Creates a template (array, image and rectangle). The name of the file must be given, along with the timestep and the region number. The code name (eser, ppip, pnat,...) must be given. If this bat doesn't exist yet, folders are created. The optional argument 'Templates' can be given to specify an alternate path to the templates folders. Hash numbers for the image and array are printed out.
-
----
-
-read_templates(\**optional), return(regions, rectangles)
-
-Reads in the templates from the correct folder. If the folder is somewhere else, this can be specified with the optional 'Templates' argument.
-
----
-
-make_folders(path), return()
-
-Checks whether necessary folders exist for templates and creates new ones if need be.
-
----
-
-import_map(map_name, \**optional), return(net, raw_data)
-
-Imports a map. Maps are stored as 'map_name'.npy and 'map_name'\_data.npy. Raw_data can be used to visualise the map on the data that was used.
 
 ---
 
