@@ -62,6 +62,11 @@ set_batscolor(\**optional), return(list_bats, colors_bat)
 
 Assigns a color to each bat. The optional argument 'Templates' can be used to specify an alternate path to the templates.
 
+---
+
+print_features(\**optional), return()
+
+Prints out which feature index correlates to which bat (or frequency).
 
 ---
 
@@ -147,6 +152,12 @@ Plots a wavelet. Input 'wavelet' is a string with the name of the wavelet
 
 ---
 
+create_template(file_name, timestep, region_num, bat_name, \**optional), return()
+
+Creates a template (array, image and rectangle). The name of the file must be given, along with the timestep and the region number. The code name (eser, ppip, pnat,...) must be given. If this bat doesn't exist yet, folders are created. The optional argument 'Templates' can be given to specify an alternate path to the templates folders. Hash numbers for the image and array are printed out.
+
+---
+
 **Module 3: AD3_Features:**
 
 ---
@@ -174,6 +185,12 @@ Calculates the SSIM between two images and returns it as a score. Images are sca
 calc_num_regions(regions), return(num_reg)
 
 Calculates number of regions in a dictionary.
+
+---
+
+cor_plot(features, index, \**optional), return(correlation)
+
+Calculates the correlation between different features. Index is a 2-tuple with the start and stop index. 'Export' can be used to save the plot.
 
 ---
 
@@ -281,9 +298,20 @@ Calculates the maximum amount of matches. Needed to set a limit on the interacti
 
 ---
 
-**Module 5: ...:**
+**Module 5: AD5_MDS:**
 
 ---
+
+calc_dist_matrix(net_features, Axis, \**optional), return(D)
+
+Calculates the distance between rows (axis=0) or colums (axis=1). If the optional argument 'raw_data' is given, it is concatenated with net_features.
+
+---
+
+
+
+
+**End**
 
 ---
 
@@ -310,11 +338,7 @@ Plots two images so they can be compared by hand. Used to visualise the SSIM.
  Compares all possible pairings between two regions from a given dictionary of regions and rectangles (rectangles contains freq info).
  Comparison returns six matrices with information: ssim, squared difference in frequency range, min freq, max freq, mean freq and duration.
 
----
 
-calc_dist_matrix(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6, weight), return(dist_mat)
-
-Calculates a total distance based on the similarity measures calculated in 'calc_sim_matrix'. Requires a weighing of all measures. Weights are set in 'set_weights' (which is called automatically).
 
 ---
 
@@ -393,21 +417,3 @@ Function that pools various functions together to create a dendrogram right away
 write_output(list_files, \**optional), return()
 
 Applies clustering and classification and writes out the output to a bunch of files. Two text files are created (results1 and results2, other names can be specified as an optional argument) and folders for every classified sound.
-
----
-
-create_template(file_name, timestep, region_num, bat_name, \**optional), return()
-
-Creates a template (array, image and rectangle). The name of the file must be given, along with the timestep and the region number. The code name (eser, ppip, pnat,...) must be given. If this bat doesn't exist yet, folders are created. The optional argument 'Templates' can be given to specify an alternate path to the templates folders. Hash numbers for the image and array are printed out.
-
----
-
-cor_plot(features, index, \**optional), return(correlation)
-
-Calculates the correlation between different features. Index is a 2-tuple with the start and stop index. 'Export' can be used to save the plot.
-
----
-
-print_features(\**optional), return()
-
-Prints out which feature index correlates to which bat (or frequency).

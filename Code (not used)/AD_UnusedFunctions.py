@@ -1,6 +1,5 @@
 from __future__ import division #changes / to 'true division'
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import cv2
 import matplotlib.patches as patches
@@ -262,60 +261,3 @@ def write_output(list_files, **optional): #Optional only works on non TE data
     f1.close()
     f2.close()
     return()
-
-
-def create_template(file_name, timestep, region_num, bat_name, **optional): #creates three templates (image, rectangle and array)
-    if 'Templates' in optional:
-        path=optional['Templates']
-    else:
-        path=AD1.set_path()
-    AD1.make_folders(path)
-    list_bats, _=AD1.set_batscolor()
-    num_bats, _=AD1.set_numbats(list_bats, **optional)
-    if not bat_name in list_bats: #bat already exists
-        os.makedirs(path + '/Templates_arrays/' + bat_name)
-        os.makedirs(path + '/Templates_images/' + bat_name)
-        os.makedirs(path + '/Templates_rect/' + bat_name)
-    rectangles, regions, _=AD2.spect_loop(file_name, **optional)
-    hash_image=hash(str(regions[int(timestep)][region_num]))
-    hash_rect=hash(str(rectangles[int(timestep)][:, region_num]))
-    path_image=path + '/Templates_images/' + bat_name + '/' + str(hash_image) + '.png'
-    plt.imshow(regions[int(timestep)][region_num], origin='lower')
-    plt.savefig(path_image)
-    plt.close()
-    path_array=path + '/Templates_arrays/' + bat_name + '/' + str(hash_image) + '.npy'
-    path_rect=path + '/Templates_rect/' + bat_name + '/' + str(hash_rect) + '.npy'
-    np.save(path_array, regions[int(timestep)][region_num])
-    np.save(path_rect, rectangles[int(timestep)][:, region_num])
-    print('hash code image:', hash_image)
-    print('hash code array:', hash_rect)
-    return()
-
-def cor_plot(features, index, **optional): #index: start and stop index to make the plot
-    fig = plt.figure(figsize=(8, 6))
-    features_red=np.transpose(features[0][int(index[0]):int(index[1]), :])
-    for i in range(1, len(features)):
-        dummy=np.transpose(features[i][int(index[0]):int(index[1]), :])
-        features_red=np.concatenate((features_red, dummy), axis=0)
-    data = pd.DataFrame(data=features_red)
-    correlations = data.corr()
-    ax = fig.add_subplot(111)
-    cax = ax.matshow(correlations, vmin=-1, vmax=1)
-    fig.colorbar(cax)    
-    plt.show()
-    if 'export' in optional:
-        fig.savefig(optional['export']+'.jpg', format='jpg', dpi=1200)
-    plt.close
-    return(correlations)
-
-def print_features(**optional):
-    list_bats, colors_bat=AD1.set_batscolor(**optional)
-    num_bats, num_total=AD1.set_numbats(list_bats, **optional)
-    a=6
-    print('Frequency: 0-'+str(a))
-    for i in range(len(list_bats)):
-        a+=1
-        print(list_bats[i] + ': ' + str(a) + '-' + str(a+num_bats[i]))
-        a+=num_bats[i]
-    return()
-    

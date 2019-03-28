@@ -1,4 +1,5 @@
 #Module which calculates the features from a spectrogram
+#Correlation plots between features are in this module as well
 
 #Load packages
 from __future__ import division #changes / to 'true division'
@@ -6,6 +7,8 @@ import numpy as np
 import math
 import cv2
 from skimage.measure import compare_ssim as ssim
+import pandas as pd
+import matplotlib.pyplot as plt
 
 #load modules
 import AD3_Features as AD3
@@ -97,3 +100,21 @@ def calc_num_regions(regions):
         for j,d in regions[i].items():
             num_reg+=1
     return(num_reg)
+
+def cor_plot(features, index, **optional): #index: start and stop index to make the plot
+    fig = plt.figure(figsize=(8, 6))
+    features_red=np.transpose(features[0][int(index[0]):int(index[1]), :])
+    for i in range(1, len(features)):
+        dummy=np.transpose(features[i][int(index[0]):int(index[1]), :])
+        features_red=np.concatenate((features_red, dummy), axis=0)
+    data = pd.DataFrame(data=features_red)
+    correlations = data.corr()
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(correlations, vmin=-1, vmax=1)
+    fig.colorbar(cax)    
+    plt.show()
+    if 'export' in optional:
+        fig.savefig(optional['export']+'.jpg', format='jpg', dpi=1200)
+    plt.close
+    return(correlations)
+    

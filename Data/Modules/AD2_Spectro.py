@@ -1,4 +1,5 @@
 #Module which creates spectrograms and extracts regions from spectrograms
+#There is also code to save a region as a template
 
 #Load packages
 from __future__ import division #changes / to 'true division'
@@ -9,6 +10,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 import cv2
 import pywt
+import os
 import matplotlib.patches as patches
 
 #load modules
@@ -263,4 +265,32 @@ def wave_plot(data, wavelet):
         ax.set_yticks([])
         fig.tight_layout()
     return(fig)
+
+#creates a new template
+def create_template(file_name, timestep, region_num, bat_name, **optional): #creates three templates (image, rectangle and array)
+    if 'Templates' in optional:
+        path=optional['Templates']
+    else:
+        path=AD1.set_path()
+    AD1.make_folders(path)
+    list_bats, _=AD1.set_batscolor()
+    num_bats, _=AD1.set_numbats(list_bats, **optional)
+    if not bat_name in list_bats: #bat already exists
+        os.makedirs(path + '/Templates_arrays/' + bat_name)
+        os.makedirs(path + '/Templates_images/' + bat_name)
+        os.makedirs(path + '/Templates_rect/' + bat_name)
+    rectangles, regions, _=AD2.spect_loop(file_name, **optional)
+    hash_image=hash(str(regions[int(timestep)][region_num]))
+    hash_rect=hash(str(rectangles[int(timestep)][:, region_num]))
+    path_image=path + '/Templates_images/' + bat_name + '/' + str(hash_image) + '.png'
+    plt.imshow(regions[int(timestep)][region_num], origin='lower')
+    plt.savefig(path_image)
+    plt.close()
+    path_array=path + '/Templates_arrays/' + bat_name + '/' + str(hash_image) + '.npy'
+    path_rect=path + '/Templates_rect/' + bat_name + '/' + str(hash_rect) + '.npy'
+    np.save(path_array, regions[int(timestep)][region_num])
+    np.save(path_rect, rectangles[int(timestep)][:, region_num])
+    print('hash code image:', hash_image)
+    print('hash code array:', hash_rect)
+    return()
     

@@ -198,3 +198,14 @@ def set_batscolor(**optional): #dictionary linking bats to colors
         colors_bat[list_bats[i]]=colors[i]
     return(list_bats, colors_bat)
 
+#prints out which features are what, useful to make a correlation plot
+def print_features(**optional):
+    list_bats, colors_bat=AD1.set_batscolor(**optional)
+    num_bats, num_total=AD1.set_numbats(list_bats, **optional)
+    a=6
+    print('Frequency: 0-'+str(a))
+    for i in range(len(list_bats)):
+        a+=1
+        print(list_bats[i] + ': ' + str(a) + '-' + str(a+num_bats[i]))
+        a+=num_bats[i]
+    return()

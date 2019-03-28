@@ -1,4 +1,4 @@
-#Module for the making of MDS and TSNE plots as well as correlation plots
+#Module for the making of MDS and TSNE plots
 
 #Load packages
 from __future__ import division #changes / to 'true division'
@@ -9,14 +9,14 @@ from sklearn import manifold
 #Used to make an MDS plot of a SOM
 #If 'raw_data' is given, concatenates both matrices 
 #calculates distance per column (if axis=1)
-def calc_dist_matrix2(net_features, axis, **optional): 
+def calc_dist_matrix(net_features, Axis, **optional): 
     if 'raw_data' in optional:
-        array=np.concatenate((net_features, optional['raw_data']), axis=1)
+        array=np.concatenate((net_features, optional['raw_data']), axis=Axis)
     else:
         array=net_features
-    D=np.zeros((array.shape[axis], array.shape[axis]), dtype=np.float)
-    for i in range(array.shape[axis]):
-        for j in range(array.shape[axis]):
+    D=np.zeros((array.shape[Axis], array.shape[Axis]), dtype=np.float)
+    for i in range(array.shape[Axis]):
+        for j in range(array.shape[Axis]):
             D[i,j]=sum((array[:, i]-array[:,j])**2)
     return(D)
 
@@ -58,3 +58,4 @@ def plot_MDS2(pos, dim1, dim2):
     plt.legend(handles=[plot1,plot2])
     plt.show()
     return()
+
