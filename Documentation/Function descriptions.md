@@ -28,7 +28,7 @@ Reads in the templates from the correct folder. If the folder is somewhere else,
 
 ---
 
-make_folders(path), return()
+make_folders(path, list_bats), return()
 
 Checks whether necessary folders exist for templates and creates new ones if need be.
 
@@ -298,6 +298,12 @@ Calculates the maximum amount of matches. Needed to set a limit on the interacti
 
 ---
 
+fit_dml(\**optional), return(D)
+
+Fits a distance metric learning matrix. Optional argument 'path' can be used to specify a different pathway to the templates. Optional arguments 'data_X' and 'data_Y' can be used to fit a dml on custom data. 'export' is used to export the matrix.
+
+---
+
 **Module 5: AD5_MDS:**
 
 ---
@@ -305,46 +311,6 @@ Calculates the maximum amount of matches. Needed to set a limit on the interacti
 calc_dist_matrix(net_features, Axis, \**optional), return(D)
 
 Calculates the distance between rows (axis=0) or colums (axis=1). If the optional argument 'raw_data' is given, it is concatenated with net_features.
-
----
-
-
-
-
-**End**
-
----
-
-compare_img(img1, img2, rectangle, min_freq, max_freq), return(score)
-
-Calculates the SSIM between two images and returns it as a score. If the frequency isn't in the right range, score is set to the minimum (-1). For this, the function set_freqthresh is needed with the correct class number.
-
----
-
-resize_img_plot(img1, img2), return()
-
-Plots two images on the same size. Can be used to compare with 'compare_img_plot'
-
----
-
-compare_img_plot(img1,img2), return()
-
-Plots two images so they can be compared by hand. Used to visualise the SSIM.
-
----
-
- calc_sim_matrix(rectangles, regions), return(sim_mat1, sim_mat2, sim_mat3, sim_mat4, sim_mat5, sim_mat6)
-
- Compares all possible pairings between two regions from a given dictionary of regions and rectangles (rectangles contains freq info).
- Comparison returns six matrices with information: ssim, squared difference in frequency range, min freq, max freq, mean freq and duration.
-
-
-
----
-
-set_mweights(weight), return(w1,w2,w3,w4,w5,w6)
-
-Sets weights for 'calc_dist_matrix'. The variable 'weight' allows you to drop one weight from the set to study the importance of it. If weight=0 nothing is dropped. Standard weights are set at roughly 1/mean(sim)
 
 ---
 
@@ -371,49 +337,3 @@ plot_MDS2(pos, dim1, dim2), return()
 Plots an MDS of data and SOM neurons (dim1 and dim2 are dimensions of the SOM). Neurons are red and datapoints are black.
 
 ---
-
-run_MDS(m_weight), return()
-
-Pools the functions: 'set_templates2', 'calc_sim_matrix', 'calc_dist_matrix', 'calc_pos' and 'plot_MDS'.
-
----
-
-run_TSNE(m_weight), return()
-
-Analogous to 'run_MDS' but with the TSNE.
-
----
-
-calc_col_labels(features, features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, \**optional), return(label_colors, per_total, per_total2)
-
-Labels every sound in features based on the ssim scores in the row. For this,  it takes all ssims above a threshold and adds them up to calculate a percentage matching (so if 20 of the 40 ppip ssim scores are above the threshold, the score is 50 %). Scores are then weighed according to the squared difference with a few values: minimum frequency, frequency range, peak T frequency and peak F frequency. References are defined as the mean over the templates for that species. The weights for each metric are set in 'adjustable_parameters'. Per_total is the unweighed score, per_total2 is the weighed score.
-
----
-
-col_weight(features_freq, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, i, k, w_impor), return(weight)
-
-Calculates the weight of point based on frequency information.
-
----
-
-plot_dendrogram(features, label_colors, \**optional), return()
-
-Plots a dendrogram based upon a hierarchical clustering of the features. Row numbers are colored based on label_colors. Linkage is set as 'average'. The optional argument 'name' can be used to save the figure.
-
----
-
-show_region2(rectangles, spectros, features_key, i, \**optional), return()
-
-Shows a plot of a region on a spectrogram based on the number in the feature data (i). The title of the plot gives the frequency range of the sound and the timestep. The optional argument 'name' saves teh figure to a specified path.
-
----
-
-hier_clustering(file_name, freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp, \**optional), return(col_labels, features_key, rectangles, spectros, per_total, per_total2), return()
-
-Function that pools various functions together to create a dendrogram right away from the name of a file. (Functions called: spect_loop, calc_num_regions, set_templates2, calc_features, calc_col_labels2, plot_dendrogram). Other inputs are derived from loading_init (which is called seperately for computational efficiency). The optional input 'write' will  save the dendrogram if set to True.
-
----
-
-write_output(list_files, \**optional), return()
-
-Applies clustering and classification and writes out the output to a bunch of files. Two text files are created (results1 and results2, other names can be specified as an optional argument) and folders for every classified sound.

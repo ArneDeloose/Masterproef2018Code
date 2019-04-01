@@ -110,14 +110,23 @@ def read_templates(**optional):
     return(regions, rectangles)
 
 #makes necessary template folders if they don't exist yet
-def make_folders(path): 
+def make_folders(path, list_bats): 
     os.chdir(path)
+    #top level folders
     if not os.path.exists('Templates_arrays'):
         os.makedirs('Templates_arrays')
     if not os.path.exists('Templates_images'):
         os.makedirs('Templates_images')
     if not os.path.exists('Templates_rect'):
         os.makedirs('Templates_rect')
+    #lower level
+    for i in range(len(list_bats)):
+        if not os.path.exists('Templates_arrays'+ '/' + list_bats[i]):
+            os.makedirs('Templates_arrays'+ '/' + list_bats[i])
+        if not os.path.exists('Templates_images'+ '/' + list_bats[i]):
+            os.makedirs('Templates_images'+ '/' + list_bats[i])
+        if not os.path.exists('Templates_rect'+ '/' + list_bats[i]):
+            os.makedirs('Templates_rect'+ '/' + list_bats[i])
     return()
 
 #imports a SOM
@@ -144,7 +153,7 @@ def set_numbats(list_bats, **optional): #sets the number of templates per bat
         path=optional['Templates']
     else:
         path=AD1.set_path()
-    AD1.make_folders(path)
+    AD1.make_folders(path, list_bats)
     full_path='' #will be overwritten every time
     num_bats=np.zeros((len(list_bats),), dtype=np.uint8)
     for i in range(len(list_bats)):

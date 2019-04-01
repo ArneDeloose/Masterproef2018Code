@@ -1,4 +1,5 @@
 #Module for the fitting and visualization of a self-organizing map
+#Also governs the fitting of a distance metric learning
 
 #Load packages
 from __future__ import division #changes / to 'true division'
@@ -6,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
+import dml
 
 #load modules
 import AD1_Loading as AD1
@@ -499,3 +501,58 @@ def calc_maxc(full_names, **optional):
             if temp_c>max_c:
                 max_c=temp_c
     return(max_c)
+
+#Fits a dml based on the templates folder and templates_dml folder and 
+#Optional argument 'data_X' and 'data_Y' can be used to fit a dml based on custom data 
+#Optional argument 'export' is used to save the matrix
+def fit_dml(**optional):
+    #set parameters
+    if 'path' in optional:
+        path=optional['path']
+    else:
+        path=AD1.set_path()
+    if 'data_X' in optional and 'data_Y' in optional: #data given
+        X=optional['data_X']
+        Y=optional['data_Y']
+    else: #read in data
+        list_bats, _=AD1.set_batscolor(Templates=path) #bat species
+        num_bats, num_total=AD1.set_numbats(list_bats, Templates=path) #number of each bat species
+        num_bats_dml, num_total_dml=AD1.set_numbats(list_bats, Templates=path+'/Templates_dml')
+        #read normal templates
+        regions, rectangles=AD1.read_templates(Templates=path)
+        #read dml_templates
+        regions2, rectangles2=AD1.read_templates(Templates=path+'/Templates_dml')
+        #set variables
+        templates=regions.copy()
+        #combine both rectangles and regions
+        for k in range(num_total_dml):
+            rectangles[num_total+k]=rectangles2[k]
+            regions[num_total+k]=regions2[k]
+        
+        #calculate features
+        features=AD3.calc_features2(rectangles, regions, templates, list_bats, num_total)
+        X=np.transpose(features)
+        Y=np.zeros((X.shape[1],), dtype=np.uint8)
+        #Fill in Y matrix
+        count=0
+        #go through the templates
+        for i in range(len(list_bats)): #i corresponds to a bat species 
+            for j in range(num_bats[i]): #number of this type of bat
+                Y[count]=i
+                count+=1
+        #same thing, but for templates_dml
+        for i in range(len(list_bats)): #i corresponds to a bat species 
+            for j in range(num_bats_dml[i]): #number of this type of bat
+                Y[count]=i
+                count+=1
+    #fit model
+    model=dml.anmm.ANMM()
+    model.fit(X,Y)
+    D=model.transformer()
+    #Export D-matrix
+    if 'export' in optional:
+        np.save(path + '/' + optional['export'] + '.npy', D)
+    return(D)
+
+
+

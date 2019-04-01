@@ -1,6 +1,6 @@
 #init
 import os
-path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data';
+path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Modules';
 os.chdir(path)
 import AD_functions as AD
 path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
@@ -10,7 +10,7 @@ import dml
 
 
 #read in data
-freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD.loading_init()
+freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD1.loading_init()
 
 #set variables
 rectangles1=rectangles_temp
