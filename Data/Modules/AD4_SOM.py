@@ -508,7 +508,7 @@ def fit_dml(**optional):
                 Y[count]=i
                 count+=1
     #fit model
-    model=dml.anmm.ANMM()
+    model=dml.dmlmj.DMLMJ()
     model.fit(X,Y)
     D=model.transformer()
     #Export D-matrix
