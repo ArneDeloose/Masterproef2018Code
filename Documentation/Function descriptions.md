@@ -304,6 +304,12 @@ Fits a distance metric learning matrix. Optional argument 'path' can be used to 
 
 ---
 
+make_list(list_files, \**optional), return(list_files2)
+
+Makes a list of files to be analysed given several optional arguments
+
+---
+
 **Module 5: AD5_MDS:**
 
 ---

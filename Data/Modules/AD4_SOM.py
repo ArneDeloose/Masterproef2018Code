@@ -22,50 +22,7 @@ import AD4_SOM as AD4
 #The optional argument 'features'
 #This code puts everything in order and then calls the function 'SOM'.
 def fit_SOM(list_files, **optional):
-    #Optional arguments
-    #Audio data
-    if 'Audio_data' in optional: #different Audio_data folder
-        path=optional['Audio_data']
-    else:
-        path=AD1.set_path()
-    #folder and subfolder
-    if 'folder' in optional: #read all files in folder
-       if optional['folder']!='None': #True
-           if 'subfolders' in optional: #subfolders within Audio_data
-               if optional['subfolders']: #true, subfolders
-                   folders_list=os.listdir(path + '/' + optional['folder'])
-                   list_files2=list() #empty list
-                   for k in range(len(folders_list)): #amend list
-                       list_files2+=os.listdir(path + '/' + optional['folder'] + '/' + folders_list[k])
-               else: #false, no subfolders
-                   list_files2=os.listdir(path + '/' + optional['folder'])
-           else: #argument not present, assume no subfolders
-               list_files2=os.listdir(path + '/' + optional['folder'])
-       else: #folder equals 'None', fall back on list_files
-           list_files2=list_files
-    else: #folder argument not present, fall back on list_files
-        list_files2=list_files
-    #full and subfolders, overwrites previous code
-    if 'full' in optional: #read all files
-       if optional['full']: #True
-           if 'subfolders' in optional: #subfolders within Audio_data
-               if optional['subfolders']: #true, subfolders
-                   folders_list=os.listdir(path)
-                   list_files2=list() #empty list
-                   for k in range(len(folders_list)): #amend list
-                       list_files2+=os.listdir(path + '/' + folders_list[k])
-               else: #false, no subfolders
-                   list_files2=os.listdir(path)
-           else: #argument not present, assume no subfolders
-               list_files2=os.listdir(path)
-       else: #full equals False, fall back on list_files
-           list_files2=list_files
-    #Delete files that aren't .wav
-    count=0
-    for i in range(len(list_files2)):
-        if list_files2[i-count][-4:]!='.WAV':
-            del list_files2[i-count] #delete files that aren't audio
-            count+=1 #len changes, take this into account        
+    list_files2=AD4.make_list(list_files, **optional)
     #set parameters
     para=AD1.set_parameters()
     if 'dim1' in optional and 'dim2' in optional:
@@ -285,33 +242,11 @@ def heatmap_neurons(M, **optional):
     plt.close()
     return()
 
-def calc_output(list_files, net, **optional): #Optional only works on non TE data
+def calc_output(list_files, net, **optional):
     #loading
     freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, templates, rectangles_temp=AD1.loading_init(**optional)
-    if 'full' in optional:
-       if optional['full']: #True
-           if 'Audio_data' in optional:
-               path=optional['Audio_data']
-               list_files2=os.listdir(path)
-           else:
-               path=AD1.set_path()
-               list_files2=os.listdir(path + '/Audio_data') 
-           count=0
-           for i in range(len(list_files2)):
-               if list_files2[i-count][-4:]!='.WAV':
-                   del list_files2[i-count] #delete files that aren't audio
-                   count+=1 #len changes, take this into account
-       else:
-           list_files2=list_files
-    else:
-        list_files2=list_files
-    list_bats, colors_bat=AD1.set_batscolor()
-    #Check directories
-    if not os.path.exists('dendrograms'):
-        os.makedirs('dendrograms')
-    for k in range(len(list_bats)):
-        if not os.path.exists(list_bats[k]):
-            os.makedirs(list_bats[k])
+    #set list files to be analysed
+    list_files2=AD4.make_list(list_files, **optional)
     #create empty dictionaries
     net_label={}
     features={}
@@ -320,8 +255,7 @@ def calc_output(list_files, net, **optional): #Optional only works on non TE dat
     rectangles={}
     regions={}
     spectros={}
-    optional['write']=True
-    #run clustering and save output    
+    #go through the files    
     for i in range(len(list_files2)):
         rectangles[i], regions[i], spectros[i]=AD2.spect_loop(list_files2[i], **optional)
         num_reg=AD3.calc_num_regions(regions[i])
@@ -582,5 +516,52 @@ def fit_dml(**optional):
         np.save(path + '/' + optional['export'] + '.npy', D)
     return(D)
 
-
+#Makes a list of files to be analysed given several optional arguments
+def make_list(list_files, **optional):
+    #Optional arguments
+    #Audio data
+    if 'Audio_data' in optional: #different Audio_data folder
+        path=optional['Audio_data']
+    else:
+        path=AD1.set_path()
+    #folder and subfolder
+    if 'folder' in optional: #read all files in folder
+       if optional['folder']!='None': #True
+           if 'subfolders' in optional: #subfolders within Audio_data
+               if optional['subfolders']: #true, subfolders
+                   folders_list=os.listdir(path + '/' + optional['folder'])
+                   list_files2=list() #empty list
+                   for k in range(len(folders_list)): #amend list
+                       list_files2+=os.listdir(path + '/' + optional['folder'] + '/' + folders_list[k])
+               else: #false, no subfolders
+                   list_files2=os.listdir(path + '/' + optional['folder'])
+           else: #argument not present, assume no subfolders
+               list_files2=os.listdir(path + '/' + optional['folder'])
+       else: #folder equals 'None', fall back on list_files
+           list_files2=list_files
+    else: #folder argument not present, fall back on list_files
+        list_files2=list_files
+    #full and subfolders, overwrites previous code
+    if 'full' in optional: #read all files
+       if optional['full']: #True
+           if 'subfolders' in optional: #subfolders within Audio_data
+               if optional['subfolders']: #true, subfolders
+                   folders_list=os.listdir(path)
+                   list_files2=list() #empty list
+                   for k in range(len(folders_list)): #amend list
+                       list_files2+=os.listdir(path + '/' + folders_list[k])
+               else: #false, no subfolders
+                   list_files2=os.listdir(path)
+           else: #argument not present, assume no subfolders
+               list_files2=os.listdir(path)
+       else: #full equals False, fall back on list_files
+           list_files2=list_files
+    #Delete files that aren't .wav
+    count=0
+    for i in range(len(list_files2)):
+        if list_files2[i-count][-4:]!='.WAV':
+            del list_files2[i-count] #delete files that aren't audio
+            count+=1 #len changes, take this into account        
+    
+    return(list_files2)
 

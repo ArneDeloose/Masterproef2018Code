@@ -272,24 +272,30 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
         path=optional['Templates']
     else:
         path=AD1.set_path()
+    if 'dml' in optional:
+        if optional['dml']: #true
+            path+='/Templates_dml' #add this to the pathway     
+    #create folders if need be
     AD1.make_folders(path)
+    #extract regions and rectangles
     list_bats, _=AD1.set_batscolor()
     num_bats, _=AD1.set_numbats(list_bats, **optional)
-    if not bat_name in list_bats: #bat already exists
-        os.makedirs(path + '/Templates_arrays/' + bat_name)
-        os.makedirs(path + '/Templates_images/' + bat_name)
-        os.makedirs(path + '/Templates_rect/' + bat_name)
     rectangles, regions, _=AD2.spect_loop(file_name, **optional)
+    #make hash-codes
     hash_image=hash(str(regions[int(timestep)][region_num]))
     hash_rect=hash(str(rectangles[int(timestep)][:, region_num]))
+    #save image
     path_image=path + '/Templates_images/' + bat_name + '/' + str(hash_image) + '.png'
     plt.imshow(regions[int(timestep)][region_num], origin='lower')
     plt.savefig(path_image)
     plt.close()
+    #build correct pathways
     path_array=path + '/Templates_arrays/' + bat_name + '/' + str(hash_image) + '.npy'
     path_rect=path + '/Templates_rect/' + bat_name + '/' + str(hash_rect) + '.npy'
+    #save the data
     np.save(path_array, regions[int(timestep)][region_num])
     np.save(path_rect, rectangles[int(timestep)][:, region_num])
+    #print out the hash-codes to the user
     print('hash code image:', hash_image)
     print('hash code array:', hash_rect)
     return()
