@@ -16,29 +16,57 @@ import AD3_Features as AD3
 import AD4_SOM as AD4 
 
 #Fits a SOM. A list of files must be provided. 
-#The optional argument 'full' overrides this list and reads everything in the folder. 
+#The optional argument 'full' overrides this list and reads everything in the folder.
+#the optional argument 'folder' is used to only list files in a specific folder
+#optional argument 'subfolders' can be set to True or False to specify if data is in subfolders or not
 #The optional argument 'features'
 #This code puts everything in order and then calls the function 'SOM'.
 def fit_SOM(list_files, **optional):
     #Optional arguments
-    if 'full' in optional: #read all files in folder
-       if optional['full']: #True
-           if 'Audio_data' in optional:
-               path=optional['Audio_data']
-               list_files2=os.listdir(path)
-           else:
-               path=AD1.set_path()
-               list_files2=os.listdir(path + '/Audio_data') 
-           count=0
-           for i in range(len(list_files2)):
-               if list_files2[i-count][-4:]!='.WAV':
-                   del list_files2[i-count] #delete files that aren't audio
-                   count+=1 #len changes, take this into account
-       else:
-           list_files2=list_files
+    #Audio data
+    if 'Audio_data' in optional: #different Audio_data folder
+        path=optional['Audio_data']
     else:
+        path=AD1.set_path()
+    #folder and subfolder
+    if 'folder' in optional: #read all files in folder
+       if optional['folder']!='None': #True
+           if 'subfolders' in optional: #subfolders within Audio_data
+               if optional['subfolders']: #true, subfolders
+                   folders_list=os.listdir(path + '/' + optional['folder'])
+                   list_files2=list() #empty list
+                   for k in range(len(folders_list)): #amend list
+                       list_files2+=os.listdir(path + '/' + optional['folder'] + '/' + folders_list[k])
+               else: #false, no subfolders
+                   list_files2=os.listdir(path + '/' + optional['folder'])
+           else: #argument not present, assume no subfolders
+               list_files2=os.listdir(path + '/' + optional['folder'])
+       else: #folder equals 'None', fall back on list_files
+           list_files2=list_files
+    else: #folder argument not present, fall back on list_files
         list_files2=list_files
-    #parameters
+    #full and subfolders, overwrites previous code
+    if 'full' in optional: #read all files
+       if optional['full']: #True
+           if 'subfolders' in optional: #subfolders within Audio_data
+               if optional['subfolders']: #true, subfolders
+                   folders_list=os.listdir(path)
+                   list_files2=list() #empty list
+                   for k in range(len(folders_list)): #amend list
+                       list_files2+=os.listdir(path + '/' + folders_list[k])
+               else: #false, no subfolders
+                   list_files2=os.listdir(path)
+           else: #argument not present, assume no subfolders
+               list_files2=os.listdir(path)
+       else: #full equals False, fall back on list_files
+           list_files2=list_files
+    #Delete files that aren't .wav
+    count=0
+    for i in range(len(list_files2)):
+        if list_files2[i-count][-4:]!='.WAV':
+            del list_files2[i-count] #delete files that aren't audio
+            count+=1 #len changes, take this into account        
+    #set parameters
     para=AD1.set_parameters()
     if 'dim1' in optional and 'dim2' in optional:
         network_dim=(optional['dim1'], optional['dim2'])
@@ -65,7 +93,7 @@ def fit_SOM(list_files, **optional):
         raw_data=optional['features']
     else:
         #first file
-        rectangles1, regions1, spectros1=AD2.spect_loop(list_files2[0])
+        rectangles1, regions1, spectros1=AD2.spect_loop(list_files2[0], **optional)
         num_reg=AD3.calc_num_regions(regions1)
         freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD1.loading_init(**optional)
         features1, _, _=AD3.calc_features(rectangles1, regions1, regions_temp, num_reg, list_bats, num_total)
@@ -73,7 +101,7 @@ def fit_SOM(list_files, **optional):
         raw_data=np.concatenate((raw_data, features1), axis=1)
         #other files
         for i in range(1, len(list_files2)):
-            rectangles1, regions1, spectros1=AD2.spect_loop(list_files2[i])
+            rectangles1, regions1, spectros1=AD2.spect_loop(list_files2[i], **optional)
             num_reg=AD3.calc_num_regions(regions1)
             features1, features_key1, features_freq1=AD3.calc_features(rectangles1, regions1, regions_temp, num_reg, list_bats, num_total)
             raw_data=np.concatenate((raw_data, features1), axis=1)
@@ -532,7 +560,7 @@ def fit_dml(**optional):
         #calculate features
         features=AD3.calc_features2(rectangles, regions, templates, list_bats, num_total)
         X=np.transpose(features)
-        Y=np.zeros((X.shape[1],), dtype=np.uint8)
+        Y=np.zeros((X.shape[0],), dtype=np.uint8)
         #Fill in Y matrix
         count=0
         #go through the templates

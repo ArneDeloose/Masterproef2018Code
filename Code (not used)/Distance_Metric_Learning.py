@@ -2,7 +2,8 @@
 import os
 path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Modules';
 os.chdir(path)
-import AD_functions as AD
+import AD1_Loading as AD1
+import AD3_Features as AD3
 path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
 os.chdir(path)
 import numpy as np
@@ -16,13 +17,11 @@ freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_
 rectangles1=rectangles_temp
 regions1=regions_temp
 templates1=regions_temp
-#leave out last ten regions so you have more datapoints than features 
-for i in range(75,85):
-    del templates1[i]
+
 
 
 #calc features
-features=AD.calc_features2(rectangles1, regions1, templates1, list_bats, num_total)
+features=AD3.calc_features2(rectangles1, regions1, templates1, list_bats, num_total)
 X=np.transpose(features)
 
 Y=np.zeros((85,), dtype=np.uint8)
