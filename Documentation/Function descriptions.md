@@ -310,6 +310,12 @@ Makes a list of files to be analysed given several optional arguments
 
 ---
 
+calc_center(region, time, min_freq, max_freq, rectangle), return(region_center)
+
+Places a region within a fixed box for a plot.
+
+---
+
 **Module 5: AD5_MDS:**
 
 ---

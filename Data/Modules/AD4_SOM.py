@@ -337,18 +337,32 @@ def calc_matching(full_name, **optional):
             M[i,j]=len(full_name[i][j])
     return(M)
 
-#Plots regions per neuron    
-def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim1, dim2, point, **optional):
+#Plots regions per neuron
+#arguments:
+#Dim1: first dimension, used to select a specific neuron
+#Dim 2: second dimension, used to select a specific neuron
+#Point: all matches are ordered according to distance. 
+#The maximum of this slider is set to the maximum amount of possible matches (highest neuron). 
+#So if the maximum is 20, it is possible a neuron only has 10 matches. The remaining 10 matches will show an empty plot.
+#max_time: width of the plot in ms (between 1 and 10)
+#Min_freq: minimum frequency of the plot in kHz (between 20 and 120)
+#Max_freq: maximum frequency of the plot in kHz (between 20 and 120)
+#Context: 0 or 1. If this is put on 1, a second plot is shown to the left which is zoomed out more.
+#FI: 0 or 1. If this is put on 1, a second plot is shown to the right which shows a frequency-intensity diagram.
+#fig_size: size of the figure (between 1 and 10)
+
+def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim1, dim2, point, max_time, min_freq, max_freq, context, FI, fig_size, **optional):
+    #parameters
     if 'context_window_freq' in optional:
         context_window_freq=optional['context_window_freq']
     else:
         para=AD1.set_parameters()
         context_window_freq=para[15]
-    if 'fig_size' in optional:
-        fig_size=optional['fig_size']
-    else:
-        para=AD1.set_parameters()
-        fig_size=para[16]
+    #if 'fig_size' in optional:
+        #fig_size=optional['fig_size']
+    #else:
+        #para=AD1.set_parameters()
+        #fig_size=para[16]
     #set frequency cutoff
     freq1_index=full_rectangle[dim1][dim2][point][1]-context_window_freq
     if freq1_index<0:
@@ -356,55 +370,92 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     freq2_index=full_rectangle[dim1][dim2][point][1]+full_rectangle[dim1][dim2][point][3]+context_window_freq
     if freq2_index>full_spectro[dim1][dim2][point].shape[0]:
         freq2_index=full_spectro[dim1][dim2][point].shape[0]
-    f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=fig_size,  gridspec_kw = {'width_ratios':[4, 1, 1]})
     
-    #image 1 (full spectro)
+    #size
+    fig_size=(fig_size, fig_size)
     
-    ax1.imshow(full_spectro[dim1][dim2][point][freq1_index:freq2_index], origin='lower', aspect='auto')
-    rect = patches.Rectangle((full_rectangle[dim1][dim2][point][0], full_rectangle[dim1][dim2][point][1]-freq1_index),
-                              full_rectangle[dim1][dim2][point][2], full_rectangle[dim1][dim2][point][3],
-                              linewidth=1, edgecolor='r',facecolor='none')
-    # Add the patch to the Axes
-    ax1.add_patch(rect)
+    #create plot
+    if context==1 and FI==1:
+        f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=fig_size,  gridspec_kw = {'width_ratios':[1, 1, 1]})
+    if context==1 and FI==0:
+        f, (ax1, ax2) = plt.subplots(1, 2, figsize=fig_size,  gridspec_kw = {'width_ratios':[1, 1]})
+    if context==0 and FI==1:
+        f, (ax2, ax3) = plt.subplots(1, 2, figsize=fig_size,  gridspec_kw = {'width_ratios':[1, 1]})
+    if context==0 and FI==0:
+        f, (ax2) = plt.subplots(1, 1, figsize=fig_size)
+     
+    #Middle image, always on 
+    
+    region_center=AD4.calc_center(full_region[dim1][dim2][point], time, min_freq, max_freq, full_rectangle[dim1][dim2][point])
+    
+    ax2.imshow(region_center, origin='lower', aspect='equal')
+    
+    #set up the axis
     plt.draw() #sets up the ticks
-    labels_Y = [item.get_text() for item in ax1.get_yticklabels()] #original labels
+    #set labels
+    labels_Y = [item.get_text() for item in ax2.get_yticklabels()] #original labels
     labels_y=list() #new labels
     labels_y.append(labels_Y[0])
     for i in range(1, len(labels_Y)):
-        labels_y.append(str(float((float(labels_Y[i])+freq1_index)*0.375)))
-    labels_X = [item.get_text() for item in ax1.get_xticklabels()]
+            labels_y.append(str(round(float((float(labels_Y[i])*0.375)+min_freq), 2)))
+    labels_X = [item.get_text() for item in ax2.get_xticklabels()] #original labels
     labels_x=list()
     labels_x.append(labels_X[0])
     for i in range(1, len(labels_X)):
-        labels_x.append(str(int(int(labels_X[i])*2.34375))) #convert to ms
-    ax1.set_xticklabels(labels_x)
-    ax1.set_yticklabels(labels_y)
-    ax1.set_xlabel('Time (ms)')
-    ax1.set_ylabel('Frequency (kHz)')
+        labels_x.append(str(round(float(float(labels_X[i])/2.34375), 2))) #convert to ms
+    ax2.set_xticklabels(labels_x)
+    ax2.set_yticklabels(labels_y)
+    ax2.set_xlabel('Time (ms)')
+    ax2.set_ylabel('Frequency (kHz)')   
     
-    #image 2 (detail spectro)
     
-    ax2.imshow(full_region[dim1][dim2][point], origin='lower')
+    #Left image (full spectro), only of context is on
     
-    #Image 3 (FI plot)
+    if context==1:
+        #image
+        ax1.imshow(full_spectro[dim1][dim2][point][freq1_index:freq2_index], origin='lower', aspect='auto')
+        #rectangle
+        rect = patches.Rectangle((full_rectangle[dim1][dim2][point][0], full_rectangle[dim1][dim2][point][1]-freq1_index),
+                              full_rectangle[dim1][dim2][point][2], full_rectangle[dim1][dim2][point][3],
+                              linewidth=1, edgecolor='r',facecolor='none')
+        # Add the patch to the Axes
+        ax1.add_patch(rect)
+        plt.draw() #sets up the ticks
+        #set labels
+        labels_Y = [item.get_text() for item in ax1.get_yticklabels()] #original labels
+        labels_y=list() #new labels
+        labels_y.append(labels_Y[0])
+        for i in range(1, len(labels_Y)):
+            labels_y.append(str(float((float(labels_Y[i])+freq1_index)*0.375)))
+        labels_X = [item.get_text() for item in ax1.get_xticklabels()]
+        labels_x=list()
+        labels_x.append(labels_X[0])
+        for i in range(1, len(labels_X)):
+            labels_x.append(str(int(int(labels_X[i])/2.34375))) #convert to ms
+        ax1.set_xticklabels(labels_x)
+        ax1.set_yticklabels(labels_y)
+        ax1.set_xlabel('Time (ms)')
+        ax1.set_ylabel('Frequency (kHz)')   
     
-    FI_matrix=AD4.calc_FI_matrix(full_region[dim1][dim2][point])
-    ax3.imshow(FI_matrix, origin='lower', aspect='auto')
-    plt.draw()
+    #Right image, if FI is on
     
-    labels_X = [item.get_text() for item in ax3.get_xticklabels()] #original labels
-    labels_x=list() #new labels
-    labels_x.append(labels_X[0])
-    for i in range(1, len(labels_X)):
-        labels_x.append(str(round((float(labels_X[i])+freq1_index+context_window_freq)*0.375, 2)))
-
-    ax3.set_xticklabels(labels_y)
-    ax3.set_xlabel('Frequency (kHz)')
-    ax3.set_ylabel('Intensity')
-
-    #title
-    ax1.set_title(full_name[dim1][dim2][point])
-    
+    if FI==1: 
+        #image
+        FI_matrix=AD4.calc_FI_matrix(full_region[dim1][dim2][point])
+        ax3.imshow(FI_matrix, origin='lower', aspect='auto')
+        plt.draw()
+        #labels    
+        labels_X = [item.get_text() for item in ax3.get_xticklabels()] #original labels
+        labels_x=list() #new labels
+        labels_x.append(labels_X[0])
+        for i in range(1, len(labels_X)):
+            labels_x.append(str(round((float(labels_X[i])+freq1_index+context_window_freq)*0.375, 2)))
+        ax3.set_xticklabels(labels_x)
+        ax3.set_xlabel('Frequency (kHz)')
+        ax3.set_ylabel('Intensity')
+    #title plot
+    ax2.set_title(full_name[dim1][dim2][point])
+    #show plot
     plt.show()
     plt.close()
     return()
@@ -523,7 +574,8 @@ def make_list(list_files, **optional):
     if 'Audio_data' in optional: #different Audio_data folder
         path=optional['Audio_data']
     else:
-        path=AD1.set_path()
+        path=AD1.set_path() #current working directory
+        path+='/Audio_data' #add Audio_data
     #folder and subfolder
     if 'folder' in optional: #read all files in folder
        if optional['folder']!='None': #True
@@ -559,9 +611,61 @@ def make_list(list_files, **optional):
     #Delete files that aren't .wav
     count=0
     for i in range(len(list_files2)):
-        if list_files2[i-count][-4:]!='.WAV':
+        if list_files2[i-count][-4:]!='.WAV' and list_files2[i-count][-4:]!='.wav': #no wav file
             del list_files2[i-count] #delete files that aren't audio
             count+=1 #len changes, take this into account        
     
     return(list_files2)
 
+#places region within a fixed box
+#bounding box: time_pixels, freq pixels
+#region: start_h, end_time    
+def calc_center(region, time, min_freq, max_freq, rectangle):
+    #convert to pixels
+    para=AD1.set_parameters()
+    #keep in mind a spectrogram starts counting at a specific frequency
+    min_spec_freq=para[4]
+    time_pixels=int(time/0.32)
+    freq_pixels=int((max_freq-min_freq)/0.375)
+    region_center=np.zeros((freq_pixels, time_pixels), dtype=np.uint8)
+    #location of start and end frequency region above min_freq
+    starting_height=(rectangle[1]*0.375)-min_freq+(min_spec_freq*0.375) #in kHz
+    ending_height=((rectangle[1]+rectangle[3])*0.375)-min_freq+(min_spec_freq*0.375) #in kHz
+    #in pixels
+    start_h=int(starting_height/0.375) #start height in pixels 
+    end_h=int(ending_height/0.375) #ending height in pixels 
+    #time where region ends
+    end_time=rectangle[2] #in pixels
+    #check boundaries
+    
+    #starting height
+    if starting_height>0: #start of region is above bounding box, fits inside
+        start_j=start_h
+        offset_j=0
+    else: #start of region is below bounding box, start filling region_center at zero
+        start_j=0
+        offset_j=int(-starting_height/0.375) #amount of pixels below cutoff
+    #ending height
+    if end_h<freq_pixels: #end of region is below bounding box, fits inside
+        end_j=end_h
+    else: #end of region is above bounding box, stop filling at freq_pixels (end of bounding box)
+        end_j=freq_pixels
+    start_i=0 #always start filling time at zero
+    #ending time
+    if end_time<time_pixels: #end of region is to the left of bounding box, fits inside
+        end_i=end_time
+    else: #end of region is to the right of bounding box, stop filling at end of bounding box
+        end_i=time_pixels
+    
+    #coordinates in region
+    count_j=0
+    count_i=0
+    #fill in array
+    for i in range(start_i, end_i): #column
+        for j in range(start_j, end_j): #row
+            region_center[j, i]=region[offset_j+count_j, count_i]
+            count_j+=1
+        count_j=0 #next column starts
+        count_i+=1
+ 
+    return(region_center)
