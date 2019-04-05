@@ -352,24 +352,17 @@ def calc_matching(full_name, **optional):
 #fig_size: size of the figure (between 1 and 10)
 
 def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim1, dim2, point, max_time, min_freq, max_freq, context, FI, fig_size, **optional):
+    if not point in full_rectangle[dim1][dim2]: #reached the end of the matches
+        plot_flag=False
+    else:
+        plot_flag=True   
+        region_center=AD4.calc_center(full_region[dim1][dim2][point], max_time, min_freq, max_freq, full_rectangle[dim1][dim2][point])
     #parameters
     if 'context_window_freq' in optional:
         context_window_freq=optional['context_window_freq']
     else:
         para=AD1.set_parameters()
         context_window_freq=para[15]
-    #if 'fig_size' in optional:
-        #fig_size=optional['fig_size']
-    #else:
-        #para=AD1.set_parameters()
-        #fig_size=para[16]
-    #set frequency cutoff
-    freq1_index=full_rectangle[dim1][dim2][point][1]-context_window_freq
-    if freq1_index<0:
-        freq1_index=0
-    freq2_index=full_rectangle[dim1][dim2][point][1]+full_rectangle[dim1][dim2][point][3]+context_window_freq
-    if freq2_index>full_spectro[dim1][dim2][point].shape[0]:
-        freq2_index=full_spectro[dim1][dim2][point].shape[0]
     
     #size
     fig_size=(fig_size, fig_size)
@@ -385,33 +378,38 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
         f, (ax2) = plt.subplots(1, 1, figsize=fig_size)
      
     #Middle image, always on 
-    
-    region_center=AD4.calc_center(full_region[dim1][dim2][point], time, min_freq, max_freq, full_rectangle[dim1][dim2][point])
-    
-    ax2.imshow(region_center, origin='lower', aspect='equal')
-    
-    #set up the axis
-    plt.draw() #sets up the ticks
-    #set labels
-    labels_Y = [item.get_text() for item in ax2.get_yticklabels()] #original labels
-    labels_y=list() #new labels
-    labels_y.append(labels_Y[0])
-    for i in range(1, len(labels_Y)):
+        
+    if plot_flag:
+        ax2.imshow(region_center, origin='lower', aspect='equal')
+        #set up the axis
+        plt.draw() #sets up the ticks
+        #set labels
+        labels_Y = [item.get_text() for item in ax2.get_yticklabels()] #original labels
+        labels_y=list() #new labels
+        labels_y.append(labels_Y[0])
+        for i in range(1, len(labels_Y)):
             labels_y.append(str(round(float((float(labels_Y[i])*0.375)+min_freq), 2)))
-    labels_X = [item.get_text() for item in ax2.get_xticklabels()] #original labels
-    labels_x=list()
-    labels_x.append(labels_X[0])
-    for i in range(1, len(labels_X)):
-        labels_x.append(str(round(float(float(labels_X[i])/2.34375), 2))) #convert to ms
-    ax2.set_xticklabels(labels_x)
-    ax2.set_yticklabels(labels_y)
-    ax2.set_xlabel('Time (ms)')
-    ax2.set_ylabel('Frequency (kHz)')   
-    
+        labels_X = [item.get_text() for item in ax2.get_xticklabels()] #original labels
+        labels_x=list()
+        labels_x.append(labels_X[0])
+        for i in range(1, len(labels_X)):
+            labels_x.append(str(round(float(float(labels_X[i])/2.34375), 2))) #convert to ms
+            ax2.set_xticklabels(labels_x)
+            ax2.set_yticklabels(labels_y)
+            ax2.set_xlabel('Time (ms)')
+            ax2.set_ylabel('Frequency (kHz)')   
+    else: #show empty image
+        ax2.imshow(np.zeros((1,1)))
     
     #Left image (full spectro), only of context is on
     
-    if context==1:
+    if context==1 and plot_flag:
+        freq1_index=full_rectangle[dim1][dim2][point][1]-context_window_freq
+        if freq1_index<0:
+            freq1_index=0
+        freq2_index=full_rectangle[dim1][dim2][point][1]+full_rectangle[dim1][dim2][point][3]+context_window_freq
+        if freq2_index>full_spectro[dim1][dim2][point].shape[0]:
+            freq2_index=full_spectro[dim1][dim2][point].shape[0]
         #image
         ax1.imshow(full_spectro[dim1][dim2][point][freq1_index:freq2_index], origin='lower', aspect='auto')
         #rectangle
@@ -439,7 +437,13 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     
     #Right image, if FI is on
     
-    if FI==1: 
+    if FI==1 and plot_flag:
+        freq1_index=full_rectangle[dim1][dim2][point][1]-context_window_freq
+        if freq1_index<0:
+            freq1_index=0
+        freq2_index=full_rectangle[dim1][dim2][point][1]+full_rectangle[dim1][dim2][point][3]+context_window_freq
+        if freq2_index>full_spectro[dim1][dim2][point].shape[0]:
+            freq2_index=full_spectro[dim1][dim2][point].shape[0]
         #image
         FI_matrix=AD4.calc_FI_matrix(full_region[dim1][dim2][point])
         ax3.imshow(FI_matrix, origin='lower', aspect='auto')
@@ -454,7 +458,10 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
         ax3.set_xlabel('Frequency (kHz)')
         ax3.set_ylabel('Intensity')
     #title plot
-    ax2.set_title(full_name[dim1][dim2][point])
+    if plot_flag:   
+        ax2.set_title(full_name[dim1][dim2][point])
+    else:
+        ax2.set_title("No more matches. Change sliders.")
     #show plot
     plt.show()
     plt.close()
