@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from scipy import signal
 import cv2
 import pywt
-import os
 import matplotlib.patches as patches
 
 #load modules

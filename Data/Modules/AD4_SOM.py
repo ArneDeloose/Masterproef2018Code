@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
 import dml
+import math
 
 #load modules
 import AD1_Loading as AD1
@@ -637,12 +638,11 @@ def calc_center(region, time, min_freq, max_freq, rectangle):
     region_center=np.zeros((freq_pixels, time_pixels), dtype=np.uint8)
     #location of start and end frequency region above min_freq
     starting_height=(rectangle[1]*0.375)-min_freq+(min_spec_freq*0.375) #in kHz
-    ending_height=((rectangle[1]+rectangle[3])*0.375)-min_freq+(min_spec_freq*0.375) #in kHz
     #in pixels
-    start_h=int(starting_height/0.375) #start height in pixels 
-    end_h=int(ending_height/0.375) #ending height in pixels 
+    start_h=math.ceil(starting_height/0.375) #start height in pixels (round up) 
+    end_h=start_h+region.shape[0] #ending height in pixels
     #time where region ends
-    end_time=rectangle[2] #in pixels
+    end_time=region.shape[1] #in pixels
     #check boundaries
     
     #starting height
