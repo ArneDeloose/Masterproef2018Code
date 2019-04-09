@@ -676,3 +676,97 @@ def calc_center(region, time, min_freq, max_freq, rectangle):
         count_i+=1
  
     return(region_center)
+
+#make a plot to evaluate the SOM
+#optional arguments:
+    #path: pathway to the data
+    #dim1 and dim2: dimensions SOM
+    #Full: use all data in Audio_data to fit SOM
+    #List_files: use a list of files to fit SOM
+    #title: title of the plot
+    #export: pathway to export the plot
+def evaluation_SOM(**optional):
+    #set parameters
+    if 'path' in optional:
+        path=optional['path']
+    else:
+        path=AD1.set_path()
+    if 'dim1' in optional and 'dim2' in optional:
+        network_dim=(optional['dim1'], optional['dim2'])
+    else:
+        para=AD1.set_parameters()
+        network_dim= para[9]
+    
+    #calculate input and output
+    list_bats, _=AD1.set_batscolor(Templates=path) #bat species
+    num_bats, num_total=AD1.set_numbats(list_bats, Templates=path) #number of each bat species
+    num_bats_dml, num_total_dml=AD1.set_numbats(list_bats, Templates=path+'/Templates_dml')
+    #read normal templates
+    regions, rectangles=AD1.read_templates(Templates=path)
+    #read dml_templates
+    regions2, rectangles2=AD1.read_templates(Templates=path+'/Templates_dml')
+    #set variables
+    templates=regions.copy()
+    #combine both rectangles and regions
+    for k in range(num_total_dml):
+        rectangles[num_total+k]=rectangles2[k]
+        regions[num_total+k]=regions2[k]
+        
+    #calculate features
+    X=AD3.calc_features2(rectangles, regions, templates, list_bats, num_total)
+    Y=np.zeros((X.shape[1],), dtype=np.uint8)
+    #Fill in Y matrix
+    count=0
+    #go through the templates
+    for i in range(len(list_bats)): #i corresponds to a bat species 
+        for j in range(num_bats[i]): #number of this type of bat
+            Y[count]=i
+            count+=1
+    #same thing, but for templates_dml
+    for i in range(len(list_bats)): #i corresponds to a bat species 
+        for j in range(num_bats_dml[i]): #number of this type of bat
+            Y[count]=i
+            count+=1
+    
+    #calculate dml        
+    D=AD4.fit_dml(X_data=np.transpose(X), Y_data=Y)
+    
+    #make a SOM
+    if 'Full' in optional and optional['Full']: #if Full_flag is present and set to true
+        list_files=0
+        net, raw_data=AD4.fit_SOM(list_files, full=optional['full'], dim1=network_dim[0], dim2=network_dim[1], DML=D)
+    elif 'List_files' in optional: #fit 
+        Full_flag=False
+        net, raw_data=AD4.fit_SOM(optional['List_files'], full=Full_flag, dim1=network_dim[0], dim2=network_dim[1], DML=D)
+    else:
+        list_files=0 #is overwritten by features
+        Full_flag=False #overwritten by features
+        net, raw_data=AD4.fit_SOM(list_files, full=Full_flag, dim1=network_dim[0], dim2=network_dim[1], DML=D, features=X)
+    
+    #make a plot
+    m=X.shape[0]
+
+    count=np.zeros((len(list_bats),), dtype=np.uint8)
+    col_list=['ro', 'bo']
+    for i in range(X.shape[1]):
+        for j in range(len(list_bats)):
+            #take the datapoint and the bmu
+            t=X[:,i].reshape(np.array([m, 1])) 
+            bmu, bmu_idx=AD4.find_bmu(t, net, m, D)
+            if Y[i]==j: #class j
+                col=col_list[j]
+                if count[j]==0: #first hit
+                    label=list_bats[j] #needed for legend
+                    count[j]+=1 #only do this once
+                else:
+                    label=None
+    #make the plot
+    plt.plot(bmu_idx[0], bmu_idx[1], col, label=label)
+    plt.legend()
+    #optional
+    if 'title' in optional:
+        plt.title(optional['title'])
+    if 'export' in optional:
+        plt.savefig(optional['export'])
+    plt.close()
+    return()
