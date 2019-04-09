@@ -231,21 +231,23 @@ def show_region(rectangles, spectros, i, **optional):
     labels_X = [item.get_text() for item in ax1.get_xticklabels()]
     labels_Y = [item.get_text() for item in ax1.get_yticklabels()]
     labels_X[1]=0
-    labels_X[2]=t_max
+    labels_X[-2]=t_max
     for i in range(1, len(labels_Y)-1):
        labels_Y[i]=int((spec_max-spec_min)*(i-1)/(len(labels_Y)-3)+spec_min)
     ax1.set_xticklabels(labels_X)
     ax1.set_yticklabels(labels_Y)
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Frequency (kHz)')
     plt.show()    
-    if 'path' in optional:
-        f.savefig(optional['path']+'.jpg', format='jpg', dpi=1200)
+    if 'export' in optional:
+        f.savefig(optional['export']+'.png', format='png', dpi=1200)
     plt.close()
     return()
 
 #Cycles through all the regions within a spectro dictionary
 def show_mregions(rectangles, spectros):
     for i,d in rectangles.items():
-        AD1.show_region(rectangles, spectros, i)
+        AD2.show_region(rectangles, spectros, i)
         input('Press enter to continue')
     return()
     
@@ -275,13 +277,13 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
         path+='/Templates_dml' #add this to the pathway
     elif 'eval' in optional and optional['eval']: #present and true
         path+='/Templates_eval' #add this to the pathway
-    #create folders if need be
-    AD1.make_folders(path)
     #extract regions and rectangles
     list_bats, _=AD1.set_batscolor()
     num_bats, _=AD1.set_numbats(list_bats, **optional)
     rectangles, regions, _=AD2.spect_loop(file_name, **optional)
-    #make hash-codes
+    #create folders if need be
+    AD1.make_folders(path, list_bats+[bat_name])
+    #make hash-code
     hash_code=hash(str(regions[int(timestep)][region_num]))
     #save image
     path_image=path + '/Templates_images/' + bat_name + '/' + str(hash_code) + '.png'
