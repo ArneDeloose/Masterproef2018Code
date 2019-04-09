@@ -747,7 +747,8 @@ def evaluation_SOM(**optional):
     m=X.shape[0]
 
     count=np.zeros((len(list_bats),), dtype=np.uint8)
-    col_list=['ro', 'bo']
+    col_list=['ro', 'g>', 'b*', 'cv', 'm^', 'k,', 'r<', 'g1', 'b2', 'c3', 'm4',
+              'k8', 'rs', 'gp', 'ch', 'md']
     for i in range(X.shape[1]):
         for j in range(len(list_bats)):
             #take the datapoint and the bmu
