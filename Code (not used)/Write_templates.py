@@ -10,7 +10,7 @@ list_bats=['']
 AD1.make_folders(path, list_bats)
 
 #plot
-rectangles, regions, spectros=AD2.spect_loop('ppip-1µl1µA044_AAT.wav')
+rectangles, regions, spectros=AD2.spect_loop('mnat1.wav')
 AD2.show_mregions(rectangles, spectros)
 #AD2.show_region(rectangles, spectros, 2, export='overlap_figure_a')
 
@@ -36,8 +36,8 @@ nlei_list2=(0,0,0,0)
 for i in range(len(nlei_list1)):
     AD2.create_template('nlei-1_ppip-1µl1µA028_AAW.wav', nlei_list1[i], nlei_list2[i], 'nlei')
 
-
-
+#vmur: JORISTEST3__0__20181008_030843_001
+#mnat: 2018-08-17 22-12-06
 
 #templates=AD.read_templates()
 #_, regions2=AD.set_templates2()
