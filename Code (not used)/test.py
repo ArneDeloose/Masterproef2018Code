@@ -13,5 +13,5 @@ freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_
 
 
 
-a_arr=np.load('C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Templates_arrays/eser/-191291779997780151.npy')
-a_rec=np.load('C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Templates_rect/eser/1.npy')
+a_arr=np.load('C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Templates_arrays/pnat/-191291779997780151.npy')
+a_rec=np.load('C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Templates_rect/pnat/1.npy')
