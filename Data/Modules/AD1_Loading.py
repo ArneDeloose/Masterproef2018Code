@@ -89,8 +89,8 @@ def read_templates(**optional):
     rectangles={}
     count=0
     for i in range(len(list_bats)):
-        list_files_arrays=os.listdir(path + '/Templates_arrays/' + list_bats[i]) #list all files in folder
-        list_files_rect=os.listdir(path + '/Templates_rect/' + list_bats[i])
+        list_files_arrays=sorted(os.listdir(path + '/Templates_arrays/' + list_bats[i])) #list all files in folder
+        list_files_rect=sorted(os.listdir(path + '/Templates_rect/' + list_bats[i]))
         count1=0
         count2=0
         for k in range(len(list_files_arrays)):
@@ -106,6 +106,8 @@ def read_templates(**optional):
             full_path_rec=path+ '/Templates_rect/' + list_bats[i] + '/' + list_files_rect[j]
             regions[count]=np.load(full_path)
             rectangles[count]=np.load(full_path_rec)
+            print(str(count)+ ': ' +str(list_files_arrays[j]))
+            print(str(count)+ ': ' + str(list_files_rect[j]))
             count+=1
     return(regions, rectangles)
 
@@ -159,7 +161,7 @@ def set_numbats(list_bats, **optional): #sets the number of templates per bat
     for i in range(len(list_bats)):
         path2=list_bats[i]
         full_path=path + '/Templates_arrays/' + path2
-        files_list= os.listdir(full_path) #list all templates in folder
+        files_list= sorted(os.listdir(full_path)) #list all templates in folder
         num_bats[i] = len(files_list) #number of templates
     num_total=sum(num_bats)
     return(num_bats, num_total)
@@ -199,7 +201,7 @@ def set_batscolor(**optional): #dictionary linking bats to colors
         path=AD1.set_path()
     path=AD1.set_path()
     colors_bat={}
-    list_bats=os.listdir(path + '/Templates_arrays')
+    list_bats=sorted(os.listdir(path + '/Templates_arrays'))
     colors=("#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
             "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
             "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700")
@@ -216,5 +218,5 @@ def print_features(**optional):
     for i in range(len(list_bats)):
         a+=1
         print(list_bats[i] + ': ' + str(a) + '-' + str(a+num_bats[i]))
-        a+=num_bats[i]
+        a+=num_bats[i]-1
     return()

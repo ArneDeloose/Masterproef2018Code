@@ -589,14 +589,14 @@ def make_list(list_files, **optional):
        if optional['folder']!='None': #True
            if 'subfolders' in optional: #subfolders within Audio_data
                if optional['subfolders']: #true, subfolders
-                   folders_list=os.listdir(path + '/' + optional['folder'])
+                   folders_list=sorted(os.listdir(path + '/' + optional['folder']))
                    list_files2=list() #empty list
                    for k in range(len(folders_list)): #amend list
-                       list_files2+=os.listdir(path + '/' + optional['folder'] + '/' + folders_list[k])
+                       list_files2+=sorted(os.listdir(path + '/' + optional['folder'] + '/' + folders_list[k]))
                else: #false, no subfolders
-                   list_files2=os.listdir(path + '/' + optional['folder'])
+                   list_files2=sorted(os.listdir(path + '/' + optional['folder']))
            else: #argument not present, assume no subfolders
-               list_files2=os.listdir(path + '/' + optional['folder'])
+               list_files2=sorted(os.listdir(path + '/' + optional['folder']))
        else: #folder equals 'None', fall back on list_files
            list_files2=list_files
     else: #folder argument not present, fall back on list_files
@@ -606,14 +606,14 @@ def make_list(list_files, **optional):
        if optional['full']: #True
            if 'subfolders' in optional: #subfolders within Audio_data
                if optional['subfolders']: #true, subfolders
-                   folders_list=os.listdir(path)
+                   folders_list=sorted(os.listdir(path))
                    list_files2=list() #empty list
                    for k in range(len(folders_list)): #amend list
-                       list_files2+=os.listdir(path + '/' + folders_list[k])
+                       list_files2+=sorted(os.listdir(path + '/' + folders_list[k]))
                else: #false, no subfolders
-                   list_files2=os.listdir(path)
+                   list_files2=sorted(os.listdir(path))
            else: #argument not present, assume no subfolders
-               list_files2=os.listdir(path)
+               list_files2=sorted(os.listdir(path))
        else: #full equals False, fall back on list_files
            list_files2=list_files
     #Delete files that aren't .wav
