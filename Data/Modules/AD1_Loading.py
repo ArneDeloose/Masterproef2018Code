@@ -106,8 +106,6 @@ def read_templates(**optional):
             full_path_rec=path+ '/Templates_rect/' + list_bats[i] + '/' + list_files_rect[j]
             regions[count]=np.load(full_path)
             rectangles[count]=np.load(full_path_rec)
-            print(str(count)+ ': ' +str(list_files_arrays[j]))
-            print(str(count)+ ': ' + str(list_files_rect[j]))
             count+=1
     return(regions, rectangles)
 
