@@ -28,7 +28,7 @@ def spect(file_name, **optional):
     else:
         spect_window_overlap=para[7]
     #Reads information from audio file
-    [sample_rate,samples]=scipy.io.wavfile.read(file_name, mmap=False);
+    [sample_rate,samples]=scipy.io.wavfile.read(file_name, mmap=False)
     if 'channel' in optional:
         if optional['channel']=='l':
             samples=samples[:,0]
@@ -97,13 +97,9 @@ def spect_loop(file_name, **optional):
     regions={};
     spectros={};
     sample_rate, samples, _, _,steps= AD2.spect('Audio_data/'+ file_name, **optional);
-    if 'channel' in optional:
-        if 'exp_factor' in optional:
+    if 'exp_factor' in optional:
             sample_rate=optional['exp_factor']*sample_rate
             steps=math.floor(steps/optional['exp_factor'])
-        else: #default value
-            sample_rate=10*sample_rate
-            steps=math.floor(steps/10)
     start_index=0
     stop_index=int(spect_window_overlap*len(samples)/(steps*spect_window))
     for i in range(steps):
@@ -214,8 +210,8 @@ def show_region(rectangles, spectros, i, **optional):
         spec_max=optional['spec_max']
     else:
         spec_max=para[18]
-    if 't_max' in optional:
-        t_max=optional['t_max']
+    if 'spect_window' in optional:
+        t_max=optional['spect_window']
     else:
         t_max=para[6]
     f, ax1 = plt.subplots()
@@ -245,9 +241,9 @@ def show_region(rectangles, spectros, i, **optional):
     return()
 
 #Cycles through all the regions within a spectro dictionary
-def show_mregions(rectangles, spectros):
+def show_mregions(rectangles, spectros, **optional):
     for i,d in rectangles.items():
-        AD2.show_region(rectangles, spectros, i)
+        AD2.show_region(rectangles, spectros, i, **optional)
         input('Press enter to continue')
     return()
     
@@ -273,16 +269,32 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
         path=optional['Templates']
     else:
         path=AD1.set_path()
-    if 'dml' in optional and optional['dml']: #present and true
-        path+='/Templates_dml' #add this to the pathway
-    elif 'eval' in optional and optional['eval']: #present and true
-        path+='/Templates_eval' #add this to the pathway
+    path_original=path #needed for make_folders
+    if 'template_type' in optional:
+        if optional['template_type']=='regular':
+            path+='/Templates_regular' #add this to the pathway
+        if optional['template_type']=='dml':
+            path+='/Templates_dml' #add this to the pathway
+        if optional['template_type']=='evaluate':
+            path+='/Templates_eval' #add this to the pathway
+        else: #default to regular
+            path+='/Templates_regular' #add this to the pathway
+            print('Warning: template type is not valid. \'regular\' was selected instead')
+    else: #default to regular
+        path+='/Templates_regular' #add this to the pathway
+        print('Warning: template type is not given. \'regular\' was selected.')
+    
     #extract regions and rectangles
     list_bats, _=AD1.set_batscolor()
     num_bats, _=AD1.set_numbats(list_bats, **optional)
     rectangles, regions, _=AD2.spect_loop(file_name, **optional)
     #create folders if need be
-    AD1.make_folders(path, list_bats+[bat_name])
+    path_regular=path_original+'/Templates_regular'
+    path_dml=path_original+'/Templates_dml'
+    path_eval=path_original+'/Templates_eval'
+    AD1.make_folders(path_regular, list_bats+[bat_name])
+    AD1.make_folders(path_dml, list_bats+[bat_name])
+    AD1.make_folders(path_eval, list_bats+[bat_name])
     #make hash-code
     hash_code=hash(str(regions[int(timestep)][region_num]))
     #save image

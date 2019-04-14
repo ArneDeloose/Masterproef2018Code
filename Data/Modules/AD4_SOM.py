@@ -23,7 +23,6 @@ import AD4_SOM as AD4
 #The optional argument 'features'
 #This code puts everything in order and then calls the function 'SOM'.
 def fit_SOM(list_files, **optional):
-    list_files2=AD4.make_list(list_files, **optional)
     #set parameters
     para=AD1.set_parameters()
     if 'dim1' in optional and 'dim2' in optional:
@@ -50,6 +49,7 @@ def fit_SOM(list_files, **optional):
     if 'features' in optional:
         raw_data=optional['features']
     else:
+        list_files2=AD4.make_list(list_files, **optional) #create a list of files to be analyses
         #first file
         rectangles1, regions1, spectros1=AD2.spect_loop(list_files2[0], **optional)
         num_reg=AD3.calc_num_regions(regions1)
@@ -532,6 +532,7 @@ def fit_dml(**optional):
         path=optional['path']
     else:
         path=AD1.set_path()
+        path+='/Templates_regular'
     if 'data_X' in optional and 'data_Y' in optional: #data given
         X=optional['data_X']
         Y=optional['data_Y']
@@ -685,6 +686,7 @@ def calc_center(region, time, min_freq, max_freq, rectangle):
     #List_files: use a list of files to fit SOM
     #title: title of the plot
     #export: pathway to export the plot
+    #fit eval: if true, use eval data on SOM
 def evaluation_SOM(**optional):
     #set parameters
     if 'path' in optional:
@@ -697,22 +699,28 @@ def evaluation_SOM(**optional):
         para=AD1.set_parameters()
         network_dim= para[9]
     
-    #calculate input and output
-    list_bats, _=AD1.set_batscolor(Templates=path) #bat species
-    num_bats, num_total=AD1.set_numbats(list_bats, Templates=path) #number of each bat species
+    #calculate num_bats
+    list_bats, _=AD1.set_batscolor(Templates=path+'/Templates_regular') #bat species
+    num_bats, num_total=AD1.set_numbats(list_bats, Templates=path+'/Templates_regular') #number of each bat species
     num_bats_dml, num_total_dml=AD1.set_numbats(list_bats, Templates=path+'/Templates_dml')
+    num_bats_eval, num_total_eval=AD1.set_numbats(list_bats, Templates=path+'/Templates_eval')
+    
     #read normal templates
-    regions, rectangles=AD1.read_templates(Templates=path)
+    regions, rectangles=AD1.read_templates(Templates=path+'/Templates_regular')
     #read dml_templates
     regions2, rectangles2=AD1.read_templates(Templates=path+'/Templates_dml')
-    #set variables
+    #read eval_templates
+    regions3, rectangles3=AD1.read_templates(Templates=path+'/Templates_eval')
+    #set templates
     templates=regions.copy()
-    #combine both rectangles and regions
+    #combine rectangles and regions
     for k in range(num_total_dml):
         rectangles[num_total+k]=rectangles2[k]
         regions[num_total+k]=regions2[k]
-        
-    #calculate features
+    
+    print('Initialisation complete (1/3)')
+    
+    #calculate features for DML
     X=AD3.calc_features2(rectangles, regions, templates, list_bats, num_total)
     Y=np.zeros((X.shape[1],), dtype=np.uint8)
     #Fill in Y matrix
@@ -728,46 +736,112 @@ def evaluation_SOM(**optional):
             Y[count]=i
             count+=1
     
-    #calculate dml        
-    D=AD4.fit_dml(X_data=np.transpose(X), Y_data=Y)
+    #calculate dml
+    if 'dml' in optional:
+        D=optional['dml']
+    else:        
+        D=AD4.fit_dml(data_X=np.transpose(X), data_Y=Y)
+    
+    print('DML complete (2/3)')
+    
+    #add the final part to the data (eval)
+    for k in range(num_total_eval):
+        rectangles[num_total+num_total_dml+k]=rectangles3[k]
+        regions[num_total+num_total_dml+k]=regions3[k]
+    
+    #final data
+    X_final=AD3.calc_features2(rectangles, regions, templates, list_bats, num_total)
+    Y_final=np.zeros((X_final.shape[1],), dtype=np.uint8)
+    #Fill in Y matrix
+    Y_final[0:count]=Y #we already have this data
+    #add the eval templates
+    for i in range(len(list_bats)): #i corresponds to a bat species 
+        for j in range(num_bats_eval[i]): #number of this type of bat
+            Y_final[count]=i
+            count+=1
     
     #make a SOM
-    if 'Full' in optional and optional['Full']: #if Full_flag is present and set to true
-        list_files=0
-        net, raw_data=AD4.fit_SOM(list_files, full=optional['full'], dim1=network_dim[0], dim2=network_dim[1], DML=D)
-    elif 'List_files' in optional: #fit 
-        Full_flag=False
-        net, raw_data=AD4.fit_SOM(optional['List_files'], full=Full_flag, dim1=network_dim[0], dim2=network_dim[1], DML=D)
+    if 'SOM' in optional:
+        net=optional['SOM']
     else:
-        list_files=0 #is overwritten by features
-        Full_flag=False #overwritten by features
-        net, raw_data=AD4.fit_SOM(list_files, full=Full_flag, dim1=network_dim[0], dim2=network_dim[1], DML=D, features=X)
+        if 'Full' in optional and optional['Full']: #if Full_flag is present and set to true
+            list_files=0
+            net, raw_data=AD4.fit_SOM(list_files, full=optional['full'], dim1=network_dim[0], dim2=network_dim[1], DML=D)
+        elif 'List_files' in optional: #fit on list of files
+            Full_flag=False
+            net, raw_data=AD4.fit_SOM(optional['List_files'], full=Full_flag, dim1=network_dim[0], dim2=network_dim[1], DML=D)
+        else: #fit on templates only
+            list_files=0 #is overwritten by features
+            Full_flag=False #overwritten by features
+            if 'fit_eval' in optional and optional['eval_SOM']: #present and true, use eval data to fit SOM 
+                #use X_final
+                net, raw_data=AD4.fit_SOM(list_files, full=Full_flag, dim1=network_dim[0], dim2=network_dim[1], DML=D, features=X_final)
+            else: #exclude eval data to fit SOM
+                #use X
+                net, raw_data=AD4.fit_SOM(list_files, full=Full_flag, dim1=network_dim[0], dim2=network_dim[1], DML=D, features=X)
+    
+    print('SOM complete (3/3)')
     
     #make a plot
-    m=X.shape[0]
+    m=X_final.shape[0]
+    
+    f, ax1=plt.subplots()
 
     count=np.zeros((len(list_bats),), dtype=np.uint8)
-    col_list=['ro', 'g>', 'b*', 'cv', 'm^', 'k,', 'r<', 'g1', 'b2', 'c3', 'm4',
-              'k8', 'rs', 'gp', 'ch', 'md']
-    for i in range(X.shape[1]):
+    col_list=['ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
+              'k8', 'rs', 'gp', 'ch', 'm,']
+    for i in range(X_final.shape[1]):
         for j in range(len(list_bats)):
             #take the datapoint and the bmu
-            t=X[:,i].reshape(np.array([m, 1])) 
+            t=X_final[:,i].reshape(np.array([m, 1])) 
             bmu, bmu_idx=AD4.find_bmu(t, net, m, D)
-            if Y[i]==j: #class j
+            if Y_final[i]==j: #class j
                 col=col_list[j]
                 if count[j]==0: #first hit
-                    label=list_bats[j] #needed for legend
+                    ax1.plot(bmu_idx[0], bmu_idx[1], col, label=list_bats[j])
                     count[j]+=1 #only do this once
-                else:
-                    label=None
-    #make the plot
-    plt.plot(bmu_idx[0], bmu_idx[1], col, label=label)
-    plt.legend()
+                else: #plot without label
+                    ax1.plot(bmu_idx[0], bmu_idx[1], col)
+    #legend            
+    handles, labels = ax1.get_legend_handles_labels()            
+    plt.legend(handles, labels)
     #optional
     if 'title' in optional:
         plt.title(optional['title'])
     if 'export' in optional:
         plt.savefig(optional['export'])
+    plt.show()
     plt.close()
+    return(X_final, Y_final, net, D)
+
+def print_evaluate(**optional):
+    #set parameters
+    if 'path' in optional:
+        path=optional['path']
+    else:
+        path=AD1.set_path()
+    #calculate num_bats
+    list_bats, _=AD1.set_batscolor(Templates=path+'/Templates_regular') #bat species
+    num_bats, num_total=AD1.set_numbats(list_bats, Templates=path+'/Templates_regular') #number of each bat species
+    num_bats_dml, num_total_dml=AD1.set_numbats(list_bats, Templates=path+'/Templates_dml')
+    num_bats_eval, num_total_eval=AD1.set_numbats(list_bats, Templates=path+'/Templates_eval')
+    #print out
+    print('Regular templates: ')
+    for i in range(len(list_bats)):
+        print(list_bats[i]+ ': ' + str(num_bats[i]))
+    print('Total: ' + str(num_total))
+    
+    print(' ') #empty line 
+    print('dml templates: ')
+    for i in range(len(list_bats)):
+        print(list_bats[i]+ ': ' + str(num_bats_dml[i]))
+    print('Total: ' + str(num_total_dml))
+    
+    print(' ') #empty line
+    print('Evaluation templates: ')
+    for i in range(len(list_bats)):
+        print(list_bats[i]+ ': ' + str(num_bats_eval[i]))
+    print('Total: ' + str(num_total_eval))
+    
     return()
+
