@@ -687,6 +687,8 @@ def calc_center(region, time, min_freq, max_freq, rectangle):
     #title: title of the plot
     #export: pathway to export the plot
     #fit eval: if true, use eval data on SOM
+    #SOM: load in an existing SOM
+    #dml: load in an existing dml
 def evaluation_SOM(**optional):
     #set parameters
     if 'path' in optional:
@@ -805,6 +807,8 @@ def evaluation_SOM(**optional):
     #legend            
     handles, labels = ax1.get_legend_handles_labels()            
     plt.legend(handles, labels)
+    plt.xlabel('Index 1 SOM')
+    plt.ylabel('Index 2 SOM')
     #optional
     if 'title' in optional:
         plt.title(optional['title'])
