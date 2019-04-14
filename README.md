@@ -17,7 +17,13 @@ Navigate to the location of the downloaded folder and in the folder Data, open t
 
 The file 'Fitting' is used to fit a new SOM and a DML matrix. A DML matrix is fitted with data in the Templates folders. A SOM is fitted with data provided by the user.
 
-The file 'Analysis' requires a SOM and a DML matrix to be loaded in. This file contains a tool to visualise the audio data. New templates can be defined here as well. Keep in mind that a new SOM and DML must be fitted whenever a new template is defined (because the number of features changes).
+The file 'Analysis' requires a SOM and a DML matrix to be loaded in. This file contains a tool to visualise the audio data. New templates can be defined here as well. Keep in mind that a new SOM and DML must be fitted whenever a new regular template is defined (because the number of features changes).
+
+The file 'Evaluate' can be used to visualise labeled datapoints on a SOM plot to estimate the performance. Labeled datapoints are stored as eval templates. 
+
+---
+
+For more information various files can be found in the 'documentation' folder.
 
 --- 
 
