@@ -177,6 +177,7 @@ def set_batfreq(rectangles_temp, regions_temp, list_bats, num_bats): #sets the l
         tot_freq_range=[None] *num_bats[i]
         tot_freq_peakT=[None] *num_bats[i]
         tot_freq_peakF=[None] *num_bats[i]
+        j=0
         for j in range(num_bats[i]):
             tot_freq[j]=rectangles_temp[max_index+j][1]+rectangles_temp[max_index+j][3]
             tot_freq_range[j]=rectangles_temp[max_index+j][3]
