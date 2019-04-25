@@ -107,7 +107,61 @@ for i in range(len(bat_list1)):
     AD2.create_template('Barataud_CD_TimeExpansion10x/040_QCF_flat-ended-FM_N-leisleri_approach_Correze_May1995_M-Barataud.wav',
                         bat_list1[i], bat_list2[i], 'nlei_eval', exp_factor=10, template_type='evaluate')
 
+#tten_nlei_pkuh: 17 pulses, file 051
+#bat_list1=(1,3,4,5,6,7,12,16,17,18,20,22,23,23,26,27,43)
+#bat_list2=(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0)
+#for i in range(len(bat_list1)):
+    #AD2.create_template('Barataud_CD_TimeExpansion10x/051_QCF_flat-ended-FM_T-teniotis_N-leisleri_P-kuhlii_Alpes-Mar_August1996_M-Barataud.wav',
+                        #bat_list1[i], bat_list2[i], 'tten_eval', exp_factor=10, template_type='evaluate')
 
+#ppyg: 5 pulses, file 052
+bat_list1=(0,5,11,13,16)
+bat_list2=(0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/052_flat-ended-FM_P-pygmaeus_Lozere_May2009_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'ppyg_eval', exp_factor=10, template_type='evaluate')
+
+#ppyg: 6 pulses, file 053
+bat_list1=(1,3,3,5,11,14)
+bat_list2=(0,0,1,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/053_QCF_flat-ended-FM_P-pygmaeus_Lozere_May2009_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'ppyg_eval', exp_factor=10, template_type='evaluate')
+
+#ppyg: 6 pulses, file 055
+bat_list1=(0,2,8,12,14,16)
+bat_list2=(0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/055_flat-ended-FM_P-pygmaeus_P-kuhlii_Lozere_May2009_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'ppyg_eval', exp_factor=10, template_type='evaluate')
+
+#msch_FM: 4 pulses, file 056
+bat_list1=(0,2,4,5)
+bat_list2=(0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/056_flat-ended-FM_M-schreibersii_Correze_June2009_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'msch_FM_eval', exp_factor=10, template_type='evaluate')
+
+#msch: 30 pulses, file 057
+bat_list1=(1,7,9,11,12,13,16,30,31,34, 36,38,39,40,42,43,48,52,55,60, 63,65,69,76,77,78,80,82,95,100)
+bat_list2=(0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/057_flat-ended-FM_M-schreibersii_Correze_June2009_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'msch_eval', exp_factor=10, template_type='evaluate')
+
+#msch: 11 pulses, file 059
+bat_list1=(2,5,8,19,21,23,24,27,30,40,41)
+bat_list2=(0,0,0,0,0,0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/059_flat-ended-FM_QCF_M-schreibersii_Correze_June2009_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'msch_eval', exp_factor=10, template_type='evaluate')
+
+#msch: 8 pulses, file 060
+bat_list1=(12,13,14,15,18,23,26,27)
+bat_list2=(0,0,0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/060_flat-ended-FM_M-schreibersii_Correze_June2009_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'msch_eval', exp_factor=10, template_type='evaluate')
 
 
 
