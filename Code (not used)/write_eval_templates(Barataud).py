@@ -163,6 +163,86 @@ for i in range(len(bat_list1)):
     AD2.create_template('Barataud_CD_TimeExpansion10x/060_flat-ended-FM_M-schreibersii_Correze_June2009_M-Barataud.wav',
                         bat_list1[i], bat_list2[i], 'msch_eval', exp_factor=10, template_type='evaluate')
 
+#ppip: 3 pulses, file 061
+bat_list1=(1,3,7)
+bat_list2=(0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/061_flat-ended-FM_P-pipistrellus_Corsica_July2002_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'ppip_eval', exp_factor=10, template_type='evaluate')
+
+#ppip: 6 pulses, file 062
+bat_list1=(1,3,5,7,10,13)
+bat_list2=(0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/062_flat-ended-FM_P-pipistrellus_Allier_May2003_S-Giosa.wav',
+                        bat_list1[i], bat_list2[i], 'ppip_eval', exp_factor=10, template_type='evaluate')
+
+#ppip: 8 pulses, file 063
+bat_list1=(1,4,6,10,12,14,16,19)
+bat_list2=(0,0,0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/063_flat-ended-FM_P-pipistrellus_Hte-Vienne_May1991_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'ppip_eval', exp_factor=10, template_type='evaluate')
+
+#pnat: 7 pulses, file 066
+bat_list1=(1,5,8,10,13,16,19)
+bat_list2=(0,0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/066_QCF_flat-ended-FM_P-nathusii_Switzerland_April2008_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'pnat_eval', exp_factor=10, template_type='evaluate')
+
+#pkuh: 3 pulses, file 071
+bat_list1=(1,6,10)
+bat_list2=(0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/071_flat-ended-FM_P-kuhlii_Hte-Vienne_May2009_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'pkuh_eval', exp_factor=10, template_type='evaluate')
+
+#hsav_QCF: 7 pulses, file 074
+bat_list1=(6,9,14,22,25,28,33)
+bat_list2=(0,0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/074_QCF_capt_H-savii_Lozere_August1991_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'hsav_QCF_eval', exp_factor=10, template_type='evaluate')
+
+#hsav: 5 pulses, file 075
+bat_list1=(2,4,6,11,16)
+bat_list2=(0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/075_flat-ended-FM_capt_H-savii_Alpes-Maritimes_July1993_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'hsav_eval', exp_factor=10, template_type='evaluate')
+
+#hsav: 8 pulses, file 076
+bat_list1=(20,27,31,36,45,48,53,56)
+bat_list2=(0,0,0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/076_flat-ended-FM_H-savii_Alpes-Maritimes_July2009_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'hsav_eval', exp_factor=10, template_type='evaluate')
+
+#mdas: 2 pulses, file 077
+bat_list1=(1,3)
+bat_list2=(0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/077_flat-ended-FM_M-dasycneme_Belgium_September1998_M-Van-de-Sijpe.wav',
+                        bat_list1[i], bat_list2[i], 'mdas_eval', exp_factor=10, template_type='evaluate')
+
+#eser_nasal: 5 pulses, file 077a
+bat_list1=(3,6,11,14,17)
+bat_list2=(0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Barataud_CD_TimeExpansion10x/077a_FM-nasal_E-serotinus_understorey_Correze_August2012_M-Barataud.wav',
+                        bat_list1[i], bat_list2[i], 'eser_nasal_eval', exp_factor=10, template_type='evaluate')
+
+
+
+
+#test files
+name_file='080_FM-nasal_B-barbastellus_appr_FME-H1_Hte-Vienne_June2010_M-Barataud'
+
+rectangles, regions, spectros=AD2.spect_loop('Barataud_CD_TimeExpansion10x/'+name_file + '.wav', exp_factor=10)
+
+AD2.show_mregions(rectangles, spectros)
+
 
 
 #bbar: 5 pulses, file 100
