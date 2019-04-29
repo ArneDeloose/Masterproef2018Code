@@ -791,6 +791,9 @@ def evaluation_SOM(**optional):
 
     count=np.zeros((len(list_bats),), dtype=np.uint8)
     col_list=['ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
+              'k8', 'rs', 'gp', 'ch', 'm,','ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
+              'k8', 'rs', 'gp', 'ch', 'm,','ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
+              'k8', 'rs', 'gp', 'ch', 'm,','ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
               'k8', 'rs', 'gp', 'ch', 'm,']
     for i in range(X_final.shape[1]):
         for j in range(len(list_bats)):

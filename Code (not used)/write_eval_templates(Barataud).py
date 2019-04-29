@@ -256,4 +256,6 @@ for i in range(len(bat_list1)):
 
 
 #evaluation plot
-X_final, Y_final, net, D=AD4.evaluation_SOM(dim1=20, dim2=20, export='Evaluation_bbar (no_eval)')
+X_final, Y_final, net, D=AD4.evaluation_SOM(dim1=30, dim2=30, export='Evaluation_plot')
+
+AD4.print_evaluate()

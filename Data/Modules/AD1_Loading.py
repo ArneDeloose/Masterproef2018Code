@@ -204,6 +204,12 @@ def set_batscolor(**optional): #dictionary linking bats to colors
     list_bats=sorted(os.listdir(path + '/Templates_arrays'))
     colors=("#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
             "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
+            "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700",
+            "#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
+            "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
+            "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700",
+            "#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
+            "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
             "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700")
     for i in range(len(list_bats)):
         colors_bat[list_bats[i]]=colors[i]
