@@ -151,7 +151,7 @@ def ROI(spect_norm, kern, X):
     #dilation
     kernel = np.ones((kern,kern), np.uint8)
     img_dilation = cv2.dilate(thresh, kernel, iterations=1)
-    _,ctrs, _ = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
+    ctrs, _ = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
     #Retr_external: retrieval mode external. Only outer edges are considered,
     #Contours within other contours aren't allowed, any holes are ignored
     #Chain_approx_simple: stores only the outer points of the rectangle (4 points)   
