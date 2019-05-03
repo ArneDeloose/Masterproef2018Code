@@ -257,5 +257,9 @@ for i in range(len(bat_list1)):
 
 #evaluation plot
 X_final, Y_final, net, D=AD4.evaluation_SOM(dim1=30, dim2=30, export='Evaluation_plot')
+final_scores, match_scores=AD4.KNN_calc(X_final, Y_final, D, 3)
+
+_, _, _, _, list_bats, _, _, _, _, _=AD1.loading_init()
+
 
 AD4.print_evaluate()

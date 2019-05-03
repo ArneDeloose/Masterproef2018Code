@@ -852,3 +852,42 @@ def print_evaluate(**optional):
     
     return()
 
+def KNN_calc(X_final, Y_final, D, m):
+    dist_mat=[] #distances, empty list because it needs to be sorted later
+    matches=np.zeros((X_final.shape[1],)) #saves the matches, temporarily
+    match_scores=np.zeros((X_final.shape[1],)) #final score individual
+    final_scores=np.zeros((np.max(Y_final),)) #final score type
+    #temp variables
+    count_i=0
+    temp_1=0
+    temp_2=0
+    for i in range(X_final.shape[1]): #go through all datapoints
+        dist_mat=[] #reset the list so it is empty again
+        for j in range(X_final.shape[1]): #check with each other datapoint
+            dist_mat.append(np.sum(np.dot((X_final[:,i]-X_final[:,j])**2, D))) #distance between point j and i
+        #take the lowest m distances, save them in matches temporarily
+        for k in range(m):
+            #sort ascending, take m lowest values
+            index_dummy=[dist_mat.index(x) for x in sorted(dist_mat)] #sorted indexes from low to high
+            #indexes start at 1 because index 0 is the point i (matches with itself, distance 0)
+            matches[k]=Y_final[index_dummy[k+1]]
+        #calculate score for point i
+        count_i=0 #start at zero
+        for l in range(m):
+            if Y_final[i]==matches[l]:
+                count_i+=1 #one match
+        match_scores[i]=count_i/m #total percentage of matches
+    
+    #convert scores to take average per type
+    for n1 in range(np.max(Y_final)):
+        temp_1=0
+        temp_2=0
+        for n2 in range(X_final.shape[1]): #go through all datapoints
+            if Y_final[n2]==n1: #match 
+                temp_1+=1 #number of matches
+                temp_2+=match_scores[n2] #score
+        if temp_1==0:
+            final_scores[n1]=0
+        else:
+            final_scores[n1]=temp_2/temp_1 #average score
+    return(final_scores, match_scores)
