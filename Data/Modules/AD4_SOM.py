@@ -850,6 +850,12 @@ def print_evaluate(**optional):
         print(list_bats[i]+ ': ' + str(num_bats_eval[i]))
     print('Total: ' + str(num_total_eval))
     
+    print(' ') #empty line
+    print('Total templates: ')
+    for i in range(len(list_bats)):
+        print(list_bats[i]+ ': ' + str(num_bats[i]+num_bats_dml[i]+num_bats_eval[i]))
+    print('Total: ' + str(num_total+num_total_dml+num_total_eval))
+    
     return()
 
 def KNN_calc(X_final, Y_final, D, m):
