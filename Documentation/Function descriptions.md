@@ -316,6 +316,46 @@ Places a region within a fixed box for a plot.
 
 ---
 
+evaluation_SOM(\**optional), return()
+
+Make a plot to evaluate the SOM. Also returns the features X_final and the labels Y_final as well as the DML matrix D. Optional arguments:
+* path: pathway to the data
+* dim1 and dim2: dimensions SOM
+* Full: use all data in Audio_data to fit SOM
+* List_files: use a list of files to fit SOM
+* title: title of the plot
+* export: pathway to export the plot
+
+---
+
+print_evaluate(\**optional), return()
+
+prints out the number of templates for every bat, both per type and in total. The optional argument 'path' can be given to specificy the pathway to the templates folders.
+
+---
+
+calc_total_bats(\**optional), return(tot_bats)
+
+Returns a vector with the number of templates for each bat species. The optional argument 'path' can be given to specificy the pathway to the templates folders.
+
+---
+
+KNN_calc(X_final, Y_final, D, \**optional), return(final_scores, match_scores)
+
+Calculates the KNN. P(A) is returned for each class as final_scores in the order from list_bats. Match_scores contains the scores for individual datapoints.  The optional argument 'path' can be given to specificy the pathway to the templates folders. K is the number of neighbors considered. If K isn't given, a default of 3 is used.
+
+---
+
+calc_PE(\**optional), return(PE)
+
+Calculates the baseline chance P(E) that a point belongs to the same class. P(E) is given as a vector in the order from list_bats.
+
+calc_kappa(PA, PE), return(kappa)
+
+Calculates kappa from PA and PE. Given as a vector kappa with the order from list_bats.
+
+---
+
 **Module 5: AD5_MDS:**
 
 ---
