@@ -858,11 +858,37 @@ def print_evaluate(**optional):
     
     return()
 
-def KNN_calc(X_final, Y_final, D, m):
+def calc_total_bats(**optional):
+    if 'path' in optional:
+        path=optional['path']
+    else:
+        path=AD1.set_path()
+    #calculate num_bats
+    list_bats, _=AD1.set_batscolor(Templates=path+'/Templates_regular') #bat species
+    num_bats, num_total=AD1.set_numbats(list_bats, Templates=path+'/Templates_regular') #number of each bat species
+    num_bats_dml, num_total_dml=AD1.set_numbats(list_bats, Templates=path+'/Templates_dml')
+    num_bats_eval, num_total_eval=AD1.set_numbats(list_bats, Templates=path+'/Templates_eval')
+    total_bats=num_bats+num_bats_dml+num_bats_eval
+    return(total_bats)
+
+#optional argument:
+    #path: path to templates folder
+    #K: number of neighbors (default: 3)
+
+def KNN_calc(X_final, Y_final, D, **optional):
+    if 'path' in optional:
+        path=optional['path']
+    else:
+        path=AD1.set_path()
+    if 'K' in optional:
+        m=optional['K']
+    else: #defaut to 3 neighbors
+        m=3
+    list_bats, _=AD1.set_batscolor(Templates=path+'/Templates_regular') #length needed
     dist_mat=[] #distances, empty list because it needs to be sorted later
     matches=np.zeros((X_final.shape[1],)) #saves the matches, temporarily
     match_scores=np.zeros((X_final.shape[1],)) #final score individual
-    final_scores=np.zeros((np.max(Y_final),)) #final score type
+    final_scores=np.zeros((len(list_bats),)) #final score type (PA)
     #temp variables
     count_i=0
     temp_1=0
@@ -897,3 +923,24 @@ def KNN_calc(X_final, Y_final, D, m):
         else:
             final_scores[n1]=temp_2/temp_1 #average score
     return(final_scores, match_scores)
+
+def calc_PE(**optional):
+    if 'path' in optional:
+        path=optional['path']
+    else:
+        path=AD1.set_path()
+    #set num_bats
+    list_bats, _=AD1.set_batscolor(Templates=path+'/Templates_regular') #bat species
+    num_bats, num_total=AD1.set_numbats(list_bats, Templates=path+'/Templates_regular') #number of each bat species
+    num_bats_dml, num_total_dml=AD1.set_numbats(list_bats, Templates=path+'/Templates_dml')
+    num_bats_eval, num_total_eval=AD1.set_numbats(list_bats, Templates=path+'/Templates_eval')
+    #initialise kappa
+    PE=np.zeros((len(list_bats),))
+    total_dummy=num_total+num_total_dml+num_total_eval
+    for i in range(len(list_bats)):
+        PE[i]=(num_bats[i]+num_bats_dml[i]+num_bats_eval[i])/total_dummy 
+    return(PE)
+
+def calc_kappa(PA, PE):
+    kappa=PA-PE/(1-PE)
+    return(kappa)
