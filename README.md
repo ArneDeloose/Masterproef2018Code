@@ -11,11 +11,17 @@ Before running the code, make sure the green arrow in environment is on the bats
 If there are problems with this, the environment can also be created manually. To do this, open the Anaconda prompt and type the following lines followed by enter:
 
 conda create --name [env_name]
+
 y
+
 conda activate [env_name]
+
 conda install pip
+
 y
+
 pip install [package_name]
+
 
 [env_name] must be replaced by the name of the environment. In the final line, a necessary package is filled inon [package_name]. This package will then be downloaded and installed automatically.
 The final line is repeated for every package (by pressing the up arrow key, the last line is copied). 
