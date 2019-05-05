@@ -11,6 +11,7 @@ from scipy import signal
 import cv2
 import pywt
 import matplotlib.patches as patches
+import librosa
 
 #load modules
 import AD1_Loading as AD1
@@ -27,8 +28,12 @@ def spect(file_name, **optional):
         spect_window_overlap=optional['spect_window_overlap']
     else:
         spect_window_overlap=para[7]
-    #Reads information from audio file
-    [sample_rate,samples]=scipy.io.wavfile.read(file_name, mmap=False)
+    #Read information from audio file
+    if 'sr' in optional: #used for metadata
+        samples, sample_rate= librosa.load(file_name, sr=optional['sr'])
+        samples= samples * 32768 #converting factor
+    else:
+        sample_rate, samples=scipy.io.wavfile.read(file_name, mmap=False)
     if 'channel' in optional:
         if optional['channel']=='l':
             samples=samples[:,0]
@@ -311,4 +316,4 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
     #print out the hash-codes to the user
     print('hash code:', hash_code)
     return()
-    
+

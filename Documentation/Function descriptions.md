@@ -76,7 +76,7 @@ Prints out which feature index correlates to which bat (or frequency).
 
 spect(file_name, \**optional), return(sample_rate, samples, t, total_time, steps, microsteps)
 
-Reads a file and returns the necessary information to make a spectrogram. For time dilation spectrograms an optinional argument 'channel' needs to be given which needs to be 'r' or 'l' (right or left channel). Steps and microsteps give information about the number of spectrograms that will be created.
+Reads a file and returns the necessary information to make a spectrogram. For time dilation spectrograms an optional argument 'exp_factor' needs to be given with the expansion factor. Steps and microsteps give information about the number of spectrograms that will be created. The optional argument 'channel' ('l' or 'r') can be given if only one channel is used. 'sr' is the sampling rate. This needs to be given if certain metadata is present that can't be parsed. In this case, librosa is used instead of scipy.
 
 ---
 

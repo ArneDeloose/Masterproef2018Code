@@ -254,6 +254,22 @@ for i in range(len(bat_list1)):
 
 
 
+###
+#nlei series
+
+names_files=os.listdir(path+'/Audio_data/Oevel_kanaal_14tot17aug2017_SM4')
+for i in range(len(names_files)):
+    rectangles, regions, spectros=AD2.spect_loop('Oevel_kanaal_14tot17aug2017_SM4/'+names_files[i])
+    AD2.show_mregions(rectangles, spectros)
+
+
+name_file=names_files[0]
+bat_list1=(0,3,4,6,9)
+bat_list2=(0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Oevel_kanaal_14tot17aug2017_SM4/' +name_file,
+                        bat_list1[i], bat_list2[i], 'nlei', template_type='regular')
+
 
 #evaluation plot
 X_final, Y_final, net, D=AD4.evaluation_SOM(dim1=30, dim2=30, export='Evaluation_plot')
@@ -263,4 +279,13 @@ _, _, _, _, list_bats, _, _, _, _, _=AD1.loading_init()
 
 
 AD4.print_evaluate()
+
+
+
+names_files=os.listdir(path+'/Audio_data/Oevel_kanaal_14tot17aug2017_SM4')
+for i in range(len(names_files)):
+    rectangles, regions, spectros=AD2.spect_loop('Oevel_kanaal_14tot17aug2017_SM4/'+names_files[i], sr=384000)
+    AD2.show_mregions(rectangles, spectros)
+
+
 
