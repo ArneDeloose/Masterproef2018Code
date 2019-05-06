@@ -278,9 +278,9 @@ def create_template(file_name, timestep, region_num, bat_name, **optional): #cre
     if 'template_type' in optional:
         if optional['template_type']=='regular':
             path+='/Templates_regular' #add this to the pathway
-        if optional['template_type']=='dml':
+        elif optional['template_type']=='dml':
             path+='/Templates_dml' #add this to the pathway
-        if optional['template_type']=='evaluate':
+        elif optional['template_type']=='evaluate':
             path+='/Templates_eval' #add this to the pathway
         else: #default to regular
             path+='/Templates_regular' #add this to the pathway

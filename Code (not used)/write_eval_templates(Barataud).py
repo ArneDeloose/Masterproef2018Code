@@ -6,8 +6,11 @@ import AD1_Loading as AD1
 import AD2_Spectro as AD2
 import AD4_SOM as AD4
 
-path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
-os.chdir(path)
+path1='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
+
+path2='C:/Users/arne/Documents/GitHub/Masterproef2018Code/Data'; #Change this to directory that stores the data
+
+os.chdir(path2)
 
 
 freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD1.loading_init()
@@ -253,33 +256,70 @@ for i in range(len(bat_list1)):
                         bat_list1[i], bat_list2[i], 'bbar_eval', exp_factor=10, template_type='evaluate')
 
 
+names_files=os.listdir(path1+'/Audio_data/Oevel_kanaal_14tot17aug2017_SM4')
 
 ###
 #nlei series
 
-names_files=os.listdir(path+'/Audio_data/Oevel_kanaal_14tot17aug2017_SM4')
-for i in range(len(names_files)):
-    rectangles, regions, spectros=AD2.spect_loop('Oevel_kanaal_14tot17aug2017_SM4/'+names_files[i])
+names_files=os.listdir(path+'/Audio_data/Leie22tot23aug2018_Swift')
+for i in range(400, 403):
+    rectangles, regions, spectros=AD2.spect_loop('Leie22tot23aug2018_Swift/'+names_files[i], sr=384000)
     AD2.show_mregions(rectangles, spectros)
 
-
+#Oevel
 name_file=names_files[0]
-bat_list1=(0,3,4,6,9)
+bat_list1=(4,9,21,23,24,25,30,31,35,37,40,42)
+bat_list2=(0,0,0,0,0,0,0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Oevel_kanaal_14tot17aug2017_SM4/' +name_file,
+                        bat_list1[i], bat_list2[i], 'ppip', template_type='regular')
+
+#ppip
+name_file=names_files[1]
+bat_list1=(7,8,11,12,14,18,21,21,23,24)
+bat_list2=(0,0,0,0,0,0,0,1,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Oevel_kanaal_14tot17aug2017_SM4/' +name_file,
+                        bat_list1[i], bat_list2[i], 'ppip', template_type='regular')
+
+name_file=names_files[2]
+bat_list1=(7,8,11,12,14,18,21,21,23,24)
+bat_list2=(0,0,0,0,0,0,0,1,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Oevel_kanaal_14tot17aug2017_SM4/' +name_file,
+                        bat_list1[i], bat_list2[i], 'ppip', template_type='regular')
+
+name_file=names_files[3]
+bat_list1=(2,21,25,28,32,33,35,37,40,42,43)
+bat_list2=(0,0,0,0,0,0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Oevel_kanaal_14tot17aug2017_SM4/' +name_file,
+                        bat_list1[i], bat_list2[i], 'ppip', template_type='regular')
+
+#nlei
+name_file=names_files[302]
+bat_list1=(17,22,27,31,34)
 bat_list2=(0,0,0,0,0)
 for i in range(len(bat_list1)):
     AD2.create_template('Oevel_kanaal_14tot17aug2017_SM4/' +name_file,
-                        bat_list1[i], bat_list2[i], 'nlei', template_type='regular')
+                        bat_list1[i], bat_list2[i], 'nlei', template_type='regular', sr=384000)
+
+name_file=names_files[304]
+bat_list1=(38,39,48,49,85,86)
+bat_list2=(0,0,0,0,0,0)
+for i in range(len(bat_list1)):
+    AD2.create_template('Oevel_kanaal_14tot17aug2017_SM4/' +name_file,
+                        bat_list1[i], bat_list2[i], 'nlei', template_type='regular', sr=384000)
+
 
 
 #evaluation plot
-X_final, Y_final, net, D=AD4.evaluation_SOM(dim1=30, dim2=30, export='Evaluation_plot')
-final_scores, match_scores=AD4.KNN_calc(X_final, Y_final, D, 3)
+X_final, Y_final, net, D=AD4.evaluation_SOM(dim1=30, dim2=30, Plot_Flag=False)
 
-_, _, _, _, list_bats, _, _, _, _, _=AD1.loading_init()
-
-
-AD4.print_evaluate()
-
+PA, match_scores=AD4.KNN_calc(X_final, Y_final, D)
+PE=AD4.calc_PE()
+kappa=AD4.calc_kappa(PA, PE)
+AD4.print_evaluate2(PA, kappa)
 
 
 names_files=os.listdir(path+'/Audio_data/Oevel_kanaal_14tot17aug2017_SM4')
