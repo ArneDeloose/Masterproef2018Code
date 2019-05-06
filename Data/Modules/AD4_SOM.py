@@ -785,43 +785,45 @@ def evaluation_SOM(**optional):
     print('SOM complete (3/3)')
     
     #make a plot
-    m=X_final.shape[0]
+    if 'Plot_Flag' in optional:
+        if optional['Plot_Flag']: #if set to true   
+            m=X_final.shape[0]
     
-    f, ax1=plt.subplots()
+            f, ax1=plt.subplots()
 
-    count=np.zeros((len(list_bats),), dtype=np.uint8)
-    col_list=['ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
+            count=np.zeros((len(list_bats),), dtype=np.uint8)
+            col_list=['ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
               'k8', 'rs', 'gp', 'ch', 'm,','ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
               'k8', 'rs', 'gp', 'ch', 'm,','ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
               'k8', 'rs', 'gp', 'ch', 'm,','ro', 'g>', 'b*', 'cv', 'm^', 'kd', 'r<', 'g1', 'b2', 'c3', 'm4',
               'k8', 'rs', 'gp', 'ch', 'm,']
-    for i in range(X_final.shape[1]):
-        for j in range(len(list_bats)):
-            #take the datapoint and the bmu
-            t=X_final[:,i].reshape(np.array([m, 1])) 
-            bmu, bmu_idx=AD4.find_bmu(t, net, m, D)
-            if Y_final[i]==j: #class j
-                col=col_list[j]
-                if count[j]==0: #first hit
-                    ax1.plot(bmu_idx[0], bmu_idx[1], col, label=list_bats[j])
-                    count[j]+=1 #only do this once
-                else: #plot without label
-                    ax1.plot(bmu_idx[0], bmu_idx[1], col)
-    #legend            
-    handles, labels = ax1.get_legend_handles_labels()            
-    plt.legend(handles, labels)
-    plt.xlabel('Index 1 SOM')
-    plt.ylabel('Index 2 SOM')
-    #optional
-    if 'title' in optional:
-        plt.title(optional['title'])
-    if 'export' in optional:
-        plt.savefig(optional['export'])
-    plt.show()
-    plt.close()
+            for i in range(X_final.shape[1]):
+                for j in range(len(list_bats)):
+                    #take the datapoint and the bmu
+                    t=X_final[:,i].reshape(np.array([m, 1])) 
+                    bmu, bmu_idx=AD4.find_bmu(t, net, m, D)
+                    if Y_final[i]==j: #class j
+                        col=col_list[j]
+                        if count[j]==0: #first hit
+                            ax1.plot(bmu_idx[0], bmu_idx[1], col, label=list_bats[j])
+                            count[j]+=1 #only do this once
+                        else: #plot without label
+                            ax1.plot(bmu_idx[0], bmu_idx[1], col)
+            #legend            
+            handles, labels = ax1.get_legend_handles_labels()            
+            plt.legend(handles, labels)
+            plt.xlabel('Index 1 SOM')
+            plt.ylabel('Index 2 SOM')
+            #optional
+            if 'title' in optional:
+                plt.title(optional['title'])
+            if 'export' in optional:
+                plt.savefig(optional['export'])
+            plt.show()
+            plt.close()
     return(X_final, Y_final, net, D)
 
-def print_evaluate(**optional):
+def print_evaluate(**optional): #prints out number of templates
     #set parameters
     if 'path' in optional:
         path=optional['path']
@@ -855,6 +857,26 @@ def print_evaluate(**optional):
     for i in range(len(list_bats)):
         print(list_bats[i]+ ': ' + str(num_bats[i]+num_bats_dml[i]+num_bats_eval[i]))
     print('Total: ' + str(num_total+num_total_dml+num_total_eval))
+    
+    return()
+    
+def print_evaluate2(PA, kappa, **optional): #prints out results
+    #set parameters
+    if 'path' in optional:
+        path=optional['path']
+    else:
+        path=AD1.set_path()
+    #calculate num_bats
+    list_bats, _=AD1.set_batscolor(Templates=path+'/Templates_regular') #bat species
+    num_bats, num_total=AD1.set_numbats(list_bats, Templates=path+'/Templates_regular') #number of each bat species
+    num_bats_dml, num_total_dml=AD1.set_numbats(list_bats, Templates=path+'/Templates_dml')
+    num_bats_eval, num_total_eval=AD1.set_numbats(list_bats, Templates=path+'/Templates_eval')
+    total_bats=num_bats+num_bats_dml+num_bats_eval
+    #print out
+    print('Species: Amount: PA: Cohen-kappa:')
+    for i in range(len(list_bats)):
+        print(list_bats[i]+ '     ' + str(total_bats[i]) + '       ' +
+              str(round(PA[i],2) )+ '   ' + str(round(kappa[i],2)))
     
     return()
 
