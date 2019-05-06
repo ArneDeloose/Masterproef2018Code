@@ -10,7 +10,7 @@ path1='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that st
 
 path2='C:/Users/arne/Documents/GitHub/Masterproef2018Code/Data'; #Change this to directory that stores the data
 
-os.chdir(path2)
+os.chdir(path1)
 
 freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD1.loading_init()
 
@@ -313,13 +313,20 @@ for i in range(len(bat_list1)):
 
 
 #evaluation plot
-X_final, Y_final, net, D=AD4.evaluation_SOM(path='C:/Users/arne/Documents/School/Thesis/Templates_experiment1',
-                                            dim1=30, dim2=30, Plot_Flag=False)
+X_final, Y_final, net, D=AD4.evaluation_SOM(path='C:/Users/arne/Documents/School/Thesis/Templates_experiment1_1',
+                                            dim1=30, dim2=30, Plot_Flag=True)
 
-PA, match_scores=AD4.KNN_calc(X_final, Y_final, D)
-PE=AD4.calc_PE()
+#eval plot
+X_final_eval, Y_final_eval, net, D=AD4.evaluation_SOM(path='C:/Users/arne/Documents/School/Thesis/Templates_experiment1_2',
+                                            dim1=30, dim2=30, Plot_Flag=True, SOM=net, dml=D)
+
+
+
+PA, match_scores=AD4.KNN_calc(X_final, Y_final, D,
+                              path='C:/Users/arne/Documents/School/Thesis/Templates_experiment1')
+PE=AD4.calc_PE(path='C:/Users/arne/Documents/School/Thesis/Templates_experiment1')
 kappa=AD4.calc_kappa(PA, PE)
-AD4.print_evaluate2(PA, kappa)
+AD4.print_evaluate2(PA, kappa, path='C:/Users/arne/Documents/School/Thesis/Templates_experiment1')
 
 
 names_files=os.listdir(path+'/Audio_data/Oevel_kanaal_14tot17aug2017_SM4')
