@@ -702,7 +702,7 @@ def evaluation_SOM(**optional):
         network_dim= para[9]
     
     #calculate num_bats
-    list_bats, _=AD1.set_batscolor(Templates=path+'/Templates_regular') #bat species
+    list_bats, _=AD1.set_batscolor(Templates=path) #bat species
     num_bats, num_total=AD1.set_numbats(list_bats, Templates=path+'/Templates_regular') #number of each bat species
     num_bats_dml, num_total_dml=AD1.set_numbats(list_bats, Templates=path+'/Templates_dml')
     num_bats_eval, num_total_eval=AD1.set_numbats(list_bats, Templates=path+'/Templates_eval')

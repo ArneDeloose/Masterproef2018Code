@@ -81,11 +81,8 @@ def read_templates(**optional):
         path+='/Templates_regular' #add this to the pathway to get the correct folder
     full_path='' #string will be constructed every step
     full_path_rec=''
-    list_bats, _=AD1.set_batscolor()
-    if 'Templates' in optional:
-        num_bats, _=AD1.set_numbats(list_bats, Templates=optional['Templates'])
-    else:
-        num_bats, _=AD1.set_numbats(list_bats)
+    list_bats, _=AD1.set_batscolor(**optional)
+    num_bats, _=AD1.set_numbats(list_bats, **optional)
     regions={}
     rectangles={}
     count=0
@@ -113,20 +110,17 @@ def read_templates(**optional):
 #makes necessary template folders if they don't exist yet
 def make_folders(path, list_bats): 
     #top level folders
-    if not os.path.exists(path+ '/Templates_arrays'):
-        os.makedirs(path+ '/Templates_arrays')
-    if not os.path.exists(path+ '/Templates_images'):
-        os.makedirs(path+ '/Templates_images')
-    if not os.path.exists(path+ '/Templates_rect'):
-        os.makedirs(path+ '/Templates_rect')
-    #lower level
-    for i in range(len(list_bats)):
-        if not os.path.exists(path+ '/Templates_arrays'+ '/' + list_bats[i]):
-            os.makedirs(path+ '/Templates_arrays'+ '/' + list_bats[i])
-        if not os.path.exists(path+ '/Templates_images'+ '/' + list_bats[i]):
-            os.makedirs(path+ '/Templates_images'+ '/' + list_bats[i])
-        if not os.path.exists(path+ '/Templates_rect'+ '/' + list_bats[i]):
-            os.makedirs(path+ '/Templates_rect'+ '/' + list_bats[i])
+    type_list1=['regular', 'dml', 'eval']
+    type_list2=['rect', 'images', 'arrays']
+    for i in range(3):
+        if not os.path.exists(path+ '/Templates_'+type_list1[i]): #top level
+            os.makedirs(path+ '/Templates_'+type_list1[i]) #makes the folder
+        for j in range(3):
+            if not os.path.exists(path+ '/Templates_'+type_list1[i]+'/Templates_'+type_list2[j]): #medium level
+                os.makedirs(path+ '/Templates_'+type_list1[i]+'/Templates_'+type_list2[j])
+            for k in range(len(list_bats)):
+                if not os.path.exists(path+ '/Templates_'+type_list1[i]+'/Templates_'+type_list2[j]+'/' +list_bats[k]): #bottom level
+                    os.makedirs(path+ '/Templates_'+type_list1[i]+'/Templates_'+type_list2[j]+'/' +list_bats[k])
     return()
 
 #imports a SOM
@@ -199,10 +193,19 @@ def set_batscolor(**optional): #dictionary linking bats to colors
         path=optional['Templates']
     else:
         path=AD1.set_path()
-        path+='/Templates_regular' #add this to the pathway to get the correct folder
+    path+='/Templates_regular' #add this to the pathway to get the correct folder
     colors_bat={}
     list_bats=sorted(os.listdir(path + '/Templates_arrays'))
     colors=("#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
+            "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
+            "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700",
+            "#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
+            "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
+            "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700",
+            "#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
+            "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
+            "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700",
+            "#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 
             "#f0f8ff", "#faebd7", "#f0ffff", "#006400", "#ffa500",
             "#ffff00", "#40e0d0", "#4b0082", "#ff00ff", "#ffd700",
             "#ff0000", "#008000", "#0000ff", "#a52a2a", "#ee82ee", 

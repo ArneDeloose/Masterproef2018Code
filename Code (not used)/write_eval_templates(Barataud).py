@@ -12,7 +12,6 @@ path2='C:/Users/arne/Documents/GitHub/Masterproef2018Code/Data'; #Change this to
 
 os.chdir(path2)
 
-
 freq_bats, freq_range_bats, freq_peakT_bats, freq_peakF_bats, list_bats, colors_bat, num_bats, num_total, regions_temp, rectangles_temp=AD1.loading_init()
 
 #test files
@@ -314,7 +313,8 @@ for i in range(len(bat_list1)):
 
 
 #evaluation plot
-X_final, Y_final, net, D=AD4.evaluation_SOM(dim1=30, dim2=30, Plot_Flag=False)
+X_final, Y_final, net, D=AD4.evaluation_SOM(path='C:/Users/arne/Documents/School/Thesis/Templates_experiment1',
+                                            dim1=30, dim2=30, Plot_Flag=False)
 
 PA, match_scores=AD4.KNN_calc(X_final, Y_final, D)
 PE=AD4.calc_PE()
