@@ -35,11 +35,18 @@ dependencies:
   - lazy-object-proxy=1.3.1=py37hfa6e2cd_2
   - libpng=1.6.37=h2a8f88b_0
   - libsodium=1.0.16=h9d3ae62_0
+  - m2w64-gcc-libgfortran=5.3.0=6
+  - m2w64-gcc-libs=5.3.0=7
+  - m2w64-gcc-libs-core=5.3.0=7
+  - m2w64-gmp=6.1.0=2
+  - m2w64-libwinpthread-git=5.0.0.4634.697f757=2
   - markupsafe=1.1.1=py37he774522_0
   - mccabe=0.6.1=py37_1
   - mistune=0.8.4=py37he774522_0
+  - msys2-conda-epoch=20160418=1
   - nbconvert=5.5.0=py_0
   - nbformat=4.4.0=py37_0
+  - notebook=5.7.8=py37_0
   - numpydoc=0.9.1=py_0
   - openssl=1.1.1b=he774522_1
   - packaging=19.0=py37_0
@@ -48,6 +55,7 @@ dependencies:
   - parso=0.4.0=py_0
   - pickleshare=0.7.5=py37_0
   - pip=19.1=py37_0
+  - prometheus_client=0.6.0=py37_0
   - prompt_toolkit=2.0.9=py37_0
   - psutil=5.6.2=py37he774522_0
   - pycodestyle=2.5.0=py37_0
@@ -64,6 +72,7 @@ dependencies:
   - python-dateutil=2.8.0=py37_0
   - pytz=2019.1=py_0
   - pywin32=223=py37hfa6e2cd_1
+  - pywinpty=0.5.5=py37_1000
   - pyzmq=18.0.0=py37ha925a31_0
   - qt=5.9.7=vc14h73c81de_0
   - qtawesome=0.5.7=py37_1
@@ -71,6 +80,7 @@ dependencies:
   - qtpy=1.7.0=py37_1
   - requests=2.21.0=py37_0
   - rope=0.14.0=py_0
+  - send2trash=1.5.0=py37_0
   - setuptools=41.0.1=py37_0
   - sip=4.19.8=py37h6538335_0
   - snowballstemmer=1.2.1=py37_0
@@ -84,6 +94,7 @@ dependencies:
   - spyder=3.3.4=py37_0
   - spyder-kernels=0.4.4=py37_0
   - sqlite=3.28.0=he774522_0
+  - terminado=0.8.2=py37_0
   - testpath=0.4.2=py37_0
   - tornado=6.0.2=py37he774522_0
   - traitlets=4.3.2=py37_0
@@ -94,10 +105,12 @@ dependencies:
   - wheel=0.33.1=py37_0
   - win_inet_pton=1.1.0=py37_0
   - wincertstore=0.2=py37_0
+  - winpty=0.4.3=4
   - wrapt=1.11.1=py37he774522_0
   - zeromq=4.3.1=h33f27b4_3
   - zlib=1.2.11=h62dcd97_3
   - pip:
+    - audioread==2.1.6
     - chardet==3.0.4
     - cycler==0.10.0
     - cython==0.29.7
@@ -105,10 +118,14 @@ dependencies:
     - gitpython==2.1.11
     - idna==2.8
     - imageio==2.5.0
+    - joblib==0.13.2
     - kiwisolver==1.1.0
+    - librosa==0.6.3
+    - llvmlite==0.28.0
     - mathematics==1.0.0
     - matplotlib==3.0.3
     - networkx==2.3
+    - numba==0.43.1
     - numpy==1.16.3
     - opencv-python==4.1.0.25
     - pandas==0.24.2
@@ -117,6 +134,7 @@ dependencies:
     - pymongo==3.8.0
     - pywavelets==1.0.3
     - pywt==1.0.6
+    - resampy==0.2.1
     - scikit-image==0.15.0
     - scikit-learn==0.20.3
     - scipy==1.2.1
