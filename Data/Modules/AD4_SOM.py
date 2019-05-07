@@ -689,6 +689,7 @@ def calc_center(region, time, min_freq, max_freq, rectangle):
     #fit eval: if true, use eval data on SOM
     #SOM: load in an existing SOM
     #dml: load in an existing dml
+    #templates_features: load in a set of templates for the features
 def evaluation_SOM(**optional):
     #set parameters
     if 'path' in optional:
@@ -702,7 +703,7 @@ def evaluation_SOM(**optional):
         network_dim= para[9]
     
     #calculate num_bats
-    list_bats, _=AD1.set_batscolor(Templates=path) #bat species
+    list_bats, _=AD1.set_batscolor(Templates=path+'/Templates_regular') #bat species
     num_bats, num_total=AD1.set_numbats(list_bats, Templates=path+'/Templates_regular') #number of each bat species
     num_bats_dml, num_total_dml=AD1.set_numbats(list_bats, Templates=path+'/Templates_dml')
     num_bats_eval, num_total_eval=AD1.set_numbats(list_bats, Templates=path+'/Templates_eval')
@@ -714,7 +715,10 @@ def evaluation_SOM(**optional):
     #read eval_templates
     regions3, rectangles3=AD1.read_templates(Templates=path+'/Templates_eval')
     #set templates
-    templates=regions.copy()
+    if 'templates_features' in optional:
+        templates, _=AD1.read_templates(Templates=optional['templates_features']+'/Templates_regular')
+    else:
+        templates=regions.copy()
     #combine rectangles and regions
     for k in range(num_total_dml):
         rectangles[num_total+k]=rectangles2[k]
