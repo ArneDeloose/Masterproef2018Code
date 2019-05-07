@@ -937,7 +937,7 @@ def KNN_calc(X_final, Y_final, D, **optional):
         match_scores[i]=count_i/m #total percentage of matches
     
     #convert scores to take average per type
-    for n1 in range(np.max(Y_final)):
+    for n1 in range(len(list_bats)):
         temp_1=0
         temp_2=0
         for n2 in range(X_final.shape[1]): #go through all datapoints
@@ -968,5 +968,5 @@ def calc_PE(**optional):
     return(PE)
 
 def calc_kappa(PA, PE):
-    kappa=PA-PE/(1-PE)
+    kappa=(PA-PE)/(1-PE)
     return(kappa)
