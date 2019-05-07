@@ -77,10 +77,10 @@ p3,=ax.plot(range(1,10), kappa_matrix2[:, 2], '-kd', label='ppip (eval)')
 plt.xlabel('Number of neighbors (K)')
 plt.ylabel('Cohen\'s kappa')
 plt.legend()
+plt.savefig('KNN_plot.eps', format='eps', dpi=1000)
 plt.show()
 #handles, labels = ax.get_legend_handles_labels()
 #ax.legend(handles, labels)
-plt.savefig('KNN_plot.eps', format='eps', dpi=1000)
 plt.close()
 
 
