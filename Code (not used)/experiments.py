@@ -4,6 +4,8 @@ import os
 path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Modules';
 os.chdir(path)
 import AD4_SOM as AD4
+import matplotlib.pyplot as plt
+import numpy as np
 
 path0='C:/Users/arne/Documents/GitHub/Masterproef2018Code/Data'; #Change this to directory that stores the data
 os.chdir(path0)
@@ -45,7 +47,6 @@ X_final, Y_final, net, D=AD4.evaluation_SOM(path=path1, dim1=5, dim2=5, Plot_Fla
 X_final_eval, Y_final_eval, net, D=AD4.evaluation_SOM(path=path2, dim1=5, dim2=5, Plot_Flag=False,
                                                       SOM=net, dml=D, templates_features=path1)
 
-import numpy as np
 
 kappa_matrix1=np.zeros((9,3))
 kappa_matrix2=np.zeros((9,3))
@@ -63,7 +64,6 @@ for i in range(1, 10):
     PE=AD4.calc_PE(path=path2)
     kappa_matrix2[i-1, :]=AD4.calc_kappa(PA, PE)
     
-import matplotlib.pyplot as plt
 
 ax=plt.subplot(1,1,1)
 p1,=ax.plot(range(1,10), kappa_matrix1[:, 0],  '-ro', label='eser')
@@ -85,8 +85,48 @@ plt.close()
 
 
 #experiment 2.2: DML
+path1='C:/Users/arne/Documents/Github/Masterproef2018Code/Experiment_templates/Experiment1_1'
+path2='C:/Users/arne/Documents/Github/Masterproef2018Code/Experiment_templates/Experiment1_2'
 
-#identity matrix D
+#fit som and dml, reg and dml data
+X_final, Y_final, net, D=AD4.evaluation_SOM(path=path1, dim1=5, dim2=5, Plot_Flag=False)
+
+#eval Data, insert previous som and dml
+X_final_eval, Y_final_eval, net, D=AD4.evaluation_SOM(path=path2, dim1=5, dim2=5, Plot_Flag=False,
+                                                      SOM=net, dml=D, templates_features=path1)
+
+D2=np.identity(30)
+
+#calculate kappa1 (DML)
+PA, match_scores=AD4.KNN_calc(X_final_eval, Y_final_eval, D, path=path2, K=5)
+PE=AD4.calc_PE(path=path2)
+kappa1=AD4.calc_kappa(PA, PE)
+AD4.print_evaluate2(PA, kappa1, path=path2)
+
+for i in range(7): #normalise data
+    X_final_eval[i,:]=(X_final_eval[i,:]-np.min(X_final_eval[i,:]))/(np.max(X_final_eval[i,:])-np.min(X_final_eval[i,:]))
+
+
+#calculate kappa2 (Euclidean)
+PA, match_scores=AD4.KNN_calc(X_final_eval, Y_final_eval, D2, path=path2, K=5)
+PE=AD4.calc_PE(path=path2)
+kappa2=AD4.calc_kappa(PA, PE)
+AD4.print_evaluate2(PA, kappa2, path=path2)
+
+#cluster seperately
+#freq
+D3=D[0:7,0:7]
+PA, match_scores=AD4.KNN_calc(X_final_eval[0:7, :], Y_final_eval, D3, path=path2, K=5)
+PE=AD4.calc_PE(path=path2)
+kappa=AD4.calc_kappa(PA, PE)
+AD4.print_evaluate2(PA, kappa, path=path2)
+
+#ssim
+D4=D[7:,7:]
+PA, match_scores=AD4.KNN_calc(X_final_eval[7:, :], Y_final_eval, D4, path=path2, K=5)
+PE=AD4.calc_PE(path=path2)
+kappa=AD4.calc_kappa(PA, PE)
+AD4.print_evaluate2(PA, kappa, path=path2)
 
 
 #experiment 3
