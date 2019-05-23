@@ -1,16 +1,18 @@
 import os
-path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data';
+path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Modules';
 os.chdir(path)
-import AD_functions as AD
+import AD4_SOM as AD4
+import AD5_MDS as AD5
+
 path='C:/Users/arne/Documents/School/Thesis'; #Change this to directory that stores the data
 os.chdir(path)
 
 list_files=('eser-1_ppip-2µl1µA043_AEI.wav', 'eser-1_ppip-2µl1µA048_AFT.wav',
             'ppip-1µl1µB011_ABJ.wav', 'ppip-1µl1µA045_AAS.wav', 'mdau-1µl1µA052_AJP.wav')
 
-net, raw_data=AD.fit_SOM(list_files)
+net, raw_data=AD4.fit_SOM(list_files)
 
-U=AD.calc_Umat(net)
+U=AD4.calc_Umat(net)
 import matplotlib.pyplot as plt
 f, ax1 = plt.subplots()
 plt.imshow(U)
@@ -21,19 +23,19 @@ plt.close()
 
 
 #plot MDS for full data
-net_features=AD.calc_net_features(net)
-D=AD.calc_dist_matrix2(net_features, 1, raw_data=raw_data)
-pos=AD.calc_pos(D)
-AD.plot_MDS2(pos, 5, 5)
+net_features=AD4.calc_net_features(net)
+D=AD5.calc_dist_matrix(net_features, 1, raw_data=raw_data)
+pos=AD5.calc_pos(D)
+AD5.plot_MDS2(pos, 5, 5)
 
-score=AD.calc_BMU_scores(raw_data, net)
+score=AD4.calc_BMU_scores(raw_data, net)
 
 
-net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2=AD.calc_output(list_files, net)
+net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2=AD4.calc_output(list_files, net)
 
-full_region, full_rectangle, full_spectro, full_name=AD.rearrange_output(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2, net)
+full_region, full_rectangle, full_spectro, full_name=AD4.rearrange_output(net_label, features, features_key, features_freq, rectangles, regions, spectros, list_files2, net)
 
-AD.plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, 1, 2, 3)
+AD4.plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, 1, 2, 3)
 
 #####
 

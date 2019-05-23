@@ -66,17 +66,23 @@ for i in range(1, 10):
     
 
 ax=plt.subplot(1,1,1)
-p1,=ax.plot(range(1,10), kappa_matrix1[:, 0],  '-ro', label='eser')
-p2,=ax.plot(range(1,10), kappa_matrix1[:, 1], '-g>', label='nlei')
-p3,=ax.plot(range(1,10), kappa_matrix1[:, 2], '-b*', label='ppip')
+p1,=ax.plot(range(1,10), kappa_matrix1[:, 0],  '-ko', label='eser')
+p2,=ax.plot(range(1,10), kappa_matrix1[:, 1], '-k>', label='nlei')
+p3,=ax.plot(range(1,10), kappa_matrix1[:, 2], '-k*', label='ppip')
 
-p1,=ax.plot(range(1,10), kappa_matrix2[:, 0], '-cv', label='eser (eval)')
-p2,=ax.plot(range(1,10), kappa_matrix2[:, 1], '-m^', label='nlei (eval)')
-p3,=ax.plot(range(1,10), kappa_matrix2[:, 2], '-kd', label='ppip (eval)')
+p1,=ax.plot(range(1,10), kappa_matrix2[:, 0], '-ro', label='eser (val)')
+p2,=ax.plot(range(1,10), kappa_matrix2[:, 1], '-r>', label='nlei (val)')
+p3,=ax.plot(range(1,10), kappa_matrix2[:, 2], '-r*', label='ppip (val)')
 
 plt.xlabel('Number of neighbors (K)')
 plt.ylabel('Cohen\'s kappa')
-plt.legend()
+
+legend_x = 1
+legend_y = 0.5
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width*0.65, box.height])
+plt.legend(loc='center left', bbox_to_anchor=(legend_x, legend_y))
+
 plt.savefig('KNN_plot.eps', format='eps', dpi=1000)
 plt.show()
 #handles, labels = ax.get_legend_handles_labels()
