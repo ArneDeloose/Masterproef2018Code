@@ -573,6 +573,7 @@ def fit_dml(**optional):
     D=model.transformer()
     #Export D-matrix
     if 'export' in optional:
+        path=AD1.set_path()
         np.save(path + '/' + optional['export'] + '.npy', D)
     return(D)
 
