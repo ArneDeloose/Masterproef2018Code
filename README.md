@@ -25,7 +25,7 @@ pip install [package_name]
 
 [env_name] must be replaced by the name of the environment. In the final line, a necessary package is filled inon [package_name]. This package will then be downloaded and installed automatically.
 The final line is repeated for every package (by pressing the up arrow key, the last line is copied). 
-The necessary packages are: gitpython, cython, pyDML, scipy, numpy, opencv-python, matplotlib, mathematics, os-win, pywt, pandas, scikit-image, sklearn and librosa.
+The necessary packages are: gitpython, cython, pyDML, scipy, numpy, opencv-python, matplotlib, mathematics, os-win, pywt, pandas, scikit-image, sklearn, ipywidgets and librosa.
 
 ---
 
