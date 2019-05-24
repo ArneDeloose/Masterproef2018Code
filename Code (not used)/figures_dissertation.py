@@ -133,6 +133,7 @@ X_transform=np.matmul(D, X_final)
 
 dist=AD5.calc_dist_matrix(X_transform, 1)
 pos=AD5.calc_pos(dist)
+pos_TSNE=AD5.calc_pos_TSNE(dist)
 
 _, _, _, _, list_bats, _, _, _, _, _=AD1.loading_init()
 
@@ -147,6 +148,22 @@ plot5=plt.scatter(pos[62:, 0], pos[62:, 1], color='orange', marker='<', s=s, lw=
 plt.legend(handles=[plot1,plot2, plot3, plot4, plot5])
 plt.xlabel('Dimension 1')
 plt.ylabel('Dimension 2')
+plt.savefig('MDS1.eps', format='eps', dpi=1000)
 plt.show()
 plt.close()
+
+s = 10
+plot1=plt.scatter(pos_TSNE[0:17, 0], pos_TSNE[0:17, 1], color='turquoise', marker='o', s=s, lw=1, label='eser')
+plot2=plt.scatter(pos_TSNE[17:23, 0], pos_TSNE[17:23, 1], color='red', marker='>', s=s, lw=1, label='mdau')
+plot3=plt.scatter(pos_TSNE[23:44, 0], pos_TSNE[23:44, 1], color='green', marker='v', s=s, lw=1, label='nlei')
+plot4=plt.scatter(pos_TSNE[44:62, 0], pos_TSNE[44:62, 1], color='blue', marker='^', s=s, lw=1, label='pnat')
+plot5=plt.scatter(pos_TSNE[62:, 0], pos_TSNE[62:, 1], color='orange', marker='<', s=s, lw=1, label='ppip')
+plt.legend(handles=[plot1,plot2, plot3, plot4, plot5])
+plt.xlabel('Dimension 1')
+plt.ylabel('Dimension 2')
+plt.savefig('TSNE1.eps', format='eps', dpi=1000)
+plt.show()
+plt.close()
+
+
 
