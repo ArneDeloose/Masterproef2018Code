@@ -4,6 +4,7 @@ import os
 path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Modules';
 os.chdir(path)
 import AD4_SOM as AD4
+import AD5_MDS as AD5
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -50,6 +51,29 @@ X_final_eval, Y_final_eval, net, D=AD4.evaluation_SOM(path=path2, dim1=5, dim2=5
 
 kappa_matrix1=np.zeros((9,3))
 kappa_matrix2=np.zeros((9,3))
+
+#MDS
+X_transform=np.matmul(D, X_final)
+dist=AD5.calc_dist_matrix(X_transform, 1)
+pos=AD5.calc_pos(dist)
+s = 10
+plot1=plt.scatter(pos[0:6, 0], pos[0:6, 1], color='turquoise', marker='o', s=s, lw=1, label='1')
+plot2=plt.scatter(pos[6:11, 0], pos[6:11, 1], color='red', marker='>', s=s, lw=1, label='2')
+plot3=plt.scatter(pos[11:23, 0], pos[11:23, 1], color='green', marker='v', s=s, lw=1, label='3')
+plt.legend(handles=[plot1, plot2, plot3])
+plt.xlabel('Dimension 1')
+plt.ylabel('Dimension 2')
+plt.show()
+plt.close()
+
+plot4=plt.scatter(pos[23:29, 0], pos[23:29, 1], color='turquoise', marker='o', s=s, lw=1, label='1')
+plot5=plt.scatter(pos[29:34, 0], pos[29:34, 1], color='red', marker='>', s=s, lw=1, label='2')
+plot6=plt.scatter(pos[34:, 0], pos[34:, 1], color='green', marker='v', s=s, lw=1, label='3')
+plt.legend(handles=[plot4, plot5, plot6])
+plt.xlabel('Dimension 1')
+plt.ylabel('Dimension 2')
+plt.show()
+plt.close()
 
 
 #calculate kappa1
