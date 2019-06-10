@@ -1,4 +1,7 @@
 
+#make sure there are folders for every type in the experiment templates
+#(empty folders aren't copied from Github, but are needed)
+
 #initial setting
 import os
 path='C:/Users/arne/Documents/Github/Masterproef2018Code/Data/Modules';
