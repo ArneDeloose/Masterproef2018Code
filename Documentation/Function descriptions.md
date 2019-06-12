@@ -389,3 +389,9 @@ plot_MDS2(pos, dim1, dim2), return()
 Plots an MDS of data and SOM neurons (dim1 and dim2 are dimensions of the SOM). Neurons are red and datapoints are black.
 
 ---
+
+conc_features(features), return(conc_features)
+
+Concatenates the features together so they form a single array for use in an MDS.
+
+---

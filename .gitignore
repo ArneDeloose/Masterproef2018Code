@@ -10,3 +10,5 @@ Data/.ipynb_checkpoints/Notebook-checkpoint.ipynb
 Data/__pycache__/AD_functions.cpython-36.pyc
 Data/__pycache__/AD_functions.cpython-36.pyc
 Data/__pycache__/AD_functions.cpython-36.pyc
+*.pyc
+Data/Modules/__pycache__/AD1_Loading.cpython-36.pyc

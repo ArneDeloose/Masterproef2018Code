@@ -237,6 +237,8 @@ def heatmap_neurons(M, **optional):
     f, ax1 = plt.subplots()
     plt.imshow(M)
     plt.colorbar()
+    plt.xlabel('Dim 2')
+    plt.ylabel('Dim 1') 
     plt.show()
     if 'export' in optional:
         f.savefig(optional['export']+ '.jpg', format='jpg', dpi=1200)

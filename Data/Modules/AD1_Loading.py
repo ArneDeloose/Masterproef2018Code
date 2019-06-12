@@ -22,7 +22,7 @@ def loading_init(**optional):
 def set_parameters():
     #read in the file
     path=AD1.set_path()
-    f=open(path+'\parameters.txt', 'r')
+    f=open(path+'/parameters.txt', 'r')
     a=f.readlines()
     words=[None]*len(a)
     i=0 #counter

@@ -59,3 +59,9 @@ def plot_MDS2(pos, dim1, dim2):
     plt.show()
     return()
 
+#conc_features: changes features into a single array for use in an MDS
+def conc_features(features):
+    conc_features=np.zeros((features[0].shape[0], 0))
+    for i in range(len(features)):
+        conc_features=np.concatenate((conc_features, features[i]), axis=1)
+    return(conc_features)
