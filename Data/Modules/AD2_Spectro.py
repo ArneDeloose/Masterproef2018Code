@@ -30,8 +30,9 @@ def spect(file_name, **optional):
         spect_window_overlap=para[7]
     #Read information from audio file
     if 'sr' in optional: #used for metadata
-        samples, sample_rate= librosa.load(file_name, sr=optional['sr'])
+        samples, sample_rate= librosa.load(file_name, sr=optional['sr'], mono=False)
         samples= samples * 32768 #converting factor
+        samples=np.transpose(samples)
     else:
         sample_rate, samples=scipy.io.wavfile.read(file_name, mmap=False)
     if 'channel' in optional:
