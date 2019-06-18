@@ -350,8 +350,8 @@ def calc_matching(full_name, **optional):
 #max_time: width of the plot in ms (between 1 and 10)
 #Min_freq: minimum frequency of the plot in kHz (between 20 and 120)
 #Max_freq: maximum frequency of the plot in kHz (between 20 and 120)
-#Context: 0 or 1. If this is put on 1, a second plot is shown to the left which is zoomed out more.
-#FI: 0 or 1. If this is put on 1, a second plot is shown to the right which shows a frequency-intensity diagram.
+#Context: True or False. If this is put on True, a second plot is shown to the left which is zoomed out more.
+#FI: True or False. If this is put on True, a second plot is shown to the right which shows a frequency-intensity diagram.
 #fig_size: size of the figure (between 1 and 10)
 
 def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim1, dim2, point, max_time, min_freq, max_freq, context, FI, fig_size, **optional):
@@ -371,13 +371,13 @@ def plot_region_neuron(full_region, full_rectangle, full_spectro, full_name, dim
     fig_size=(fig_size, fig_size)
     
     #create plot
-    if context==1 and FI==1:
+    if context==True and FI==True:
         f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=fig_size,  gridspec_kw = {'width_ratios':[1, 1, 1]})
-    if context==1 and FI==0:
+    if context==True and FI==False:
         f, (ax1, ax2) = plt.subplots(1, 2, figsize=fig_size,  gridspec_kw = {'width_ratios':[1, 1]})
-    if context==0 and FI==1:
+    if context==False and FI==True:
         f, (ax2, ax3) = plt.subplots(1, 2, figsize=fig_size,  gridspec_kw = {'width_ratios':[1, 1]})
-    if context==0 and FI==0:
+    if context==False and FI==False:
         f, (ax2) = plt.subplots(1, 1, figsize=fig_size)
      
     #Middle image, always on 

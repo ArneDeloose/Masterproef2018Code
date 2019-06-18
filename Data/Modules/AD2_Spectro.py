@@ -144,7 +144,7 @@ def rescale_region(reg):
         region[i]={}
         for j,d in reg[i].items():
             dummy=(reg[i][j]-reg[i][j].min())/(reg[i][j].max()-reg[i][j].min()) 
-            region[i][j]=np.array(np.round(dummy*256), dtype=np.uint8) #Convert to grayscale
+            region[i][j]=np.array(math.floor(dummy*256), dtype=np.uint8) #Convert to grayscale
     return(region)
 
 #Extracts regions from a spectrogram
