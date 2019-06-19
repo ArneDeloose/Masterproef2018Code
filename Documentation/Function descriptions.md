@@ -1,4 +1,4 @@
-Decription of all the functions. Use ctrl+F to find a function
+Description of all the functions. Use ctrl+F to find a function
 
 **Module 1: AD1_Loading:**
 

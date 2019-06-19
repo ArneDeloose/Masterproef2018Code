@@ -63,7 +63,10 @@ def spect_plot(samples, sample_rate, **optional):
     dummy=(spectrogram-spectrogram.min())/(spectrogram.max()-spectrogram.min())
     dummy=np.array(np.round(dummy*256), dtype=np.uint8) #Convert to grayscale
     if 'nosub' in optional: #no subtraction
-        spectro=dummy[min_spec_freq:max_spec_freq,:]
+        if optional['nosub']: #if True
+            spectro=dummy[min_spec_freq:max_spec_freq,:]
+        else: #subtraction
+            spectro=AD2.substraction(dummy[min_spec_freq:max_spec_freq,:])
     else: #subtraction
         spectro=AD2.substraction(dummy[min_spec_freq:max_spec_freq,:])
     return(spectro) 
@@ -208,14 +211,16 @@ def overload(rectangles, regions, **optional):
 #Plots a region as a red rectangle on a spectrogram
 def show_region(rectangles, spectros, i, **optional):
     para=AD1.set_parameters()
-    if 'spec_min' in optional:
-        spec_min=optional['spec_min']
+    if 'min_spec_freq' in optional:
+        min_spec_freq=optional['min_spec_freq']
     else:
-        spec_min=para[17]
-    if 'spec_max' in optional:
-        spec_max=optional['spec_max']
+        min_spec_freq=para[4]
+    spec_min=int(min_spec_freq/0.375)
+    if 'max_spec_freq' in optional:
+        max_spec_freq=optional['max_spec_freq']
     else:
-        spec_max=para[18]
+        max_spec_freq=para[5]
+    spec_max=int(max_spec_freq/0.375)
     if 'spect_window' in optional:
         t_max=optional['spect_window']
     else:

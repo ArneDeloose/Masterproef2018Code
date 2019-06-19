@@ -272,7 +272,7 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
         network_dim=(optional['dim1'], optional['dim2'])
     else:
         para=AD1.set_parameters()
-        network_dim= para[9]
+        network_dim=para[9]
     #initialisation
     temp_rectangle={}
     temp_region={}
@@ -303,7 +303,7 @@ def rearrange_output(net_label, features, features_key, features_freq, rectangle
                         temp_region[count]=regions[k][temp_key[0]][temp_key[1]]
                         temp_key2=AD4.check_key(regions[k][temp_key[0]], temp_key[1])
                         temp_rectangle[count]=rectangles[k][temp_key[0]][:, temp_key2]
-                        temp_spectro[count], extra_time=AD4.calc_context_spec(spectros, k, temp_key)
+                        temp_spectro[count], extra_time=AD4.calc_context_spec(spectros, k, temp_key, **optional)
                         temp_rectangle[count][0]+=extra_time #correct for bigger spect
                         #temp_spectro[count]=spectros[k][temp_key[0]]
                         distance=sum((features[k][:,l] - net[i,j,:])**2)
@@ -530,7 +530,7 @@ def calc_maxc(full_names, **optional):
 #Optional argument 'export' is used to save the matrix
 def fit_dml(**optional):
     #set parameters
-    if 'path' in optional:
+    if 'Templates' in optional:
         path=optional['path']
     else:
         path=AD1.set_path()
@@ -626,7 +626,6 @@ def make_list(list_files, **optional):
         if list_files2[i-count][-4:]!='.WAV' and list_files2[i-count][-4:]!='.wav': #no wav file
             del list_files2[i-count] #delete files that aren't audio
             count+=1 #len changes, take this into account        
-    
     return(list_files2)
 
 #places region within a fixed box
@@ -689,7 +688,7 @@ def calc_center(region, time, min_freq, max_freq, rectangle):
     #List_files: use a list of files to fit SOM
     #title: title of the plot
     #export: pathway to export the plot
-    #fit eval: if true, use eval data on SOM
+    #fit_eval: if true, use eval data on SOM
     #SOM: load in an existing SOM
     #dml: load in an existing dml
     #templates_features: load in a set of templates for the features
@@ -746,7 +745,7 @@ def evaluation_SOM(**optional):
             count+=1
     
     #calculate dml
-    if 'dml' in optional:
+    if 'DML' in optional:
         D=optional['dml']
     else:        
         D=AD4.fit_dml(data_X=np.transpose(X), data_Y=Y)
