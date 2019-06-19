@@ -1,4 +1,4 @@
-name: test_environment
+name: bats_environment
 channels:
   - defaults
 dependencies:
