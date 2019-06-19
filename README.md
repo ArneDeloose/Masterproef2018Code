@@ -8,8 +8,6 @@ Download the Github folder by clicking the green 'clone or download' button at t
 Install Anaconda and open the application. In the left menu, go to environments. At the bottom click 'import'. Pick a name and select the file 'bats_environment.yml'. 
 Before running the code, make sure the green arrow in environment is on the bats_environment by clicking on it. This will ensure the necessary packages can be loaded and they remain compatible with new versions.
 
-Alternatively, the bats_environment.rar can be unzipped and copied directly into Anaconda3/envs.
-
 If there are problems with this, the environment can also be created manually. To do this, open the Anaconda prompt and type the following lines followed by enter:
 
 conda create --name [env_name]
