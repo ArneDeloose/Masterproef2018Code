@@ -1,7 +1,7 @@
 # Masterproef2018Code
-Python code for the master thesis about bat sounds.
+Python code for the master thesis about bat sounds. The file 'DelooseArne_Thesis.pdf' contains the full text of the dissertation. All other files are accompanying Python code.
 
-**Tutorial**:
+**Tutorial (Python)**:
 
 Download the Github folder by clicking the green 'clone or download' button at the top right corner. Download as ZIP and extract the files.
 
