@@ -1,7 +1,15 @@
 # Masterproef2018Code
-Python code for the master thesis about bat sounds. The file 'DelooseArne_Thesis.pdf' contains the full text of the dissertation. All other files are accompanying Python code.
+Github folder accompanying the master thesis: Acoustic monitoring of bats with self-organizing maps (bats unmasked). 
 
-**Tutorial (Python)**:
+**Contact**: Arne.Deloose@UGent.be
+
+**Contents**:
+-Bats_Unmasked.pptx: scientific poster
+-Acoustic_monitoring_of_bats.pdf: presentation
+-DelooseArne_Thesis.pdf: full dissertation
+-other files are related to the Python code
+
+**Tutorial (Python code)**:
 
 Download the Github folder by clicking the green 'clone or download' button at the top right corner. Download as ZIP and extract the files.
 
