@@ -4,10 +4,15 @@ Github folder accompanying the master thesis: Acoustic monitoring of bats with s
 **Contact**: Arne.Deloose@UGent.be
 
 **Contents**:
+
 -Bats_Unmasked.pptx: scientific poster
+
 -Acoustic_monitoring_of_bats.pdf: presentation
+
 -DelooseArne_Thesis.pdf: full dissertation
+
 -other files are related to the Python code
+
 
 **Tutorial (Python code)**:
 
