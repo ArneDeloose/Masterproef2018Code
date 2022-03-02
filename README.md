@@ -1,5 +1,4 @@
-# Masterproef2018Code
-Github folder accompanying the master thesis: Acoustic monitoring of bats with self-organizing maps (bats unmasked). 
+# Master Thesis: Acoustic Monitoring of Bats with Self-Organizing Maps (bats unmasked). 
 
 **Contact**: Arne.Deloose@UGent.be
 
@@ -11,7 +10,7 @@ Github folder accompanying the master thesis: Acoustic monitoring of bats with s
 
 -DelooseArne_Thesis.pdf: full dissertation
 
--other files are related to the Python code
+-Remaining files are related to the Python code
 
 
 **Tutorial (Python code)**:
